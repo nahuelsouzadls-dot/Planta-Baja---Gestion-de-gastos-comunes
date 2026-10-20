@@ -1,89 +1,81 @@
-# Guía de Roles de Agentes — Cuándo Usar Cada Uno
+# Guía de Roles de Agentes
 
-Este documento es para Nahuel. Te ayuda a decidir qué agente invocar según lo que necesitás hacer en cada momento del proyecto.
+## Punto de entrada: siempre el Arquitecto
 
----
-
-## Los 4 Agentes y Sus Usos
-
-| Agente | Archivo | Usalo cuando... |
-|---|---|---|
-| Tutor | `agent-tutor.md` | Querés entender algo antes de implementarlo, o te quedaste trabado y querés aprender el por qué |
-| Implementador Backend | `agent-implementador.md` | Tenés que escribir código Django: modelos, migraciones, vistas, lógica de negocio |
-| Diseñador de Pantallas | `agent-disenador.md` | Necesitás diseñar cómo va a verse y funcionar una pantalla antes de implementarla |
-| Revisor Técnico | `agent-revisor.md` | Terminaste de implementar algo y querés una segunda opinión antes de seguir |
-
----
-
-## Flujo Recomendado por Tarea
-
-Para cada feature o módulo del proyecto, el orden ideal es:
+**No invocás los agentes directamente.** Abrís Claude Code, cargás `agent-arquitecto.md`, y él coordina todo lo demás. El Arquitecto lee el estado del proyecto, te hace las preguntas necesarias, y él solo invoca a los otros agentes usando la herramienta `Agent`.
 
 ```
-1. TUTOR      → Entendé el concepto antes de empezar
-2. DISEÑADOR  → Diseñá la pantalla / flujo
-3. TUTOR      → Aclará dudas del diseño si aparecen
-4. IMPLEMENTADOR → Escribí el código
-5. TUTOR      → Entendé partes del código que no quedaron claras
-6. REVISOR    → Auditá antes de dar por terminado
+Vos  ──────────────────────────►  Arquitecto
+                                      │
+                    ┌─────────────────┼──────────────────┐
+                    ▼                 ▼                   ▼
+               Implementador       Tutor              Diseñador
+               (agent-implementador.md)  (agent-tutor.md)  (agent-disenador.md)
+                                                           │
+                                                      Revisor
+                                                 (agent-revisor.md)
 ```
 
-No es obligatorio seguir todos los pasos para features simples. Un CRUD básico puede ir directo al implementador. Pero para los flujos críticos (prorrateo, validación de pagos, ledger), seguí el orden completo.
+---
+
+## Los 5 Agentes
+
+| Agente | Archivo | Quién lo invoca | Para qué |
+|---|---|---|---|
+| **Arquitecto** | `agent-arquitecto.md` | **Vos** (siempre, al inicio) | Orquesta todo, toma decisiones, coordina el flujo |
+| **Tutor** | `agent-tutor.md` | Arquitecto (o vos directamente) | Explicar conceptos, enseñar el por qué detrás del código |
+| **Implementador** | `agent-implementador.md` | Arquitecto | Escribir código Django: modelos, vistas, lógica de negocio |
+| **Diseñador** | `agent-disenador.md` | Arquitecto | Wireframes, flujos UX, especificación de pantallas |
+| **Revisor** | `agent-revisor.md` | Arquitecto (automático al terminar una feature) | Auditar código antes de continuar |
 
 ---
 
-## Ejemplos Concretos
+## Cómo arrancar una sesión de trabajo
 
-### "Quiero implementar la carga de gastos mensuales"
-1. **Tutor:** "Explicame qué es un `GastoMensual` y cómo se relaciona con los apartamentos"
-2. **Diseñador:** "Diseñame la pantalla de carga de gastos para Confort S.A."
-3. **Implementador:** "Implementá el modelo `GastoMensual` con sus items y la vista para crearlo"
-4. **Revisor:** "Revisá este modelo y esta vista. ¿Los decimales están bien? ¿Hay validaciones faltantes?"
+1. Abrís Claude Code en la carpeta del proyecto (`/orca/administracion-gc`)
+2. Cargás `agent-arquitecto.md` como contexto
+3. Le decís qué querés trabajar hoy (o le preguntás qué viene después)
+4. Él lee el estado del repo, hace preguntas si las hay, y arranca
 
-### "No entiendo por qué se usa UUID como PK"
-→ **Tutor** directamente.
-
-### "Necesito el wireframe del portal del residente"
-→ **Diseñador** directamente.
-
-### "Implementé la validación de pagos, ¿está bien?"
-→ **Revisor** directamente, pegando el código.
-
-### "¿Qué pasa si dos admins validan el mismo comprobante al mismo tiempo?"
-→ **Tutor** para entender el problema, luego **Revisor** para verificar que el código lo maneje.
+Eso es todo. El resto lo coordina él.
 
 ---
 
-## Cómo Invocar un Agente
+## Cuándo sí invocás un agente directamente (sin pasar por el Arquitecto)
 
-En Claude Code, pegá el contenido del archivo `.md` del agente al inicio de tu prompt, o pasalo como contexto. Por ejemplo:
+Solo en estos casos:
 
-```
-[Pegá el contenido de agent-tutor.md]
-
----
-Mi pregunta: ¿Por qué el ledger es append-only y no simplemente actualizo el saldo?
-```
-
-O si usás Claude con archivos adjuntos, adjuntá el `.md` del agente correspondiente.
-
----
-
-## Agentes que Podés Agregar Después
-
-A medida que el proyecto crezca, estos agentes van a ser útiles:
-
-| Agente | Cuándo agregarlo |
+| Situación | Agente directo |
 |---|---|
-| **Redactor de Tests** | Cuando empieces a escribir tests unitarios y de integración (recomendado desde Fase 2) |
-| **DevOps / Infra** | Cuando necesites configurar Docker, Railway, Render, o el pipeline de CI/CD |
-| **Documentador** | Cuando necesites generar documentación de API (OpenAPI) o manuales de usuario para Confort S.A. |
-| **Migrador de Datos** | Para el "Día Cero": importar los saldos iniciales desde el Excel de Confort S.A. |
+| Tenés una duda puntual de concepto y no querés abrir sesión completa | **Tutor** |
+| Querés revisar un snippet de código que acabás de escribir vos | **Revisor** |
+
+Para cualquier cosa que implique avanzar en el desarrollo, pasá por el Arquitecto.
 
 ---
 
-## Nota sobre el Aprendizaje
+## Flujo que sigue el Arquitecto internamente
 
-Si tu objetivo es aprender mientras construís (que es el caso), el **Tutor** es el agente más importante. Usalo más de lo que creés necesario.
+Para cada feature, el Arquitecto sigue este orden. Puede saltear pasos para features simples.
 
-Una regla práctica: si el implementador te da código que no entendés al 100%, antes de seguir, invocá al tutor con ese código y preguntale "¿por qué está escrito así?". Ese momento de fricción vale más que avanzar rápido.
+```
+1. Clarificación   → pregunta a Nahuel qué quiere lograr
+2. Decisiones      → resuelve pendientes de arquitectura antes de arrancar
+3. Tutor           → explica el concepto si Nahuel lo necesita
+4. Diseñador       → define la pantalla si tiene UI
+5. Implementador   → escribe el código
+6. Tutor           → explica partes del código si Nahuel lo pide
+7. Revisor         → audita antes de pasar al siguiente feature
+8. Resumen         → documenta qué se hizo y qué sigue
+```
+
+---
+
+## Agentes que se agregan en fases siguientes
+
+| Agente | Cuándo |
+|---|---|
+| **Redactor de Tests** | Fase 2 — cuando empiece la lógica del prorrateo y el ledger |
+| **DevOps / Infra** | Fase 4 — cuando haya que configurar Docker, CI/CD, deploy a Render/Railway |
+| **Migrador de Datos** | Fase 4 — para importar los saldos iniciales desde el Excel de Confort S.A. |
+| **Documentador** | Post-MVP — para generar manuales de usuario para Confort S.A. |

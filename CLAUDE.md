@@ -2,6 +2,8 @@
 
 Este archivo da contexto a Claude Code sobre el proyecto. Léelo completo antes de cualquier tarea.
 
+**Para trabajar en el proyecto: cargá `agent-arquitecto.md` como punto de entrada. Él orquesta a los demás agentes.**
+
 ---
 
 ## Qué es este proyecto
