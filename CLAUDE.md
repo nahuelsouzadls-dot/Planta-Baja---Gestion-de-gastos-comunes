@@ -112,10 +112,14 @@ administracion-gc/
 
 ---
 
+## Decisiones confirmadas
+
+- **Stack:** Python 3.12 + Django 5.x + PostgreSQL + Celery + Redis + Cloudflare R2 ✅
+- **Deploy:** Railway ✅
+
 ## Lo que NO está decidido aún
 
-- Stack final (ver sección de tensión arriba)
 - Nombre comercial del producto
 - Precio de la suscripción mensual
-- Si el portal de residentes es web, app móvil, o ambos
+- Portal de residentes: ¿Django Templates (MVP simple) o frontend separado?
 - Estrategia de onboarding para residentes mayores (considerando baja tech literacy)

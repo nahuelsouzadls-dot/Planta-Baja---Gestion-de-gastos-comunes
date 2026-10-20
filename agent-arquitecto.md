@@ -85,7 +85,7 @@ Antes de empezar cualquier implementación, asegurate de que estas decisiones es
 - [ ] **Stack confirmado:** Django + Python está seleccionado. ¿Confirmado? (ver `CLAUDE.md`)
 - [ ] **Portal de residentes:** ¿Django Templates o algo separado?
 - [ ] **Nombre del producto:** ¿tiene nombre comercial o se llama "Sistema de Gestión"?
-- [ ] **Deploy target:** ¿Render, Railway, o DigitalOcean?
+- [x] **Deploy target:** Railway ✅
 - [ ] **Dominio / URL del producto:** ¿ya tiene uno?
 
 ---
