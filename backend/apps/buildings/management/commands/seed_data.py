@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from apps.buildings.models import Apartment, Building
 from apps.expenses.models import MonthlyExpense
@@ -13,18 +13,18 @@ User = get_user_model()
 
 APARTMENTS = [
     # (number, floor, coefficient, is_rented)
-    ('101', 1, '0.08512300', False),
-    ('102', 1, '0.08234100', True),
-    ('103', 1, '0.07891200', True),
-    ('104', 1, '0.08102400', False),
-    ('201', 2, '0.08512300', True),
-    ('202', 2, '0.08234100', False),
-    ('203', 2, '0.07891200', True),
-    ('204', 2, '0.08102400', False),
-    ('301', 3, '0.08512300', False),
-    ('302', 3, '0.08234100', True),
-    ('303', 3, '0.07891200', False),
-    ('304', 3, '0.08102400', True),
+    ('101', 1, '0.08600000', False),
+    ('102', 1, '0.08300000', True),
+    ('103', 1, '0.08000000', True),
+    ('104', 1, '0.08400000', False),
+    ('201', 2, '0.08600000', True),
+    ('202', 2, '0.08300000', False),
+    ('203', 2, '0.08000000', True),
+    ('204', 2, '0.08400000', False),
+    ('301', 3, '0.08700000', False),
+    ('302', 3, '0.08300000', True),
+    ('303', 3, '0.08000000', False),
+    ('304', 3, '0.08400000', True),
 ]
 
 RESIDENTS = [
@@ -61,6 +61,10 @@ class Command(BaseCommand):
         User.objects.filter(is_superuser=False).delete()
         Apartment.objects.all().delete()
         Building.objects.all().delete()
+
+        total_coefficient = sum(Decimal(coef) for _, _, coef, _ in APARTMENTS)
+        if total_coefficient != Decimal('1'):
+            raise CommandError(f'Los coeficientes deben sumar 1, suman {total_coefficient}')
 
         self.stdout.write('Creando edificio...')
         building = Building.objects.create(
@@ -116,17 +120,17 @@ class Command(BaseCommand):
             coef = apt.ownership_coefficient
             residents = list(apt.residents.filter(is_active=True).select_related('user'))
 
-            owners = [r for r in residents if r.role == Resident.OWNER]
-            tenants = [r for r in residents if r.role == Resident.TENANT]
+            owners = [r for r in residents if r.role == Resident.Role.OWNER]
+            tenants = [r for r in residents if r.role == Resident.Role.TENANT]
 
             if apt.is_rented and tenants:
                 ordinary_charge = (ordinary_total * coef).quantize(Decimal('0.01'))
                 Movement.objects.create(
                     resident=tenants[0],
                     date=date(2026, 10, 1),
-                    movement_type=Movement.CHARGE,
+                    movement_type=Movement.MovementType.CHARGE,
                     amount=-ordinary_charge,
-                    payment_status=Movement.PENDING,
+                    payment_status=Movement.PaymentStatus.PENDING,
                     monthly_expense=expense,
                     notes=f'Gastos ordinarios octubre 2026 — Apto {apt.number}',
                 )
@@ -135,9 +139,9 @@ class Command(BaseCommand):
                     Movement.objects.create(
                         resident=owners[0],
                         date=date(2026, 10, 1),
-                        movement_type=Movement.CHARGE,
+                        movement_type=Movement.MovementType.CHARGE,
                         amount=-reserve_charge,
-                        payment_status=Movement.PENDING,
+                        payment_status=Movement.PaymentStatus.PENDING,
                         monthly_expense=expense,
                         notes=f'Fondo de reserva octubre 2026 — Apto {apt.number}',
                     )
@@ -146,24 +150,24 @@ class Command(BaseCommand):
                 Movement.objects.create(
                     resident=owners[0],
                     date=date(2026, 10, 1),
-                    movement_type=Movement.CHARGE,
+                    movement_type=Movement.MovementType.CHARGE,
                     amount=-total_charge,
-                    payment_status=Movement.PENDING,
+                    payment_status=Movement.PaymentStatus.PENDING,
                     monthly_expense=expense,
                     notes=f'Gastos totales octubre 2026 — Apto {apt.number}',
                 )
 
         # Simulate one completed payment
-        first_resident = Resident.objects.filter(role=Resident.OWNER).first()
+        first_resident = Resident.objects.filter(role=Resident.Role.OWNER).first()
         if first_resident:
-            charge = Movement.objects.filter(resident=first_resident, movement_type=Movement.CHARGE).first()
+            charge = Movement.objects.filter(resident=first_resident, movement_type=Movement.MovementType.CHARGE).first()
             if charge:
                 Movement.objects.create(
                     resident=first_resident,
                     date=date(2026, 10, 15),
-                    movement_type=Movement.PAYMENT,
+                    movement_type=Movement.MovementType.PAYMENT,
                     amount=abs(charge.amount),
-                    payment_status=Movement.COMPLETED,
+                    payment_status=Movement.PaymentStatus.COMPLETED,
                     notes='Transferencia Scotiabank — comprobante validado',
                 )
 

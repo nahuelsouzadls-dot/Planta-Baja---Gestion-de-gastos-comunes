@@ -28,7 +28,7 @@ administracion-gc/
 │   │   ├── expenses/    # Gastos mensuales
 │   │   └── ledger/      # Libro mayor (movimientos financieros)
 │   └── config/          # Settings, URLs, WSGI
-├── design/           # Mockups HTML del panel admin y portal residente
+├── design/           # Prototipo navegable: admin.html + portal-residente.html (archivo/ = mockups viejos)
 ├── docker-compose.yml
 └── CLAUDE.md         # Contexto del proyecto para desarrollo con IA
 ```
@@ -45,6 +45,16 @@ docker compose exec web python manage.py seed_data
 ```
 
 El servidor queda en `http://localhost:8000`.
+
+### Prototipo de diseño
+
+```bash
+cd design && python3 -m http.server 8765
+# http://localhost:8765/admin.html  ·  http://localhost:8765/portal-residente.html
+```
+
+Es estático (sin build) y comparte el estado entre ambas páginas vía `localStorage`:
+lo que un residente sube en el portal aparece para validar en el panel.
 El panel de Django admin en `http://localhost:8000/admin`.
 
 ## Caso de uso inicial
