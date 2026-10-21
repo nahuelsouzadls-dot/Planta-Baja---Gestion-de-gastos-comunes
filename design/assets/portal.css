@@ -1,0 +1,381 @@
+/*
+ * Portal de residentes. Pensado para gente mayor con poca práctica digital:
+ * texto más grande, una sola columna, una acción principal por pantalla.
+ */
+
+body.portal {
+  font-size: var(--text-md);
+}
+
+.portal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-4);
+  max-width: 880px;
+  margin: 0 auto;
+  padding: var(--s-5) var(--s-4);
+}
+
+.portal-top .brand__name {
+  font-size: var(--text-md);
+}
+
+.portal-top a {
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+
+.portal-main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 var(--s-4) var(--s-16);
+}
+
+.hello {
+  margin: var(--s-4) 0 var(--s-6);
+}
+
+.hello h1 {
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.hello p {
+  margin-top: var(--s-1);
+  color: var(--ink-3);
+}
+
+/* Tarjeta de estado: la respuesta a "¿tengo que pagar algo?" */
+.due {
+  position: relative;
+  padding: var(--s-8);
+  border-radius: var(--radius-lg);
+  background: var(--sheet);
+  box-shadow: var(--shadow-sheet);
+  overflow: hidden;
+}
+
+.due::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 6px;
+  background: var(--pending);
+}
+
+.due--moroso::before {
+  background: var(--overdue);
+}
+
+.due--revision::before {
+  background: #d9a441;
+}
+
+.due--pagado::before {
+  background: var(--paid);
+}
+
+.due__label {
+  font-size: var(--text-base);
+  color: var(--ink-2);
+}
+
+.due__amount {
+  margin: var(--s-2) 0 var(--s-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-display);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.due--moroso .due__amount {
+  color: var(--overdue);
+}
+
+.due__sub {
+  color: var(--ink-3);
+  font-size: var(--text-base);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+  padding-top: var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: var(--s-3);
+  align-content: start;
+}
+
+.step__n {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.step__title {
+  font-weight: 600;
+}
+
+.step p {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.upload {
+  position: relative;
+  margin-top: var(--s-3);
+}
+
+.upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload input:focus-visible + .btn {
+  box-shadow: var(--focus-ring);
+}
+
+.upload .btn {
+  width: 100%;
+}
+
+.portal .tabs {
+  margin-top: var(--s-10);
+}
+
+.portal .tab {
+  font-size: var(--text-base);
+}
+
+.card {
+  margin-top: var(--s-6);
+  border-radius: var(--radius-lg);
+  background: var(--sheet);
+  box-shadow: var(--shadow-sheet);
+  overflow: hidden;
+}
+
+.card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-5) var(--s-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.card__title {
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.card__body {
+  padding: var(--s-5) var(--s-6);
+}
+
+.months {
+  display: flex;
+  gap: var(--s-2);
+  overflow-x: auto;
+  padding: var(--s-4) var(--s-6);
+  border-bottom: 1px solid var(--line);
+  background: var(--sheet-sunk);
+}
+
+.month {
+  display: grid;
+  gap: 4px;
+  min-width: 112px;
+  padding: var(--s-2) var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--sheet);
+  text-align: left;
+  cursor: pointer;
+}
+
+.month:hover {
+  border-color: var(--ink-4);
+}
+
+.month[aria-pressed='true'] {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.month__name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.portal .ledger {
+  font-size: var(--text-base);
+}
+
+.portal .ledger th:first-child,
+.portal .ledger td:first-child {
+  padding-left: var(--s-6);
+}
+
+.portal .ledger th:last-child,
+.portal .ledger td:last-child {
+  padding-right: var(--s-6);
+}
+
+.portal .ledger td small {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.portal .notice {
+  padding: var(--s-5) var(--s-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.portal .notice:last-child {
+  border-bottom: 0;
+}
+
+.portal .notice__title {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  font-weight: 600;
+}
+
+.portal .notice__title time {
+  font-size: var(--text-sm);
+  font-weight: 400;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.portal .notice p {
+  margin-top: var(--s-2);
+  color: var(--ink-2);
+}
+
+.claim-form {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.claim-form .input,
+.claim-form .select,
+.claim-form .textarea {
+  font-size: var(--text-base);
+  min-height: 44px;
+}
+
+.claim {
+  padding: var(--s-5) var(--s-6);
+  border-top: 1px solid var(--line);
+}
+
+.claim__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+  font-weight: 600;
+}
+
+.claim .composer {
+  margin: var(--s-4) calc(var(--s-6) * -1) calc(var(--s-5) * -1);
+  padding: var(--s-3) var(--s-6);
+  display: flex;
+  gap: var(--s-2);
+  border-top: 1px solid var(--line);
+  background: var(--sheet-sunk);
+}
+
+.form-error {
+  font-size: var(--text-sm);
+  color: var(--overdue);
+}
+
+.portal-foot {
+  margin-top: var(--s-10);
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .due {
+    padding: var(--s-6) var(--s-5);
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .card__head,
+  .card__body,
+  .months,
+  .portal .notice,
+  .claim {
+    padding-left: var(--s-4);
+    padding-right: var(--s-4);
+  }
+
+  .portal .ledger th:first-child,
+  .portal .ledger td:first-child {
+    padding-left: var(--s-4);
+  }
+
+  .portal .ledger th:last-child,
+  .portal .ledger td:last-child {
+    padding-right: var(--s-4);
+  }
+}
+
+/* Impresión: solo la liquidación, en blanco y negro, como el papel de siempre. */
+@media print {
+  body.portal {
+    background: #fff;
+    font-size: 11pt;
+  }
+
+  .portal-top a,
+  .due,
+  .tabs,
+  .months,
+  .no-print,
+  .toast-region {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #999;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
