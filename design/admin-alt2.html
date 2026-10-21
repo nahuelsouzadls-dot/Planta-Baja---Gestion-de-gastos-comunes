@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin — Confort S.A.</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .tab-active { border-bottom: 2px solid #dc2626; color: #0f172a; font-weight: 500; }
+    .tab-inactive { border-bottom: 2px solid transparent; color: #94a3b8; }
+    .tab-inactive:hover { color: #475569; }
+    .building-active { border-left: 2px solid #ef4444; background: #1e293b; padding-left: 14px; }
+    .building-inactive { padding-left: 16px; }
+    .building-inactive:hover { background: #1e293b; }
+    .comm-sub-active { background: #f1f5f9; color: #0f172a; font-weight: 500; border-radius: 4px; }
+    .comm-sub-inactive { color: #64748b; }
+    .comm-sub-inactive:hover { color: #334155; }
+    .stacked-bar { height: 8px; border-radius: 4px; overflow: hidden; display: flex; }
+    .unit-row:hover td { background: #f8fafc; cursor: pointer; }
+  </style>
+</head>
+<body class="bg-white">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <div class="w-60 bg-slate-900 flex flex-col flex-shrink-0 overflow-y-auto">
+    <div class="px-4 py-4 border-b border-slate-800">
+      <div class="text-white font-semibold text-sm">Confort S.A.</div>
+      <div class="text-slate-500 text-xs mt-0.5">Administración</div>
+    </div>
+    <div class="flex-1">
+      <div class="text-xs text-slate-500 uppercase tracking-wider px-4 pt-4 pb-2">Edificios</div>
+      <div id="btn-minas" onclick="selectBuilding('Edificio Minas','Av. Brasil 2234','minas')"
+           class="building-active py-3 cursor-pointer">
+        <div class="text-white text-sm font-medium">Edificio Minas</div>
+        <div class="text-slate-500 text-xs mt-0.5">Av. Brasil 2234</div>
+      </div>
+      <div id="btn-centro" onclick="selectBuilding('Edificio Centro','18 de Julio 1120','centro')"
+           class="building-inactive px-4 py-3 cursor-pointer">
+        <div class="text-slate-300 text-sm">Edificio Centro</div>
+        <div class="text-slate-500 text-xs mt-0.5">18 de Julio 1120</div>
+      </div>
+      <div id="btn-pocitos" onclick="selectBuilding('Edificio Pocitos','Bulevar España 2780','pocitos')"
+           class="building-inactive px-4 py-3 cursor-pointer">
+        <div class="text-slate-300 text-sm">Edificio Pocitos</div>
+        <div class="text-slate-500 text-xs mt-0.5">Bulevar España 2780</div>
+      </div>
+    </div>
+    <div class="px-4 py-4 border-t border-slate-800">
+      <div class="text-slate-500 text-xs mb-1.5">nahuelsouzadls@gmail.com</div>
+      <a href="portal-residente-alt2.html" class="text-slate-500 text-xs underline hover:text-slate-300">Ver portal residente</a>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 flex flex-col overflow-hidden bg-white">
+
+    <!-- Building Header -->
+    <div class="bg-white border-b border-gray-100 px-8 pt-4">
+      <div class="flex items-baseline gap-3">
+        <span id="header-nombre" class="text-sm font-semibold text-slate-900">Edificio Minas</span>
+        <span id="header-detalle" class="text-xs text-slate-400">Av. Brasil 2234 · 12 unidades</span>
+      </div>
+      <div class="flex gap-6 mt-3">
+        <button onclick="showTab('cobros')" id="tab-cobros" class="tab-active pb-3 text-sm cursor-pointer bg-transparent border-0">Cobros</button>
+        <button onclick="showTab('resumen')" id="tab-resumen" class="tab-inactive pb-3 text-sm cursor-pointer bg-transparent border-0">Resumen general</button>
+        <button onclick="showTab('gastos')" id="tab-gastos" class="tab-inactive pb-3 text-sm cursor-pointer bg-transparent border-0">Gastos del mes</button>
+        <button onclick="showTab('comunicaciones')" id="tab-comunicaciones" class="tab-inactive pb-3 text-sm cursor-pointer bg-transparent border-0">Comunicaciones</button>
+      </div>
+    </div>
+
+    <!-- SCROLL AREA -->
+    <div class="flex-1 overflow-y-auto">
+
+      <!-- TAB: COBROS -->
+      <div id="content-cobros">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100">
+              <th class="text-left text-xs font-medium text-slate-400 px-8 py-3 w-16">Unidad</th>
+              <th class="text-left text-xs font-medium text-slate-400 px-3 py-3">Residente</th>
+              <th class="text-left text-xs font-medium text-slate-400 px-3 py-3">Rol</th>
+              <th class="text-left text-xs font-medium text-slate-400 px-3 py-3">Monto</th>
+              <th class="text-left text-xs font-medium text-slate-400 px-3 py-3">Estado</th>
+              <th class="text-left text-xs font-medium text-slate-400 px-3 py-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 101 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('101','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">101</td>
+              <td class="px-3 py-2.5 text-slate-700">Juan Perez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('101','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Ana Flores</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 102 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('102','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">102</td>
+              <td class="px-3 py-2.5 text-slate-700">Carlos López</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('102','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Maria Garcia</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">En revision</span></td>
+              <td class="px-3 py-2.5" onclick="event.stopPropagation()">
+                <div class="flex items-center gap-2">
+                  <button class="bg-slate-900 text-white text-xs px-2.5 py-1 rounded hover:bg-slate-700">Validar</button>
+                  <button class="border border-gray-200 text-xs px-2.5 py-1 rounded text-slate-600 hover:bg-gray-50">Rechazar</button>
+                </div>
+              </td>
+            </tr>
+            <!-- 103 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('103','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">103</td>
+              <td class="px-3 py-2.5 text-slate-700">Beatriz Diaz</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('103','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Carlos Rodriguez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">En revision</span></td>
+              <td class="px-3 py-2.5" onclick="event.stopPropagation()">
+                <div class="flex items-center gap-2">
+                  <button class="bg-slate-900 text-white text-xs px-2.5 py-1 rounded hover:bg-slate-700">Validar</button>
+                  <button class="border border-gray-200 text-xs px-2.5 py-1 rounded text-slate-600 hover:bg-gray-50">Rechazar</button>
+                </div>
+              </td>
+            </tr>
+            <!-- 104 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('104','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">104</td>
+              <td class="px-3 py-2.5 text-slate-700">Luis Fernandez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('104','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Ricardo Suarez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 201 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('201','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">201</td>
+              <td class="px-3 py-2.5 text-slate-700">Diego Herrera</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('201','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Sofia Lopez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">En revision</span></td>
+              <td class="px-3 py-2.5" onclick="event.stopPropagation()">
+                <div class="flex items-center gap-2">
+                  <button class="bg-slate-900 text-white text-xs px-2.5 py-1 rounded hover:bg-slate-700">Validar</button>
+                  <button class="border border-gray-200 text-xs px-2.5 py-1 rounded text-slate-600 hover:bg-gray-50">Rechazar</button>
+                </div>
+              </td>
+            </tr>
+            <!-- 202 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('202','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">202</td>
+              <td class="px-3 py-2.5 text-slate-700">Pedro Martinez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('202','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Claudia Vega</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 203 — moroso inquilino -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('203','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">203</td>
+              <td class="px-3 py-2.5 text-slate-700">Miguel Torres</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100 bg-red-50/40" onclick="showUnit('203','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Laura Sanchez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-red-600 font-medium">$ 6.558</td>
+              <td class="px-3 py-2.5">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">Moroso</span>
+                <span class="text-xs text-red-400 ml-1">3 meses</span>
+              </td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 204 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('204','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">204</td>
+              <td class="px-3 py-2.5 text-slate-700">Elena Rosario</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('204','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Tomas Ruiz</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 301 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('301','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">301</td>
+              <td class="px-3 py-2.5 text-slate-700">Felipe Castillo</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('301','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Mariana Acosta</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 302 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('302','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">302</td>
+              <td class="px-3 py-2.5 text-slate-700">Horacio Sosa</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('302','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Natalia Vidal</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 303 — moroso propietario -->
+            <tr class="unit-row border-b border-gray-50/80 bg-red-50/30" onclick="showUnit('303','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">303</td>
+              <td class="px-3 py-2.5 text-slate-700">Andrea Morales</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-red-600 font-medium">$ 2.108</td>
+              <td class="px-3 py-2.5">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-50 text-red-700">Moroso</span>
+                <span class="text-xs text-red-400 ml-1">2 meses</span>
+              </td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row border-b border-gray-100" onclick="showUnit('303','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Gabriel Ortiz</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <!-- 304 -->
+            <tr class="unit-row border-b border-gray-50/80" onclick="showUnit('304','prop')">
+              <td class="px-8 py-2.5 text-slate-900 font-medium align-top pt-3">304</td>
+              <td class="px-3 py-2.5 text-slate-700">Isabel Nuñez</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Propietario</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 1.054</td>
+              <td class="px-3 py-2.5"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Pagado</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+            <tr class="unit-row" onclick="showUnit('304','inq')">
+              <td class="px-8 py-2.5 text-slate-300 text-xs">—</td>
+              <td class="px-3 py-2.5 text-slate-700">Ramon Herrera</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">Inquilino</span></td>
+              <td class="px-3 py-2.5 text-slate-700">$ 2.186</td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-500">Pendiente</span></td>
+              <td class="px-3 py-2.5"><span class="text-xs text-slate-400">—</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div><!-- /content-cobros -->
+
+      <!-- UNIT DETAIL VIEW -->
+      <div id="content-unit" class="hidden px-8 py-6">
+
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-2 mb-6">
+          <button onclick="backToCobros()" class="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 bg-transparent border-0 cursor-pointer p-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Cobros
+          </button>
+          <span class="text-slate-300 text-xs">/</span>
+          <span id="unit-title" class="text-sm font-semibold text-slate-900">Unidad 102</span>
+          <span id="unit-nombre-header" class="text-sm text-slate-400">— María García</span>
+          <span id="unit-estado-badge" class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 ml-1">En revisión</span>
+        </div>
+
+        <!-- Grid: Ocupación + Saldo -->
+        <div class="grid grid-cols-2 gap-6 mb-6">
+
+          <!-- Ocupación -->
+          <div class="border border-gray-100 rounded-lg p-5">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Ocupación</div>
+            <div class="space-y-4">
+              <div>
+                <div class="text-xs text-slate-400 mb-1">Propietario</div>
+                <div id="unit-prop-nombre" class="text-sm font-medium text-slate-800"></div>
+                <div id="unit-prop-contact" class="text-xs text-slate-400 mt-0.5"></div>
+              </div>
+              <div class="border-t border-gray-50 pt-4">
+                <div class="text-xs text-slate-400 mb-1">Inquilino</div>
+                <div id="unit-inq-nombre" class="text-sm font-medium text-slate-800"></div>
+                <div id="unit-inq-contact" class="text-xs text-slate-400 mt-0.5"></div>
+              </div>
+              <div class="border-t border-gray-50 pt-4 flex items-center justify-between">
+                <div>
+                  <div class="text-xs text-slate-400 mb-1">Coeficiente de copropiedad</div>
+                  <div id="unit-coeficiente" class="text-sm font-mono text-slate-700"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saldo actual -->
+          <div class="border border-gray-100 rounded-lg p-5">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Saldo actual — Oct 2026</div>
+            <div id="unit-saldo-monto" class="text-2xl font-bold text-slate-900 mb-1"></div>
+            <div id="unit-saldo-body"></div>
+          </div>
+        </div>
+
+        <!-- Cuenta corriente -->
+        <div class="mb-6">
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Cuenta corriente</div>
+          <table class="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Fecha</th>
+                <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Concepto</th>
+                <th class="text-right text-xs font-medium text-slate-400 px-4 py-2.5">Cargo</th>
+                <th class="text-right text-xs font-medium text-slate-400 px-4 py-2.5">Abono</th>
+                <th class="text-right text-xs font-medium text-slate-400 px-4 py-2.5">Saldo</th>
+              </tr>
+            </thead>
+            <tbody id="unit-ledger-body"></tbody>
+          </table>
+        </div>
+
+        <!-- Historial de pagos -->
+        <div class="pb-8">
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Historial de pagos</div>
+          <table class="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Mes</th>
+                <th class="text-right text-xs font-medium text-slate-400 px-4 py-2.5">Monto</th>
+                <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Estado</th>
+                <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Fecha de pago</th>
+                <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Comprobante</th>
+              </tr>
+            </thead>
+            <tbody id="unit-historial-body"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /content-unit -->
+
+      <!-- TAB: RESUMEN GENERAL -->
+      <div id="content-resumen" class="hidden px-8 py-6">
+        <div class="border border-gray-100 rounded-lg bg-white px-6 py-5 mb-6">
+          <div class="flex items-center gap-10">
+            <div class="flex items-center gap-5">
+              <div class="relative">
+                <svg width="110" height="110" viewBox="0 0 110 110">
+                  <g transform="rotate(-90 55 55)">
+                    <circle cx="55" cy="55" r="45" fill="none" stroke="#4ade80" stroke-width="12" stroke-dasharray="94.25 282.74" stroke-dashoffset="0"/>
+                    <circle cx="55" cy="55" r="45" fill="none" stroke="#d1d5db" stroke-width="12" stroke-dasharray="70.68 282.74" stroke-dashoffset="-94.25"/>
+                    <circle cx="55" cy="55" r="45" fill="none" stroke="#9ca3af" stroke-width="12" stroke-dasharray="70.68 282.74" stroke-dashoffset="-164.93"/>
+                    <circle cx="55" cy="55" r="45" fill="none" stroke="#dc2626" stroke-width="12" stroke-dasharray="47.12 282.74" stroke-dashoffset="-235.61"/>
+                  </g>
+                  <text x="55" y="51" text-anchor="middle" font-family="Inter,sans-serif" font-size="18" font-weight="600" fill="#0f172a">12</text>
+                  <text x="55" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#94a3b8">unidades</text>
+                </svg>
+              </div>
+              <div class="flex flex-col gap-1.5 text-xs">
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-400 inline-block"></span><span class="text-slate-600">Pagado</span><span class="font-semibold text-slate-900 ml-1">4</span></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span><span class="text-slate-600">En revision</span><span class="font-semibold text-slate-900 ml-1">3</span></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span><span class="text-slate-600">Pendiente</span><span class="font-semibold text-slate-900 ml-1">3</span></div>
+                <div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span><span class="text-slate-600">Moroso</span><span class="font-semibold text-slate-900 ml-1">2</span></div>
+              </div>
+            </div>
+            <div class="w-px h-16 bg-gray-100"></div>
+            <div class="flex flex-col gap-2 flex-1">
+              <div class="stacked-bar w-full max-w-xs">
+                <div style="width:36%; background:#4ade80;"></div>
+                <div style="width:23%; background:#d1d5db;"></div>
+                <div style="width:23%; background:#9ca3af;"></div>
+                <div style="width:18%; background:#dc2626;"></div>
+              </div>
+              <div class="flex items-center gap-6 mt-1">
+                <div><div class="text-xs text-slate-400">Cobrado</div><div class="text-sm font-semibold text-slate-900">$ 16.416</div></div>
+                <div><div class="text-xs text-slate-400">En revision</div><div class="text-sm font-semibold text-slate-900">$ 10.351</div></div>
+                <div><div class="text-xs text-slate-400">Deuda acumulada</div><div class="text-sm font-semibold text-red-600">$ 18.142</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Gastos del mes — Octubre 2026</div>
+            <table class="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+              <thead class="bg-gray-50"><tr><th class="text-left text-xs font-medium text-slate-400 px-4 py-2">Concepto</th><th class="text-right text-xs font-medium text-slate-400 px-4 py-2">Monto</th></tr></thead>
+              <tbody>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">O.S.E (agua)</td><td class="px-4 py-2.5 text-right text-slate-700">$ 4.200</td></tr>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">U.T.E (luz)</td><td class="px-4 py-2.5 text-right text-slate-700">$ 6.800</td></tr>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">Limpieza</td><td class="px-4 py-2.5 text-right text-slate-700">$ 8.500</td></tr>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">Honorarios</td><td class="px-4 py-2.5 text-right text-slate-700">$ 12.000</td></tr>
+                <tr class="border-t border-gray-100 bg-gray-50 font-medium"><td class="px-4 py-2.5 text-slate-900">Total</td><td class="px-4 py-2.5 text-right text-slate-900">$ 31.500</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Resumen por fondo</div>
+            <table class="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+              <thead class="bg-gray-50"><tr><th class="text-left text-xs font-medium text-slate-400 px-4 py-2">Fondo</th><th class="text-right text-xs font-medium text-slate-400 px-4 py-2">Saldo</th></tr></thead>
+              <tbody>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">Caja corriente</td><td class="px-4 py-2.5 text-right text-slate-700">$ 22.340</td></tr>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">Fondo de Reserva</td><td class="px-4 py-2.5 text-right text-slate-700">$ 45.000</td></tr>
+                <tr class="border-t border-gray-100 bg-gray-50 font-medium"><td class="px-4 py-2.5 text-slate-900">Total disponible</td><td class="px-4 py-2.5 text-right text-slate-900">$ 67.340</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Morosos</div>
+            <table class="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+              <thead class="bg-gray-50"><tr><th class="text-left text-xs font-medium text-slate-400 px-4 py-2">Residente</th><th class="text-left text-xs font-medium text-slate-400 px-4 py-2">Unidad</th><th class="text-right text-xs font-medium text-slate-400 px-4 py-2">Deuda</th><th class="text-right text-xs font-medium text-slate-400 px-4 py-2">Meses</th></tr></thead>
+              <tbody>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">Laura Sanchez</td><td class="px-4 py-2.5 text-slate-500">203</td><td class="px-4 py-2.5 text-right text-red-600 font-medium">$ 9.932</td><td class="px-4 py-2.5 text-right text-red-400 text-xs">3</td></tr>
+                <tr class="border-t border-gray-100"><td class="px-4 py-2.5 text-slate-700">Andrea Morales</td><td class="px-4 py-2.5 text-slate-500">303</td><td class="px-4 py-2.5 text-right text-red-600 font-medium">$ 8.210</td><td class="px-4 py-2.5 text-right text-red-400 text-xs">2</td></tr>
+                <tr class="border-t border-gray-100 bg-gray-50 font-medium"><td class="px-4 py-2.5 text-slate-900" colspan="2">Total deuda</td><td class="px-4 py-2.5 text-right text-red-600">$ 18.142</td><td></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Datos bancarios</div>
+            <div class="border border-gray-100 rounded-lg p-4 text-sm">
+              <div class="flex justify-between py-1.5 border-b border-gray-50"><span class="text-slate-400 text-xs">Banco</span><span class="text-slate-700 text-xs">Scotiabank Uruguay</span></div>
+              <div class="flex justify-between py-1.5 border-b border-gray-50"><span class="text-slate-400 text-xs">Titular</span><span class="text-slate-700 text-xs">Confort S.A.</span></div>
+              <div class="flex justify-between py-1.5 border-b border-gray-50"><span class="text-slate-400 text-xs">Cuenta</span><span class="text-slate-700 text-xs font-mono">001-23456-7</span></div>
+              <div class="flex justify-between py-1.5"><span class="text-slate-400 text-xs">Moneda</span><span class="text-slate-700 text-xs">UYU</span></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /content-resumen -->
+
+      <!-- TAB: GASTOS DEL MES -->
+      <div id="content-gastos" class="hidden px-8 py-6">
+        <div class="flex justify-between items-center mb-4">
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Historial de gastos — Edificio Minas</div>
+          <button class="bg-red-600 text-white text-xs px-3 py-1.5 rounded hover:bg-red-700">+ Cargar mes</button>
+        </div>
+        <table class="w-full text-sm border border-gray-100 rounded-lg overflow-hidden">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="text-left text-xs font-medium text-slate-400 px-4 py-2.5">Mes</th>
+              <th class="text-right text-xs font-medium text-slate-400 px-3 py-2.5">O.S.E</th>
+              <th class="text-right text-xs font-medium text-slate-400 px-3 py-2.5">U.T.E</th>
+              <th class="text-right text-xs font-medium text-slate-400 px-3 py-2.5">Limpieza</th>
+              <th class="text-right text-xs font-medium text-slate-400 px-3 py-2.5">Honorarios</th>
+              <th class="text-right text-xs font-medium text-slate-400 px-3 py-2.5">F. Reserva</th>
+              <th class="text-right text-xs font-medium text-slate-400 px-3 py-2.5">Total</th>
+              <th class="text-left text-xs font-medium text-slate-400 px-3 py-2.5">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 text-slate-700 font-medium">Oct 2026</td><td class="px-3 py-3 text-right text-slate-600">4.200</td><td class="px-3 py-3 text-right text-slate-600">6.800</td><td class="px-3 py-3 text-right text-slate-600">8.500</td><td class="px-3 py-3 text-right text-slate-600">12.000</td><td class="px-3 py-3 text-right text-slate-600">4.800</td><td class="px-3 py-3 text-right font-medium text-slate-900">36.300</td><td class="px-3 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">En curso</span></td></tr>
+            <tr class="border-t border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 text-slate-700 font-medium">Sep 2026</td><td class="px-3 py-3 text-right text-slate-600">3.950</td><td class="px-3 py-3 text-right text-slate-600">6.420</td><td class="px-3 py-3 text-right text-slate-600">8.500</td><td class="px-3 py-3 text-right text-slate-600">12.000</td><td class="px-3 py-3 text-right text-slate-600">4.800</td><td class="px-3 py-3 text-right font-medium text-slate-900">35.670</td><td class="px-3 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">PDF generado</span></td></tr>
+            <tr class="border-t border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 text-slate-700 font-medium">Ago 2026</td><td class="px-3 py-3 text-right text-slate-600">4.100</td><td class="px-3 py-3 text-right text-slate-600">7.200</td><td class="px-3 py-3 text-right text-slate-600">8.500</td><td class="px-3 py-3 text-right text-slate-600">12.000</td><td class="px-3 py-3 text-right text-slate-600">4.800</td><td class="px-3 py-3 text-right font-medium text-slate-900">36.600</td><td class="px-3 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">PDF generado</span></td></tr>
+            <tr class="border-t border-gray-100 hover:bg-gray-50"><td class="px-4 py-3 text-slate-700 font-medium">Jul 2026</td><td class="px-3 py-3 text-right text-slate-600">3.800</td><td class="px-3 py-3 text-right text-slate-600">5.900</td><td class="px-3 py-3 text-right text-slate-600">8.500</td><td class="px-3 py-3 text-right text-slate-600">12.000</td><td class="px-3 py-3 text-right text-slate-600">4.800</td><td class="px-3 py-3 text-right font-medium text-slate-900">35.000</td><td class="px-3 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">PDF generado</span></td></tr>
+          </tbody>
+        </table>
+      </div><!-- /content-gastos -->
+
+      <!-- TAB: COMUNICACIONES -->
+      <div id="content-comunicaciones" class="hidden">
+        <div class="flex gap-1 px-8 py-3 border-b border-gray-100">
+          <button onclick="showCommSubTab('avisos')" id="comm-tab-avisos" class="comm-sub-active px-3 py-1.5 text-xs cursor-pointer bg-transparent border-0">Avisos</button>
+          <button onclick="showCommSubTab('reclamos')" id="comm-tab-reclamos" class="comm-sub-inactive px-3 py-1.5 text-xs cursor-pointer bg-transparent border-0">Reclamos</button>
+          <button onclick="showCommSubTab('reportes')" id="comm-tab-reportes" class="comm-sub-inactive px-3 py-1.5 text-xs cursor-pointer bg-transparent border-0">Reportes</button>
+        </div>
+        <div id="comm-avisos" class="px-8 py-5">
+          <div class="border border-gray-100 rounded-lg p-4 mb-5">
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Nuevo aviso</div>
+            <input type="text" placeholder="Asunto" class="w-full border border-gray-200 rounded px-3 py-2 text-sm mb-2 text-slate-700 focus:outline-none focus:border-slate-400">
+            <textarea rows="3" placeholder="Texto del aviso..." class="w-full border border-gray-200 rounded px-3 py-2 text-sm mb-3 text-slate-700 resize-none focus:outline-none focus:border-slate-400"></textarea>
+            <div class="flex justify-end"><button class="bg-red-600 text-white text-xs px-4 py-1.5 rounded hover:bg-red-700">Publicar aviso</button></div>
+          </div>
+          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Publicados</div>
+          <div class="space-y-3">
+            <div class="border border-gray-100 rounded-lg p-4">
+              <div class="flex justify-between items-start mb-1"><span class="text-sm font-medium text-slate-900">Corte de agua — Jueves 24/10</span><span class="text-xs text-slate-400">22 oct 2026</span></div>
+              <p class="text-sm text-slate-600">OSE realizara trabajos de mantenimiento el jueves 24/10 de 9:00 a 14:00 hs.</p>
+            </div>
+            <div class="border border-gray-100 rounded-lg p-4">
+              <div class="flex justify-between items-start mb-1"><span class="text-sm font-medium text-slate-900">Liquidacion septiembre disponible</span><span class="text-xs text-slate-400">1 oct 2026</span></div>
+              <p class="text-sm text-slate-600">La liquidacion del mes de septiembre ya esta disponible en el portal. Fecha limite: 10 de octubre.</p>
+            </div>
+          </div>
+        </div>
+        <div id="comm-reclamos" class="hidden" style="height: calc(100vh - 180px);">
+          <div class="flex h-full">
+            <div class="w-64 border-r border-gray-100 overflow-y-auto">
+              <div class="cursor-pointer border-b border-gray-50 p-3 bg-gray-50" style="border-left: 2px solid #dc2626;">
+                <div class="text-xs font-medium text-slate-900">Humedad pasillo 2do piso</div>
+                <div class="text-xs text-slate-400 mt-0.5">Pedro Martinez · Apto 202 · 18 oct</div>
+              </div>
+              <div class="cursor-pointer border-b border-gray-50 hover:bg-gray-50 p-3 pl-3.5">
+                <div class="text-xs font-medium text-slate-900">Puerta principal sin llave</div>
+                <div class="text-xs text-slate-400 mt-0.5">Sofia Lopez · Apto 201 · 15 oct</div>
+              </div>
+            </div>
+            <div class="flex-1 flex flex-col">
+              <div class="px-5 py-3 border-b border-gray-100 bg-white">
+                <div class="text-sm font-semibold text-slate-900">Humedad pasillo 2do piso</div>
+                <div class="text-xs text-slate-400">Pedro Martinez · Apto 202 · 18 oct 2026</div>
+              </div>
+              <div class="overflow-y-auto px-5 py-4 space-y-3 flex-1">
+                <div class="flex justify-start"><div class="bg-white border border-gray-200 rounded-lg px-3 py-2 max-w-xs"><div class="text-xs font-medium text-slate-500 mb-1">Pedro Martinez</div><p class="text-sm text-slate-700">Hay una mancha de humedad en la pared del pasillo del 2do piso.</p></div></div>
+                <div class="flex justify-end"><div class="bg-slate-900 text-white rounded-lg px-3 py-2 max-w-xs"><div class="text-xs font-medium text-slate-400 mb-1">Confort S.A.</div><p class="text-sm">Vamos a enviar un tecnico el lunes para evaluar.</p></div></div>
+              </div>
+              <div class="px-5 py-3 border-t border-gray-100 flex gap-2">
+                <input type="text" placeholder="Escribir respuesta..." class="flex-1 border border-gray-200 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-slate-400">
+                <button class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded hover:bg-slate-700">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="comm-reportes" class="hidden" style="height: calc(100vh - 180px);">
+          <div class="flex h-full">
+            <div class="w-64 border-r border-gray-100 overflow-y-auto">
+              <div class="cursor-pointer border-b border-gray-50 p-3 bg-gray-50" style="border-left: 2px solid #dc2626;">
+                <div class="text-xs font-medium text-slate-900">Luz fundida escalera</div>
+                <div class="text-xs text-slate-400 mt-0.5">Juan Perez · Apto 101</div>
+                <div class="flex items-center gap-1.5 mt-1"><span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs bg-red-50 text-red-700">Pendiente</span><span class="text-xs text-slate-400">20 oct</span></div>
+              </div>
+            </div>
+            <div class="flex-1 flex flex-col">
+              <div class="px-5 py-3 border-b border-gray-100 bg-white flex items-center justify-between">
+                <div><div class="text-sm font-semibold text-slate-900">Luz fundida escalera</div><div class="text-xs text-slate-400">Juan Perez · Apto 101 · 20 oct 2026</div></div>
+                <select class="text-xs border border-gray-200 rounded px-2 py-1 text-slate-600 focus:outline-none"><option>Pendiente</option><option>En proceso</option><option>Resuelto</option></select>
+              </div>
+              <div class="overflow-y-auto px-5 py-4 space-y-3 flex-1">
+                <div class="flex justify-start"><div class="bg-white border border-gray-200 rounded-lg px-3 py-2 max-w-xs"><div class="text-xs font-medium text-slate-500 mb-1">Juan Perez</div><p class="text-sm text-slate-700">La lampara del primer tramo de la escalera esta fundida hace varios dias.</p></div></div>
+                <div class="flex justify-end"><div class="bg-slate-900 text-white rounded-lg px-3 py-2 max-w-xs"><div class="text-xs font-medium text-slate-400 mb-1">Confort S.A.</div><p class="text-sm">Anotado. Coordinamos con el encargado para esta semana.</p></div></div>
+              </div>
+              <div class="px-5 py-3 border-t border-gray-100 flex gap-2">
+                <input type="text" placeholder="Escribir respuesta..." class="flex-1 border border-gray-200 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-slate-400">
+                <button class="bg-slate-900 text-white text-xs px-3 py-1.5 rounded hover:bg-slate-700">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /content-comunicaciones -->
+
+    </div><!-- /scroll area -->
+  </div><!-- /main content -->
+</div>
+
+<script>
+  // ── Unit data — keyed by unitId; each unit has prop + inq + coeficiente ────
+  var unitData = {
+    '101': {
+      nombre: 'Juan Perez', rol: 'Propietario',
+      estadoLabel: 'Pendiente', badgeClass: 'bg-gray-100 text-gray-600',
+      saldoEstado: 'pendiente', saldoMonto: '$ 3.240',
+      propietario: { nombre: 'Juan Perez', contact: '099 111 222 · juan.perez@gmail.com' },
+      inquilino: null,
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',       cargo: '3.240', abono: null,    saldo: '3.240', tipo: 'cargo' },
+        { fecha: '03 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '3.180', abono: null,    saldo: '3.180', tipo: 'cargo' },
+        { fecha: '05 ago 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '3.240', estado: 'pendiente',  fechaPago: null,          comp: null },
+        { mes: 'Sep 2026', monto: '3.180', estado: 'pagado',     fechaPago: '03 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '3.180', estado: 'pagado',     fechaPago: '05 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '3.050', estado: 'pagado',     fechaPago: '08 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '102': {
+      nombre: 'Maria Garcia', rol: 'Inquilino',
+      estadoLabel: 'En revisión', badgeClass: 'bg-slate-100 text-slate-600',
+      saldoEstado: 'revision', saldoMonto: '$ 2.890',
+      comprobante: 'comprobante_oct2026.jpg', compFecha: '10 oct 2026',
+      propietario: { nombre: 'Carlos López', contact: '099 234 567 · carlos.lopez@gmail.com' },
+      inquilino:   { nombre: 'Maria Garcia',  contact: '098 876 543 · maria.garcia@gmail.com' },
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '10 oct 2026', concepto: 'Comprobante subido — pendiente de validación', cargo: null,    abono: null,    saldo: '2.890', tipo: 'pendiente' },
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',                     cargo: '2.890', abono: null,    saldo: '2.890', tipo: 'cargo' },
+        { fecha: '08 sep 2026', concepto: 'Pago — Transferencia Scotiabank',              cargo: null,    abono: '2.860', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',                  cargo: '2.860', abono: null,    saldo: '2.860', tipo: 'cargo' },
+        { fecha: '04 ago 2026', concepto: 'Pago — Transferencia Scotiabank',              cargo: null,    abono: '2.750', saldo: '0',     tipo: 'abono' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '2.890', estado: 'revision', fechaPago: null,          comp: 'comprobante_oct2026.jpg' },
+        { mes: 'Sep 2026', monto: '2.860', estado: 'pagado',   fechaPago: '08 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '2.750', estado: 'pagado',   fechaPago: '04 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '2.750', estado: 'pagado',   fechaPago: '07 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '103': {
+      nombre: 'Carlos Rodriguez', rol: 'Inquilino',
+      estadoLabel: 'En revisión', badgeClass: 'bg-slate-100 text-slate-600',
+      saldoEstado: 'revision', saldoMonto: '$ 2.890',
+      comprobante: 'comprobante_oct_103.jpg', compFecha: '12 oct 2026',
+      propietario: { nombre: 'Beatriz Diaz', contact: '099 345 678 · beatriz.diaz@gmail.com' },
+      inquilino:   { nombre: 'Carlos Rodriguez', contact: '098 765 432 · carlos.rod@gmail.com' },
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '12 oct 2026', concepto: 'Comprobante subido — pendiente de validación', cargo: null,    abono: null,    saldo: '2.890', tipo: 'pendiente' },
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',                     cargo: '2.890', abono: null,    saldo: '2.890', tipo: 'cargo' },
+        { fecha: '10 sep 2026', concepto: 'Pago — Transferencia Scotiabank',              cargo: null,    abono: '2.860', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',                  cargo: '2.860', abono: null,    saldo: '2.860', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '2.890', estado: 'revision', fechaPago: null,          comp: 'comprobante_oct_103.jpg' },
+        { mes: 'Sep 2026', monto: '2.860', estado: 'pagado',   fechaPago: '10 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '2.750', estado: 'pagado',   fechaPago: '06 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '2.750', estado: 'pagado',   fechaPago: '09 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '104': {
+      nombre: 'Luis Fernandez', rol: 'Propietario',
+      estadoLabel: 'Pagado', badgeClass: 'bg-green-50 text-green-700',
+      saldoEstado: 'pagado', saldoMonto: '$ 0',
+      fechaPago: '07 oct 2026',
+      propietario: { nombre: 'Luis Fernandez', contact: '099 456 789 · luis.fernandez@gmail.com' },
+      inquilino: null,
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '07 oct 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.240', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '3.240', abono: null,    saldo: '3.240', tipo: 'cargo' },
+        { fecha: '04 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '3.180', abono: null,    saldo: '3.180', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '3.240', estado: 'pagado', fechaPago: '07 oct 2026', comp: 'comp_oct.jpg' },
+        { mes: 'Sep 2026', monto: '3.180', estado: 'pagado', fechaPago: '04 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '3.180', estado: 'pagado', fechaPago: '02 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '3.050', estado: 'pagado', fechaPago: '05 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '201': {
+      nombre: 'Sofia Lopez', rol: 'Inquilino',
+      estadoLabel: 'En revisión', badgeClass: 'bg-slate-100 text-slate-600',
+      saldoEstado: 'revision', saldoMonto: '$ 2.890',
+      comprobante: 'comprobante_oct_201.jpg', compFecha: '11 oct 2026',
+      propietario: { nombre: 'Diego Herrera', contact: '099 567 890 · diego.herrera@gmail.com' },
+      inquilino:   { nombre: 'Sofia Lopez',   contact: '098 654 321 · sofia.lopez@gmail.com' },
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '11 oct 2026', concepto: 'Comprobante subido — pendiente de validación', cargo: null,    abono: null,    saldo: '2.890', tipo: 'pendiente' },
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',                     cargo: '2.890', abono: null,    saldo: '2.890', tipo: 'cargo' },
+        { fecha: '07 sep 2026', concepto: 'Pago — Transferencia Scotiabank',              cargo: null,    abono: '2.860', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',                  cargo: '2.860', abono: null,    saldo: '2.860', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '2.890', estado: 'revision', fechaPago: null,          comp: 'comprobante_oct_201.jpg' },
+        { mes: 'Sep 2026', monto: '2.860', estado: 'pagado',   fechaPago: '07 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '2.750', estado: 'pagado',   fechaPago: '03 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '2.750', estado: 'pagado',   fechaPago: '11 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '202': {
+      nombre: 'Pedro Martinez', rol: 'Propietario',
+      estadoLabel: 'Pagado', badgeClass: 'bg-green-50 text-green-700',
+      saldoEstado: 'pagado', saldoMonto: '$ 0',
+      fechaPago: '05 oct 2026',
+      propietario: { nombre: 'Pedro Martinez', contact: '099 678 901 · pedro.martinez@gmail.com' },
+      inquilino: null,
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '05 oct 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.240', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '3.240', abono: null,    saldo: '3.240', tipo: 'cargo' },
+        { fecha: '02 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '3.180', abono: null,    saldo: '3.180', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '3.240', estado: 'pagado', fechaPago: '05 oct 2026', comp: 'comp_oct.jpg' },
+        { mes: 'Sep 2026', monto: '3.180', estado: 'pagado', fechaPago: '02 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '3.180', estado: 'pagado', fechaPago: '01 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '3.050', estado: 'pagado', fechaPago: '03 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '203': {
+      nombre: 'Laura Sanchez', rol: 'Inquilino',
+      estadoLabel: 'Moroso', badgeClass: 'bg-red-50 text-red-700',
+      saldoEstado: 'moroso', saldoMonto: '$ 9.932', saldoMeses: 3,
+      propietario: { nombre: 'Miguel Torres', contact: '099 789 012 · miguel.torres@gmail.com' },
+      inquilino:   { nombre: 'Laura Sanchez', contact: '098 543 210 · laura.sanchez@gmail.com' },
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '3.311', abono: null,    saldo: '9.932', tipo: 'cargo' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '3.311', abono: null,    saldo: '6.621', tipo: 'cargo' },
+        { fecha: '01 ago 2026', concepto: 'Liquidación agosto 2026',         cargo: '3.310', abono: null,    saldo: '3.310', tipo: 'cargo' },
+        { fecha: '04 jul 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '2.890', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 jul 2026', concepto: 'Liquidación julio 2026',          cargo: '2.890', abono: null,    saldo: '2.890', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '3.311', estado: 'moroso',  fechaPago: null,          comp: null },
+        { mes: 'Sep 2026', monto: '3.311', estado: 'moroso',  fechaPago: null,          comp: null },
+        { mes: 'Ago 2026', monto: '3.310', estado: 'moroso',  fechaPago: null,          comp: null },
+        { mes: 'Jul 2026', monto: '2.890', estado: 'pagado',  fechaPago: '04 jul 2026', comp: 'comp_jul.jpg' },
+        { mes: 'Jun 2026', monto: '2.890', estado: 'pagado',  fechaPago: '09 jun 2026', comp: 'comp_jun.jpg' },
+      ]
+    },
+    '204': {
+      nombre: 'Elena Rosario', rol: 'Propietario',
+      estadoLabel: 'Pagado', badgeClass: 'bg-green-50 text-green-700',
+      saldoEstado: 'pagado', saldoMonto: '$ 0',
+      fechaPago: '06 oct 2026',
+      propietario: { nombre: 'Elena Rosario', contact: '099 890 123 · elena.rosario@gmail.com' },
+      inquilino: null,
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '06 oct 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.240', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '3.240', abono: null,    saldo: '3.240', tipo: 'cargo' },
+        { fecha: '06 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '3.180', abono: null,    saldo: '3.180', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '3.240', estado: 'pagado', fechaPago: '06 oct 2026', comp: 'comp_oct.jpg' },
+        { mes: 'Sep 2026', monto: '3.180', estado: 'pagado', fechaPago: '06 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '3.180', estado: 'pagado', fechaPago: '04 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '3.050', estado: 'pagado', fechaPago: '07 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '301': {
+      nombre: 'Felipe Castillo', rol: 'Propietario',
+      estadoLabel: 'Pendiente', badgeClass: 'bg-gray-100 text-gray-600',
+      saldoEstado: 'pendiente', saldoMonto: '$ 3.240',
+      propietario: { nombre: 'Felipe Castillo', contact: '099 901 234 · felipe.castillo@gmail.com' },
+      inquilino: null,
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '3.240', abono: null,    saldo: '3.240', tipo: 'cargo' },
+        { fecha: '10 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '3.180', abono: null,    saldo: '3.180', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '3.240', estado: 'pendiente', fechaPago: null,          comp: null },
+        { mes: 'Sep 2026', monto: '3.180', estado: 'pagado',    fechaPago: '10 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '3.180', estado: 'pagado',    fechaPago: '08 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '3.050', estado: 'pagado',    fechaPago: '12 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '302': {
+      nombre: 'Natalia Vidal', rol: 'Inquilino',
+      estadoLabel: 'Pendiente', badgeClass: 'bg-gray-100 text-gray-600',
+      saldoEstado: 'pendiente', saldoMonto: '$ 2.890',
+      propietario: { nombre: 'Horacio Sosa', contact: '099 012 345 · horacio.sosa@gmail.com' },
+      inquilino:   { nombre: 'Natalia Vidal', contact: '098 432 109 · natalia.vidal@gmail.com' },
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '2.890', abono: null,    saldo: '2.890', tipo: 'cargo' },
+        { fecha: '12 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '2.860', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '2.860', abono: null,    saldo: '2.860', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '2.890', estado: 'pendiente', fechaPago: null,          comp: null },
+        { mes: 'Sep 2026', monto: '2.860', estado: 'pagado',    fechaPago: '12 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '2.750', estado: 'pagado',    fechaPago: '10 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '2.750', estado: 'pagado',    fechaPago: '14 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    },
+    '303': {
+      nombre: 'Andrea Morales', rol: 'Propietario',
+      estadoLabel: 'Moroso', badgeClass: 'bg-red-50 text-red-700',
+      saldoEstado: 'moroso', saldoMonto: '$ 8.210', saldoMeses: 2,
+      propietario: { nombre: 'Andrea Morales', contact: '099 123 456 · andrea.morales@gmail.com' },
+      inquilino: null,
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '4.105', abono: null,    saldo: '8.210', tipo: 'cargo' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '4.105', abono: null,    saldo: '4.105', tipo: 'cargo' },
+        { fecha: '08 ago 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.180', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 ago 2026', concepto: 'Liquidación agosto 2026',         cargo: '3.180', abono: null,    saldo: '3.180', tipo: 'cargo' },
+        { fecha: '07 jul 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '3.050', saldo: '0',     tipo: 'abono' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '4.105', estado: 'moroso',  fechaPago: null,          comp: null },
+        { mes: 'Sep 2026', monto: '4.105', estado: 'moroso',  fechaPago: null,          comp: null },
+        { mes: 'Ago 2026', monto: '3.180', estado: 'pagado',  fechaPago: '08 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '3.050', estado: 'pagado',  fechaPago: '07 jul 2026', comp: 'comp_jul.jpg' },
+        { mes: 'Jun 2026', monto: '3.050', estado: 'pagado',  fechaPago: '10 jun 2026', comp: 'comp_jun.jpg' },
+      ]
+    },
+    '304': {
+      nombre: 'Ramon Herrera', rol: 'Inquilino',
+      estadoLabel: 'Pendiente', badgeClass: 'bg-gray-100 text-gray-600',
+      saldoEstado: 'pendiente', saldoMonto: '$ 2.890',
+      propietario: { nombre: 'Isabel Nuñez', contact: '099 234 567 · isabel.nunez@gmail.com' },
+      inquilino:   { nombre: 'Ramon Herrera', contact: '098 321 098 · ramon.herrera@gmail.com' },
+      coeficiente: '8.33 %',
+      ledger: [
+        { fecha: '01 oct 2026', concepto: 'Liquidación octubre 2026',        cargo: '2.890', abono: null,    saldo: '2.890', tipo: 'cargo' },
+        { fecha: '11 sep 2026', concepto: 'Pago — Transferencia Scotiabank', cargo: null,    abono: '2.860', saldo: '0',     tipo: 'abono' },
+        { fecha: '01 sep 2026', concepto: 'Liquidación septiembre 2026',     cargo: '2.860', abono: null,    saldo: '2.860', tipo: 'cargo' },
+      ],
+      historial: [
+        { mes: 'Oct 2026', monto: '2.890', estado: 'pendiente', fechaPago: null,          comp: null },
+        { mes: 'Sep 2026', monto: '2.860', estado: 'pagado',    fechaPago: '11 sep 2026', comp: 'comp_sep.jpg' },
+        { mes: 'Ago 2026', monto: '2.750', estado: 'pagado',    fechaPago: '09 ago 2026', comp: 'comp_ago.jpg' },
+        { mes: 'Jul 2026', monto: '2.750', estado: 'pagado',    fechaPago: '15 jul 2026', comp: 'comp_jul.jpg' },
+      ]
+    }
+  };
+
+  // ── Per-role financial data (prop pays fondo reserva, inq pays gastos comunes)
+  var unitRolData = {
+    '101':{ coef:'8.33 %',
+      prop:{nombre:'Juan Perez',     contact:'099 111 222 · juan.perez@gmail.com',    estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 1.054',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'03 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+          {fecha:'05 ago 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',   fechaPago:'03 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',   fechaPago:'05 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',   fechaPago:'07 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Ana Flores',      contact:'098 222 333 · ana.flores@gmail.com',    estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 2.186',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'05 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+          {fecha:'07 ago 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.040',saldo:'0',   tipo:'abono'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',   fechaPago:'05 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',   fechaPago:'07 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',   fechaPago:'09 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '102':{ coef:'8.33 %',
+      prop:{nombre:'Carlos López',   contact:'099 234 567 · carlos.lopez@gmail.com',  estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'06 oct 2026',
+        ledger:[
+          {fecha:'06 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'04 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'06 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'04 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'02 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'05 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Maria Garcia',    contact:'098 876 543 · maria.garcia@gmail.com',  estadoLabel:'En revisión', badgeClass:'bg-slate-100 text-slate-600',saldoEstado:'revision',  saldoMonto:'$ 2.186', comprobante:'comprobante_oct2026.jpg',compFecha:'10 oct 2026',
+        ledger:[
+          {fecha:'10 oct 2026',concepto:'Comprobante subido — pendiente de validación',cargo:null,  abono:null,   saldo:'2.186',tipo:'pendiente'},
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',                   cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'08 sep 2026',concepto:'Pago — Transferencia Scotiabank',             cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',                   cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+          {fecha:'04 ago 2026',concepto:'Pago — Transferencia Scotiabank',             cargo:null,  abono:'2.040',saldo:'0',   tipo:'abono'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'revision',fechaPago:null,         comp:'comprobante_oct2026.jpg'},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',  fechaPago:'08 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',  fechaPago:'04 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',  fechaPago:'07 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '103':{ coef:'8.33 %',
+      prop:{nombre:'Beatriz Diaz',   contact:'099 345 678 · beatriz.diaz@gmail.com',  estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'05 oct 2026',
+        ledger:[
+          {fecha:'05 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'06 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'05 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'06 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'08 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'10 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Carlos Rodriguez',contact:'098 765 432 · carlos.rod@gmail.com',    estadoLabel:'En revisión', badgeClass:'bg-slate-100 text-slate-600',saldoEstado:'revision',  saldoMonto:'$ 2.186', comprobante:'comp_oct_103.jpg',compFecha:'12 oct 2026',
+        ledger:[
+          {fecha:'12 oct 2026',concepto:'Comprobante subido — pendiente de validación',cargo:null,  abono:null,   saldo:'2.186',tipo:'pendiente'},
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',                   cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'10 sep 2026',concepto:'Pago — Transferencia Scotiabank',             cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',                   cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'revision',fechaPago:null,         comp:'comp_oct_103.jpg'},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',  fechaPago:'10 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',  fechaPago:'06 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',  fechaPago:'09 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '104':{ coef:'8.33 %',
+      prop:{nombre:'Luis Fernandez', contact:'099 456 789 · luis.fernandez@gmail.com',estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'07 oct 2026',
+        ledger:[
+          {fecha:'07 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'03 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'07 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'03 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'02 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'04 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Ricardo Suarez',  contact:'098 321 654 · ricardo.suarez@gmail.com',estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'08 oct 2026',
+        ledger:[
+          {fecha:'08 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.186',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'06 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pagado',fechaPago:'08 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',fechaPago:'06 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',fechaPago:'03 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',fechaPago:'06 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '201':{ coef:'8.33 %',
+      prop:{nombre:'Diego Herrera',  contact:'099 567 890 · diego.herrera@gmail.com', estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 1.054',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'04 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',   fechaPago:'04 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',   fechaPago:'06 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',   fechaPago:'08 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Sofia Lopez',     contact:'098 654 321 · sofia.lopez@gmail.com',   estadoLabel:'En revisión', badgeClass:'bg-slate-100 text-slate-600',saldoEstado:'revision',  saldoMonto:'$ 2.186', comprobante:'comp_oct_201.jpg',compFecha:'11 oct 2026',
+        ledger:[
+          {fecha:'11 oct 2026',concepto:'Comprobante subido — pendiente de validación',cargo:null,  abono:null,   saldo:'2.186',tipo:'pendiente'},
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',                   cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'07 sep 2026',concepto:'Pago — Transferencia Scotiabank',             cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',                   cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'revision',fechaPago:null,         comp:'comp_oct_201.jpg'},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',  fechaPago:'07 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',  fechaPago:'03 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',  fechaPago:'11 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '202':{ coef:'8.33 %',
+      prop:{nombre:'Pedro Martinez', contact:'099 678 901 · pedro.martinez@gmail.com',estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'05 oct 2026',
+        ledger:[
+          {fecha:'05 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'02 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'05 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'02 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'01 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'03 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Claudia Vega',    contact:'098 543 210 · claudia.vega@gmail.com',  estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'05 oct 2026',
+        ledger:[
+          {fecha:'05 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.186',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'03 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pagado',fechaPago:'05 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',fechaPago:'03 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',fechaPago:'04 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',fechaPago:'05 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '203':{ coef:'8.33 %',
+      prop:{nombre:'Miguel Torres',  contact:'099 789 012 · miguel.torres@gmail.com', estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'04 oct 2026',
+        ledger:[
+          {fecha:'04 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'05 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'04 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'05 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'06 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'04 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Laura Sanchez',   contact:'098 543 210 · laura.sanchez@gmail.com', estadoLabel:'Moroso',      badgeClass:'bg-red-50 text-red-700',     saldoEstado:'moroso',    saldoMonto:'$ 6.558', saldoMeses:3,
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'6.558',tipo:'cargo'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.186',abono:null,   saldo:'4.372',tipo:'cargo'},
+          {fecha:'01 ago 2026',concepto:'Gastos comunes — ago 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'04 jul 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.040',saldo:'0',   tipo:'abono'},
+          {fecha:'01 jul 2026',concepto:'Gastos comunes — jul 2026',     cargo:'2.040',abono:null,   saldo:'2.040',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'moroso', fechaPago:null,          comp:null},
+          {mes:'Sep 2026',monto:'2.186',estado:'moroso', fechaPago:null,          comp:null},
+          {mes:'Ago 2026',monto:'2.186',estado:'moroso', fechaPago:null,          comp:null},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado', fechaPago:'04 jul 2026', comp:'comp_jul.jpg'},
+          {mes:'Jun 2026',monto:'2.040',estado:'pagado', fechaPago:'09 jun 2026', comp:'comp_jun.jpg'},
+        ]}
+    },
+    '204':{ coef:'8.33 %',
+      prop:{nombre:'Elena Rosario',  contact:'099 890 123 · elena.rosario@gmail.com', estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'06 oct 2026',
+        ledger:[
+          {fecha:'06 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'06 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'06 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'06 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'04 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'07 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Tomas Ruiz',      contact:'098 432 109 · tomas.ruiz@gmail.com',    estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'07 oct 2026',
+        ledger:[
+          {fecha:'07 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.186',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'07 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pagado',fechaPago:'07 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',fechaPago:'07 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',fechaPago:'05 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',fechaPago:'08 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '301':{ coef:'8.33 %',
+      prop:{nombre:'Felipe Castillo',contact:'099 901 234 · felipe.castillo@gmail.com',estadoLabel:'Pendiente',  badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 1.054',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'10 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',   fechaPago:'10 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',   fechaPago:'08 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',   fechaPago:'12 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Mariana Acosta',  contact:'098 210 987 · mariana.acosta@gmail.com',estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 2.186',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'09 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',   fechaPago:'09 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',   fechaPago:'10 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',   fechaPago:'14 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '302':{ coef:'8.33 %',
+      prop:{nombre:'Horacio Sosa',   contact:'099 012 345 · horacio.sosa@gmail.com',  estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 1.054',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'12 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',   fechaPago:'12 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',   fechaPago:'10 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',   fechaPago:'15 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Natalia Vidal',   contact:'098 109 876 · natalia.vidal@gmail.com', estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 2.186',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'12 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',   fechaPago:'12 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',   fechaPago:'10 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',   fechaPago:'14 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '303':{ coef:'8.33 %',
+      prop:{nombre:'Andrea Morales', contact:'099 123 456 · andrea.morales@gmail.com',estadoLabel:'Moroso',      badgeClass:'bg-red-50 text-red-700',     saldoEstado:'moroso',    saldoMonto:'$ 2.108', saldoMeses:2,
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'2.108',tipo:'cargo'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'08 ago 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 ago 2026',concepto:'Fondo de reserva — ago 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+          {fecha:'07 jul 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.010',saldo:'0',   tipo:'abono'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'moroso', fechaPago:null,          comp:null},
+          {mes:'Sep 2026',monto:'1.054',estado:'moroso', fechaPago:null,          comp:null},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado', fechaPago:'08 ago 2026', comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado', fechaPago:'07 jul 2026', comp:'comp_jul.jpg'},
+          {mes:'Jun 2026',monto:'1.010',estado:'pagado', fechaPago:'10 jun 2026', comp:'comp_jun.jpg'},
+        ]},
+      inq:{nombre:'Gabriel Ortiz',   contact:'098 987 654 · gabriel.ortiz@gmail.com', estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 2.186',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'11 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',   fechaPago:'11 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',   fechaPago:'09 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',   fechaPago:'13 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    },
+    '304':{ coef:'8.33 %',
+      prop:{nombre:'Isabel Nuñez',   contact:'099 234 567 · isabel.nunez@gmail.com',  estadoLabel:'Pagado',      badgeClass:'bg-green-50 text-green-700', saldoEstado:'pagado',    saldoMonto:'$ 0',     fechaPago:'09 oct 2026',
+        ledger:[
+          {fecha:'09 oct 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.054',saldo:'0',   tipo:'abono'},
+          {fecha:'01 oct 2026',concepto:'Fondo de reserva — oct 2026',   cargo:'1.054',abono:null,   saldo:'1.054',tipo:'cargo'},
+          {fecha:'11 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'1.032',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Fondo de reserva — sep 2026',   cargo:'1.032',abono:null,   saldo:'1.032',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'1.054',estado:'pagado',fechaPago:'09 oct 2026',comp:'comp_oct.jpg'},
+          {mes:'Sep 2026',monto:'1.032',estado:'pagado',fechaPago:'11 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'1.032',estado:'pagado',fechaPago:'09 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'1.010',estado:'pagado',fechaPago:'15 jul 2026',comp:'comp_jul.jpg'},
+        ]},
+      inq:{nombre:'Ramon Herrera',   contact:'098 321 098 · ramon.herrera@gmail.com', estadoLabel:'Pendiente',   badgeClass:'bg-gray-100 text-gray-600',  saldoEstado:'pendiente', saldoMonto:'$ 2.186',
+        ledger:[
+          {fecha:'01 oct 2026',concepto:'Gastos comunes — oct 2026',     cargo:'2.186',abono:null,   saldo:'2.186',tipo:'cargo'},
+          {fecha:'11 sep 2026',concepto:'Pago — Transferencia Scotiabank',cargo:null,  abono:'2.148',saldo:'0',   tipo:'abono'},
+          {fecha:'01 sep 2026',concepto:'Gastos comunes — sep 2026',     cargo:'2.148',abono:null,   saldo:'2.148',tipo:'cargo'},
+        ],
+        historial:[
+          {mes:'Oct 2026',monto:'2.186',estado:'pendiente',fechaPago:null,         comp:null},
+          {mes:'Sep 2026',monto:'2.148',estado:'pagado',   fechaPago:'11 sep 2026',comp:'comp_sep.jpg'},
+          {mes:'Ago 2026',monto:'2.040',estado:'pagado',   fechaPago:'09 ago 2026',comp:'comp_ago.jpg'},
+          {mes:'Jul 2026',monto:'2.040',estado:'pagado',   fechaPago:'15 jul 2026',comp:'comp_jul.jpg'},
+        ]}
+    }
+  };
+
+  // ── Render helpers ─────────────────────────────────────────────────────────
+  function estadoBadge(estado) {
+    var map = {
+      pagado:    'bg-green-50 text-green-700',
+      revision:  'bg-slate-100 text-slate-600',
+      moroso:    'bg-red-50 text-red-700',
+      pendiente: ''
+    };
+    var labels = { pagado: 'Pagado', revision: 'En revisión', moroso: 'Moroso', pendiente: 'Pendiente' };
+    if (estado === 'pendiente') return '<span class="text-xs text-slate-500">Pendiente</span>';
+    return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' + map[estado] + '">' + labels[estado] + '</span>';
+  }
+
+  function renderSaldoBody(u) {
+    if (u.saldoEstado === 'pendiente') {
+      return '<p class="text-xs text-slate-400 mb-4">Sin comprobante registrado. Vence el 28 de octubre.</p>';
+    }
+    if (u.saldoEstado === 'revision') {
+      return '<p class="text-xs text-slate-400 mb-4">Comprobante subido el ' + u.compFecha + '. Pendiente de validación.</p>' +
+        '<div class="flex gap-2 flex-wrap">' +
+        '<button class="bg-slate-900 text-white text-xs px-2.5 py-1.5 rounded hover:bg-slate-700">Validar pago</button>' +
+        '<button class="border border-gray-200 text-xs px-2.5 py-1.5 rounded text-slate-600 hover:bg-gray-50">Rechazar</button>' +
+        '<button class="border border-gray-200 text-xs px-2.5 py-1.5 rounded text-slate-600 hover:bg-gray-50">Ver comprobante</button>' +
+        '</div>';
+    }
+    if (u.saldoEstado === 'pagado') {
+      return '<p class="text-xs text-slate-400 mb-2">Pagado el ' + u.fechaPago + '.</p>' +
+        '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700">Al día</span>';
+    }
+    if (u.saldoEstado === 'moroso') {
+      return '<p class="text-xs text-slate-400 mb-4">' + u.saldoMeses + ' meses sin pagar. Último pago registrado: jul 2026.</p>' +
+        '<button class="border border-gray-200 text-xs px-2.5 py-1.5 rounded text-slate-600 hover:bg-gray-50">Enviar recordatorio</button>';
+    }
+    return '';
+  }
+
+  function renderLedger(rows) {
+    return rows.map(function(r) {
+      var rowBg = r.tipo === 'abono' ? 'bg-green-50/40' : (r.tipo === 'pendiente' ? 'bg-amber-50/40' : '');
+      var cargoCell = r.cargo
+        ? '<td class="px-4 py-3 text-right text-slate-700">$ ' + r.cargo + '</td>'
+        : '<td class="px-4 py-3 text-right text-slate-300">—</td>';
+      var abonoCell = r.abono
+        ? '<td class="px-4 py-3 text-right text-green-600 font-medium">$ ' + r.abono + '</td>'
+        : '<td class="px-4 py-3 text-right text-slate-300">—</td>';
+      var saldoColor = (r.tipo === 'abono') ? 'text-slate-700' : (r.tipo === 'pendiente' ? 'text-amber-600' : 'text-red-500');
+      var conceitoStyle = r.tipo === 'pendiente' ? ' text-slate-400 italic' : ' text-slate-700';
+      return '<tr class="border-t border-gray-100 ' + rowBg + '">' +
+        '<td class="px-4 py-3 text-slate-400 text-xs">' + r.fecha + '</td>' +
+        '<td class="px-4 py-3' + conceitoStyle + '">' + r.concepto + '</td>' +
+        cargoCell + abonoCell +
+        '<td class="px-4 py-3 text-right font-medium ' + saldoColor + '">$ ' + r.saldo + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  function renderHistorial(rows) {
+    return rows.map(function(r) {
+      var compCell = r.comp
+        ? '<a href="#" class="text-xs text-slate-500 underline hover:text-slate-900">' + r.comp + '</a>'
+        : '<span class="text-xs text-slate-300">—</span>';
+      var fechaCell = r.fechaPago
+        ? '<span class="text-slate-500 text-xs">' + r.fechaPago + '</span>'
+        : '<span class="text-slate-300 text-xs">—</span>';
+      var rowBg = r.estado === 'moroso' ? 'bg-red-50/30' : '';
+      return '<tr class="border-t border-gray-100 ' + rowBg + '">' +
+        '<td class="px-4 py-3 text-slate-700 font-medium">' + r.mes + '</td>' +
+        '<td class="px-4 py-3 text-right text-slate-700">$ ' + r.monto + '</td>' +
+        '<td class="px-4 py-3">' + estadoBadge(r.estado) + '</td>' +
+        '<td class="px-4 py-3">' + fechaCell + '</td>' +
+        '<td class="px-4 py-3">' + compCell + '</td>' +
+        '</tr>';
+    }).join('');
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+  function showUnit(unitId, rol) {
+    var persons = unitRolData[unitId];
+    if (!persons) return;
+    var person = persons[rol];
+    var rolLabel = rol === 'prop' ? 'Propietario' : 'Inquilino';
+
+    document.getElementById('content-cobros').classList.add('hidden');
+    document.getElementById('content-unit').classList.remove('hidden');
+
+    // Breadcrumb
+    document.getElementById('unit-title').textContent = 'Unidad ' + unitId;
+    document.getElementById('unit-nombre-header').textContent = '— ' + person.nombre + ' · ' + rolLabel;
+    var badge = document.getElementById('unit-estado-badge');
+    badge.textContent = person.estadoLabel;
+    badge.className = 'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ' + person.badgeClass + ' ml-1';
+
+    // Ocupación — always shows both
+    document.getElementById('unit-prop-nombre').textContent = persons.prop.nombre;
+    document.getElementById('unit-prop-contact').textContent = persons.prop.contact;
+    document.getElementById('unit-inq-nombre').textContent = persons.inq.nombre;
+    document.getElementById('unit-inq-nombre').className = 'text-sm font-medium text-slate-800';
+    document.getElementById('unit-inq-contact').textContent = persons.inq.contact;
+    document.getElementById('unit-coeficiente').textContent = persons.coef;
+
+    // Saldo — for the clicked person
+    var montoEl = document.getElementById('unit-saldo-monto');
+    montoEl.textContent = person.saldoMonto;
+    montoEl.className = 'text-2xl font-bold mb-1 ' + (person.saldoEstado === 'pagado' ? 'text-green-600' : person.saldoEstado === 'moroso' ? 'text-red-600' : 'text-slate-900');
+    document.getElementById('unit-saldo-body').innerHTML = renderSaldoBody(person);
+
+    // Ledger + historial — for the clicked person
+    document.getElementById('unit-ledger-body').innerHTML = renderLedger(person.ledger);
+    document.getElementById('unit-historial-body').innerHTML = renderHistorial(person.historial);
+  }
+
+  function backToCobros() {
+    document.getElementById('content-unit').classList.add('hidden');
+    document.getElementById('content-cobros').classList.remove('hidden');
+    // Reset inquilino nombre class in case it was changed
+    document.getElementById('unit-inq-nombre').className = 'text-sm font-medium text-slate-800';
+  }
+
+  function showTab(tab) {
+    var tabs = ['cobros','resumen','gastos','comunicaciones'];
+    document.getElementById('content-unit').classList.add('hidden');
+    tabs.forEach(function(t) {
+      var btn = document.getElementById('tab-' + t);
+      var content = document.getElementById('content-' + t);
+      if (t === tab) {
+        btn.className = 'tab-active pb-3 text-sm cursor-pointer bg-transparent border-0';
+        content.classList.remove('hidden');
+      } else {
+        btn.className = 'tab-inactive pb-3 text-sm cursor-pointer bg-transparent border-0';
+        content.classList.add('hidden');
+      }
+    });
+  }
+
+  function showCommSubTab(sub) {
+    var subs = ['avisos','reclamos','reportes'];
+    subs.forEach(function(s) {
+      var btn = document.getElementById('comm-tab-' + s);
+      var content = document.getElementById('comm-' + s);
+      if (s === sub) {
+        btn.className = 'comm-sub-active px-3 py-1.5 text-xs cursor-pointer bg-transparent border-0';
+        content.classList.remove('hidden');
+      } else {
+        btn.className = 'comm-sub-inactive px-3 py-1.5 text-xs cursor-pointer bg-transparent border-0';
+        content.classList.add('hidden');
+      }
+    });
+  }
+
+  function selectBuilding(nombre, direccion, id) {
+    var ids = ['minas','centro','pocitos'];
+    ids.forEach(function(i) {
+      var btn = document.getElementById('btn-' + i);
+      var nameEl = btn.querySelector('div:first-child');
+      if (i === id) {
+        btn.className = 'building-active py-3 cursor-pointer';
+        nameEl.className = 'text-white text-sm font-medium';
+      } else {
+        btn.className = 'building-inactive px-4 py-3 cursor-pointer';
+        nameEl.className = 'text-slate-300 text-sm';
+      }
+    });
+    document.getElementById('header-nombre').textContent = nombre;
+    document.getElementById('header-detalle').textContent = direccion + ' · 12 unidades';
+    backToCobros();
+    showTab('cobros');
+  }
+</script>
+
+</body>
+</html>

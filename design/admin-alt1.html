@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin — Confort S.A.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .chat-bubble-right { border-radius: 18px 18px 4px 18px; }
+    .chat-bubble-left  { border-radius: 18px 18px 18px 4px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .sub-tab-content { display: none; }
+    .sub-tab-content.active { display: block; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+
+<!-- ===================== VISTA ADMIN ===================== -->
+<div id="vista-admin" class="flex h-screen overflow-hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="w-60 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
+
+    <!-- Header sidebar -->
+    <div class="px-4 py-5 border-b border-gray-200">
+      <p class="text-sm font-semibold text-gray-900">Confort S.A.</p>
+      <p class="text-xs text-gray-400">Administración</p>
+    </div>
+
+    <!-- Lista de edificios -->
+    <div class="flex-1 overflow-y-auto py-2">
+      <p class="text-xs text-gray-400 uppercase tracking-wider px-4 py-2">Edificios</p>
+
+      <!-- Edificio Minas (activo) -->
+      <div id="nav-minas"
+           onclick="selectBuilding('Edificio Minas', 'Av. Minas 1875', 'minas')"
+           class="nav-building active-building px-4 py-3 cursor-pointer border-l-2 border-red-600 bg-gray-50 pl-3.5">
+        <span class="text-sm font-medium text-gray-800">Edificio Minas</span>
+        <p class="text-xs text-gray-400 mt-0.5">Av. Minas 1875</p>
+      </div>
+
+      <!-- Edificio Centro -->
+      <div id="nav-centro"
+           onclick="selectBuilding('Edificio Centro', '18 de Julio 1120', 'centro')"
+           class="nav-building px-4 py-3 cursor-pointer hover:bg-gray-50">
+        <span class="text-sm font-medium text-gray-800">Edificio Centro</span>
+        <p class="text-xs text-gray-400 mt-0.5">18 de Julio 1120</p>
+      </div>
+
+      <!-- Edificio Pocitos -->
+      <div id="nav-pocitos"
+           onclick="selectBuilding('Edificio Pocitos', 'Bulevar España 2780', 'pocitos')"
+           class="nav-building px-4 py-3 cursor-pointer hover:bg-gray-50">
+        <span class="text-sm font-medium text-gray-800">Edificio Pocitos</span>
+        <p class="text-xs text-gray-400 mt-0.5">Bulevar España 2780</p>
+      </div>
+    </div>
+
+    <!-- Footer sidebar -->
+    <div class="px-4 py-4 border-t border-gray-200 space-y-2">
+      <p class="text-xs text-gray-400">confort@confortsa.uy</p>
+      <button onclick="showResidente()" class="text-xs text-gray-400 underline hover:text-gray-600">
+        Ver portal residente
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- Header del edificio -->
+    <div class="bg-white border-b border-gray-200">
+      <div class="px-8 py-4 flex items-center justify-between">
+        <div>
+          <p id="building-name" class="text-sm font-semibold text-gray-900">Edificio Minas</p>
+          <p id="building-address" class="text-xs text-gray-400 mt-0.5">Av. Minas 1875 · 12 unidades</p>
+        </div>
+      </div>
+      <!-- Tabs -->
+      <div class="px-8 flex gap-6 border-t border-gray-100">
+        <button onclick="showTab('cobros')" id="tab-btn-cobros"
+          class="tab-btn text-sm py-3 border-b-2 border-red-600 text-gray-900 font-medium">
+          Cobros
+        </button>
+        <button onclick="showTab('resumen')" id="tab-btn-resumen"
+          class="tab-btn text-sm py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600">
+          Resumen general
+        </button>
+        <button onclick="showTab('gastos')" id="tab-btn-gastos"
+          class="tab-btn text-sm py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600">
+          Gastos del mes
+        </button>
+        <button onclick="showTab('comunicaciones')" id="tab-btn-comunicaciones"
+          class="tab-btn text-sm py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600">
+          Comunicaciones
+        </button>
+      </div>
+    </div>
+
+    <!-- Contenido de tabs -->
+    <div class="flex-1 overflow-y-auto">
+
+      <!-- TAB: COBROS -->
+      <div id="tab-cobros" class="tab-content active">
+
+        <!-- Tabla de unidades -->
+        <div class="px-8 py-6">
+          <div class="bg-white rounded border border-gray-200 overflow-hidden">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-200 bg-gray-50">
+                  <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Unidad</th>
+                  <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Residente</th>
+                  <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                  <th class="text-right px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                  <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                  <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+
+                <!-- 101 Juan Pérez - Pagado -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">101</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Juan Pérez</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Propietario</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.980</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Pagado</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Ver</button>
+                  </td>
+                </tr>
+
+                <!-- 102 María García - En revisión -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">102</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">María García</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Inquilino</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.650</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">En revisión</span>
+                  </td>
+                  <td class="px-4 py-3 flex items-center gap-2">
+                    <button class="text-xs bg-gray-900 text-white px-2.5 py-1 rounded hover:bg-gray-700">Validar</button>
+                    <button class="text-xs border border-gray-200 text-gray-600 px-2.5 py-1 rounded hover:bg-gray-50">Rechazar</button>
+                  </td>
+                </tr>
+
+                <!-- 103 Carlos Rodríguez - Pendiente -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">103</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Carlos Rodríguez</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Inquilino</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.650</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full">Pendiente</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Recordar</button>
+                  </td>
+                </tr>
+
+                <!-- 104 Luis Fernández - Pagado -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">104</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Luis Fernández</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Propietario</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.980</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Pagado</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Ver</button>
+                  </td>
+                </tr>
+
+                <!-- 201 Sofía López - En revisión -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">201</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Sofía López</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Inquilino</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.650</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">En revisión</span>
+                  </td>
+                  <td class="px-4 py-3 flex items-center gap-2">
+                    <button class="text-xs bg-gray-900 text-white px-2.5 py-1 rounded hover:bg-gray-700">Validar</button>
+                    <button class="text-xs border border-gray-200 text-gray-600 px-2.5 py-1 rounded hover:bg-gray-50">Rechazar</button>
+                  </td>
+                </tr>
+
+                <!-- 202 Pedro Martínez - Pagado -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">202</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Pedro Martínez</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Propietario</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.980</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Pagado</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Ver</button>
+                  </td>
+                </tr>
+
+                <!-- 203 Laura Sánchez - MOROSO -->
+                <tr class="bg-red-50/40 hover:bg-red-50/60">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">203</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Laura Sánchez</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Inquilino</td>
+                  <td class="px-4 py-3 text-sm text-right text-red-600 font-medium">$U 7.300</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">Moroso</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Gestionar</button>
+                  </td>
+                </tr>
+
+                <!-- 204 Elena Rosario - En revisión -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">204</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Elena Rosario</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Propietario</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.980</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">En revisión</span>
+                  </td>
+                  <td class="px-4 py-3 flex items-center gap-2">
+                    <button class="text-xs bg-gray-900 text-white px-2.5 py-1 rounded hover:bg-gray-700">Validar</button>
+                    <button class="text-xs border border-gray-200 text-gray-600 px-2.5 py-1 rounded hover:bg-gray-50">Rechazar</button>
+                  </td>
+                </tr>
+
+                <!-- 301 Felipe Castillo - Pagado -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">301</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Felipe Castillo</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Propietario</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.980</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-full">Pagado</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Ver</button>
+                  </td>
+                </tr>
+
+                <!-- 302 Natalia Vidal - Pendiente -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">302</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Natalia Vidal</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Inquilino</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.650</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full">Pendiente</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Recordar</button>
+                  </td>
+                </tr>
+
+                <!-- 303 Andrea Morales - MOROSO -->
+                <tr class="bg-red-50/40 hover:bg-red-50/60">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">303</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Andrea Morales</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Propietario</td>
+                  <td class="px-4 py-3 text-sm text-right text-red-600 font-medium">$U 6.900</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">Moroso</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Gestionar</button>
+                  </td>
+                </tr>
+
+                <!-- 304 Ramón Herrera - Pendiente -->
+                <tr class="hover:bg-gray-50">
+                  <td class="px-4 py-3 text-sm font-medium text-gray-900">304</td>
+                  <td class="px-4 py-3 text-sm text-gray-700">Ramón Herrera</td>
+                  <td class="px-4 py-3 text-xs text-gray-500">Inquilino</td>
+                  <td class="px-4 py-3 text-sm text-right text-gray-700">$U 3.650</td>
+                  <td class="px-4 py-3">
+                    <span class="text-xs font-medium text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded-full">Pendiente</span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <button class="text-xs text-gray-400 hover:text-gray-600">Recordar</button>
+                  </td>
+                </tr>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /tab-cobros -->
+
+      <!-- TAB: RESUMEN GENERAL -->
+      <div id="tab-resumen" class="tab-content">
+        <div class="overflow-y-auto">
+
+        <!-- Dashboard strip -->
+        <div class="bg-white border-b border-gray-200 px-8 py-5">
+          <div class="flex items-center gap-8">
+
+            <!-- Donut -->
+            <div class="flex items-center gap-5">
+              <svg width="110" height="110" viewBox="0 0 110 110">
+                <circle cx="55" cy="55" r="45" fill="none" stroke="#f3f4f6" stroke-width="14"/>
+                <!-- Pagado: verde -->
+                <circle cx="55" cy="55" r="45" fill="none" stroke="#4ade80" stroke-width="14"
+                  stroke-dasharray="91.25 282.74"
+                  stroke-dashoffset="0"
+                  transform="rotate(-90 55 55)"/>
+                <!-- En revisión: gris claro -->
+                <circle cx="55" cy="55" r="45" fill="none" stroke="#d1d5db" stroke-width="14"
+                  stroke-dasharray="56.55 282.74"
+                  stroke-dashoffset="-94.25"
+                  transform="rotate(-90 55 55)"/>
+                <!-- Pendiente: gris -->
+                <circle cx="55" cy="55" r="45" fill="none" stroke="#9ca3af" stroke-width="14"
+                  stroke-dasharray="90.48 282.74"
+                  stroke-dashoffset="-153.80"
+                  transform="rotate(-90 55 55)"/>
+                <!-- Moroso: rojo -->
+                <circle cx="55" cy="55" r="45" fill="none" stroke="#dc2626" stroke-width="14"
+                  stroke-dasharray="44.12 282.74"
+                  stroke-dashoffset="-247.28"
+                  transform="rotate(-90 55 55)"/>
+                <text x="55" y="51" text-anchor="middle" font-size="18" font-weight="600" fill="#111827" font-family="Inter,sans-serif">12</text>
+                <text x="55" y="63" text-anchor="middle" font-size="9" fill="#9ca3af" font-family="Inter,sans-serif">unidades</text>
+              </svg>
+
+              <!-- Leyenda -->
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-green-400 flex-shrink-0"></span>
+                  <span class="text-xs text-gray-600">Pagado</span>
+                  <span class="text-xs font-semibold text-gray-900 ml-1">4</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-gray-300 flex-shrink-0"></span>
+                  <span class="text-xs text-gray-600">En revisión</span>
+                  <span class="text-xs font-semibold text-gray-900 ml-1">3</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-gray-400 flex-shrink-0"></span>
+                  <span class="text-xs text-gray-600">Pendiente</span>
+                  <span class="text-xs font-semibold text-gray-900 ml-1">3</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-red-600 flex-shrink-0"></span>
+                  <span class="text-xs text-gray-600">Moroso</span>
+                  <span class="text-xs font-semibold text-red-600 ml-1">2</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Divisor -->
+            <div class="w-px h-20 bg-gray-200"></div>
+
+            <!-- Barra financiera y cifras -->
+            <div class="flex-1">
+              <!-- Barra apilada -->
+              <div class="flex rounded-full overflow-hidden h-2.5 mb-4 w-full max-w-xs">
+                <div class="bg-green-400" style="width: 42%"></div>
+                <div class="bg-gray-300" style="width: 24%"></div>
+                <div class="bg-gray-200" style="width: 20%"></div>
+                <div class="bg-red-200" style="width: 14%"></div>
+              </div>
+              <div class="flex gap-8">
+                <div>
+                  <p class="text-xs text-gray-400">Cobrado</p>
+                  <p class="text-base font-semibold text-gray-900">$₯ 43.800</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">En revisión</p>
+                  <p class="text-base font-semibold text-gray-700">$₯ 28.500</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-400">Deuda acumulada</p>
+                  <p class="text-base font-semibold text-red-600">$₯ 14.200</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="px-8 py-6 space-y-6">
+          <div class="bg-white rounded border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100">
+              <p class="text-sm font-semibold text-gray-900">Resumen del mes — Octubre 2026</p>
+            </div>
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50">
+                  <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Concepto</th>
+                  <th class="text-right px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Presupuestado</th>
+                  <th class="text-right px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Real</th>
+                  <th class="text-right px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Diferencia</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-gray-700">O.S.E. (agua)</td>
+                  <td class="px-5 py-3 text-right text-gray-600">$U 8.200</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 8.450</td>
+                  <td class="px-5 py-3 text-right text-red-500 text-xs">+$U 250</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-gray-700">U.T.E. (electricidad)</td>
+                  <td class="px-5 py-3 text-right text-gray-600">$U 12.000</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 11.800</td>
+                  <td class="px-5 py-3 text-right text-green-600 text-xs">-$U 200</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-gray-700">Limpieza</td>
+                  <td class="px-5 py-3 text-right text-gray-600">$U 15.000</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 15.000</td>
+                  <td class="px-5 py-3 text-right text-gray-400 text-xs">$U 0</td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-gray-700">Honorarios administración</td>
+                  <td class="px-5 py-3 text-right text-gray-600">$U 9.500</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 9.500</td>
+                  <td class="px-5 py-3 text-right text-gray-400 text-xs">$U 0</td>
+                </tr>
+                <tr class="bg-gray-50 font-semibold">
+                  <td class="px-5 py-3 text-gray-900">Total</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 44.700</td>
+                  <td class="px-5 py-3 text-right text-gray-900">$U 44.750</td>
+                  <td class="px-5 py-3 text-right text-red-500 text-xs">+$U 50</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="bg-white rounded border border-gray-200 px-5 py-4">
+              <p class="text-xs text-gray-400">Recaudación total</p>
+              <p class="text-xl font-semibold text-gray-900 mt-1">$U 86.500</p>
+              <p class="text-xs text-gray-400 mt-0.5">Oct + deuda pendiente</p>
+            </div>
+            <div class="bg-white rounded border border-gray-200 px-5 py-4">
+              <p class="text-xs text-gray-400">Fondo de reserva acumulado</p>
+              <p class="text-xl font-semibold text-gray-900 mt-1">$U 124.300</p>
+              <p class="text-xs text-gray-400 mt-0.5">Suma de aportes propietarios</p>
+            </div>
+            <div class="bg-white rounded border border-gray-200 px-5 py-4">
+              <p class="text-xs text-gray-400">Morosos activos</p>
+              <p class="text-xl font-semibold text-red-600 mt-1">2 unidades</p>
+              <p class="text-xs text-red-400 mt-0.5">$U 14.200 en deuda</p>
+            </div>
+          </div>
+        </div>
+        </div><!-- /overflow-y-auto resumen -->
+      </div><!-- /tab-resumen -->
+
+      <!-- TAB: GASTOS DEL MES -->
+      <div id="tab-gastos" class="tab-content">
+        <div class="px-8 py-6">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-sm font-semibold text-gray-900">Gastos — Octubre 2026</p>
+            <button class="text-xs bg-gray-900 text-white px-3 py-1.5 rounded hover:bg-gray-700">+ Agregar gasto</button>
+          </div>
+          <div class="bg-white rounded border border-gray-200 overflow-hidden">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50">
+                  <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                  <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Concepto</th>
+                  <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
+                  <th class="text-right px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Importe</th>
+                  <th class="text-left px-5 py-2.5 text-xs font-medium text-gray-500 uppercase tracking-wider">Comprobante</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-xs text-gray-500">01/10/2026</td>
+                  <td class="px-5 py-3 text-gray-700">O.S.E. — agua octubre</td>
+                  <td class="px-5 py-3 text-xs text-gray-500">O.S.E.</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 8.450</td>
+                  <td class="px-5 py-3"><span class="text-xs text-gray-400 underline cursor-pointer hover:text-gray-600">factura_ose_oct.pdf</span></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-xs text-gray-500">02/10/2026</td>
+                  <td class="px-5 py-3 text-gray-700">U.T.E. — electricidad octubre</td>
+                  <td class="px-5 py-3 text-xs text-gray-500">U.T.E.</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 11.800</td>
+                  <td class="px-5 py-3"><span class="text-xs text-gray-400 underline cursor-pointer hover:text-gray-600">factura_ute_oct.pdf</span></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-xs text-gray-500">05/10/2026</td>
+                  <td class="px-5 py-3 text-gray-700">Servicio de limpieza</td>
+                  <td class="px-5 py-3 text-xs text-gray-500">Clean Pro S.R.L.</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 15.000</td>
+                  <td class="px-5 py-3"><span class="text-xs text-gray-400 underline cursor-pointer hover:text-gray-600">factura_limpieza_oct.pdf</span></td>
+                </tr>
+                <tr class="hover:bg-gray-50">
+                  <td class="px-5 py-3 text-xs text-gray-500">10/10/2026</td>
+                  <td class="px-5 py-3 text-gray-700">Honorarios administración</td>
+                  <td class="px-5 py-3 text-xs text-gray-500">Confort S.A.</td>
+                  <td class="px-5 py-3 text-right text-gray-700">$U 9.500</td>
+                  <td class="px-5 py-3"><span class="text-xs text-gray-400 underline cursor-pointer hover:text-gray-600">honorarios_oct.pdf</span></td>
+                </tr>
+              </tbody>
+              <tfoot class="border-t border-gray-200">
+                <tr class="bg-gray-50">
+                  <td colspan="3" class="px-5 py-3 text-sm font-semibold text-gray-700">Total gastos del mes</td>
+                  <td class="px-5 py-3 text-right text-sm font-semibold text-gray-900">$U 44.750</td>
+                  <td class="px-5 py-3"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div><!-- /tab-gastos -->
+
+      <!-- TAB: COMUNICACIONES ADMIN -->
+      <div id="tab-comunicaciones" class="tab-content">
+        <div class="px-8 py-5 border-b border-gray-200 bg-white">
+          <div class="flex gap-5">
+            <button onclick="showCommSubTab('avisos-admin')" id="comm-admin-btn-avisos-admin"
+              class="comm-admin-btn text-sm pb-2 border-b-2 border-red-600 text-gray-900 font-medium">
+              Avisos
+            </button>
+            <button onclick="showCommSubTab('reclamos-admin')" id="comm-admin-btn-reclamos-admin"
+              class="comm-admin-btn text-sm pb-2 border-b-2 border-transparent text-gray-400 hover:text-gray-600">
+              Reclamos
+            </button>
+            <button onclick="showCommSubTab('reportes-admin')" id="comm-admin-btn-reportes-admin"
+              class="comm-admin-btn text-sm pb-2 border-b-2 border-transparent text-gray-400 hover:text-gray-600">
+              Reportes
+            </button>
+          </div>
+        </div>
+
+        <!-- Sub-tab: Avisos admin -->
+        <div id="subtab-avisos-admin" class="sub-tab-content active">
+          <div class="px-8 py-6 max-w-2xl space-y-4">
+            <!-- Form nuevo aviso -->
+            <div class="bg-white rounded border border-gray-200 p-4">
+              <p class="text-xs font-medium text-gray-700 mb-2">Nuevo aviso</p>
+              <input type="text" placeholder="Asunto" class="w-full text-sm border border-gray-200 rounded px-3 py-2 mb-2 focus:outline-none focus:border-gray-400" />
+              <textarea rows="3" placeholder="Mensaje..." class="w-full text-sm border border-gray-200 rounded px-3 py-2 mb-2 focus:outline-none focus:border-gray-400 resize-none"></textarea>
+              <div class="flex items-center justify-between">
+                <label class="text-xs text-gray-400"><input type="checkbox" class="mr-1"> Enviar por email</label>
+                <button class="text-xs bg-gray-900 text-white px-3 py-1.5 rounded hover:bg-gray-700">Publicar aviso</button>
+              </div>
+            </div>
+            <!-- Lista de avisos publicados -->
+            <div class="bg-white rounded border border-gray-200 divide-y divide-gray-100">
+              <div class="px-4 py-3">
+                <div class="flex items-center justify-between mb-0.5">
+                  <p class="text-sm font-medium text-gray-800">Corte de agua — 22 octubre</p>
+                  <span class="text-xs text-gray-400">Hoy 09:15</span>
+                </div>
+                <p class="text-xs text-gray-500">O.S.E. realizará un corte programado el martes 22 de 08:00 a 12:00 hs. Se recomienda tener agua reservada.</p>
+              </div>
+              <div class="px-4 py-3">
+                <div class="flex items-center justify-between mb-0.5">
+                  <p class="text-sm font-medium text-gray-800">Recordatorio de pago — Octubre 2026</p>
+                  <span class="text-xs text-gray-400">15/10/2026</span>
+                </div>
+                <p class="text-xs text-gray-500">Se recuerda que el vencimiento de las expensas de octubre es el 25/10/2026. Pasado esa fecha se aplicarán recargos.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-tab: Reclamos admin -->
+        <div id="subtab-reclamos-admin" class="sub-tab-content">
+          <div class="flex h-full" style="height: calc(100vh - 200px);">
+            <!-- Lista threads -->
+            <div class="w-64 border-r border-gray-200 bg-white overflow-y-auto flex-shrink-0">
+              <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Reclamos activos</p>
+              </div>
+              <div class="divide-y divide-gray-50">
+                <div class="px-4 py-3 bg-gray-50 cursor-pointer border-l-2 border-red-600">
+                  <p class="text-sm font-medium text-gray-800">Laura Sánchez · 203</p>
+                  <p class="text-xs text-gray-500 mt-0.5 truncate">Disputa monto octubre...</p>
+                  <p class="text-xs text-gray-400 mt-0.5">Hoy 10:20</p>
+                </div>
+                <div class="px-4 py-3 cursor-pointer hover:bg-gray-50">
+                  <p class="text-sm font-medium text-gray-800">Andrea Morales · 303</p>
+                  <p class="text-xs text-gray-500 mt-0.5 truncate">Solicita plan de pago...</p>
+                  <p class="text-xs text-gray-400 mt-0.5">18/10/2026</p>
+                </div>
+              </div>
+            </div>
+            <!-- Chat -->
+            <div class="flex-1 flex flex-col bg-gray-50">
+              <div class="px-5 py-3 bg-white border-b border-gray-200">
+                <p class="text-sm font-medium text-gray-800">Laura Sánchez — Apto 203</p>
+                <p class="text-xs text-gray-400">Reclamo: Disputa monto octubre</p>
+              </div>
+              <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                <div class="flex justify-start">
+                  <div class="bg-white border border-gray-200 rounded px-3 py-2 max-w-xs chat-bubble-left">
+                    <p class="text-xs font-medium text-gray-600 mb-1">Laura Sánchez</p>
+                    <p class="text-sm text-gray-700">Buen día, el monto del mes de octubre no coincide con mi contrato de alquiler. ¿Pueden revisar?</p>
+                    <p class="text-xs text-gray-400 mt-1 text-right">10:20</p>
+                  </div>
+                </div>
+                <div class="flex justify-end">
+                  <div class="bg-gray-900 text-white rounded px-3 py-2 max-w-xs chat-bubble-right">
+                    <p class="text-xs font-medium text-gray-300 mb-1">Confort S.A.</p>
+                    <p class="text-sm">Buenos días Laura. El monto incluye el ajuste de U.T.E. de este mes. Le enviamos el detalle por email.</p>
+                    <p class="text-xs text-gray-400 mt-1 text-right">10:35</p>
+                  </div>
+                </div>
+              </div>
+              <div class="px-5 py-3 bg-white border-t border-gray-200 flex gap-2">
+                <input type="text" placeholder="Responder..." class="flex-1 text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:border-gray-400"/>
+                <button class="text-xs bg-gray-900 text-white px-3 py-2 rounded hover:bg-gray-700">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-tab: Reportes admin -->
+        <div id="subtab-reportes-admin" class="sub-tab-content">
+          <div class="flex h-full" style="height: calc(100vh - 200px);">
+            <!-- Lista reportes -->
+            <div class="w-64 border-r border-gray-200 bg-white overflow-y-auto flex-shrink-0">
+              <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Problemas reportados</p>
+              </div>
+              <div class="divide-y divide-gray-50">
+                <div class="px-4 py-3 bg-gray-50 cursor-pointer border-l-2 border-red-600">
+                  <p class="text-sm font-medium text-gray-800">Felipe Castillo · 301</p>
+                  <p class="text-xs text-gray-500 mt-0.5 truncate">Goteras en techo pasillo...</p>
+                  <p class="text-xs text-gray-400 mt-0.5">20/10/2026</p>
+                </div>
+                <div class="px-4 py-3 cursor-pointer hover:bg-gray-50">
+                  <p class="text-sm font-medium text-gray-800">Natalia Vidal · 302</p>
+                  <p class="text-xs text-gray-500 mt-0.5 truncate">Ascensor con ruido...</p>
+                  <p class="text-xs text-gray-400 mt-0.5">17/10/2026</p>
+                </div>
+              </div>
+            </div>
+            <!-- Detalle reporte -->
+            <div class="flex-1 flex flex-col bg-gray-50">
+              <div class="px-5 py-3 bg-white border-b border-gray-200">
+                <p class="text-sm font-medium text-gray-800">Felipe Castillo — Apto 301</p>
+                <p class="text-xs text-gray-400">Problema: Goteras en techo pasillo 3er piso</p>
+              </div>
+              <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                <div class="flex justify-start">
+                  <div class="bg-white border border-gray-200 rounded px-3 py-2 max-w-xs chat-bubble-left">
+                    <p class="text-xs font-medium text-gray-600 mb-1">Felipe Castillo</p>
+                    <p class="text-sm text-gray-700">Hay goteras en el techo del pasillo del 3er piso, cerca del ascensor. Adjunté fotos.</p>
+                    <p class="text-xs text-gray-400 mt-1 text-right">20/10 14:15</p>
+                  </div>
+                </div>
+                <div class="flex justify-end">
+                  <div class="bg-gray-900 text-white rounded px-3 py-2 max-w-xs chat-bubble-right">
+                    <p class="text-xs font-medium text-gray-300 mb-1">Confort S.A.</p>
+                    <p class="text-sm">Recibido. Estamos coordinando con la empresa de mantenimiento para esta semana.</p>
+                    <p class="text-xs text-gray-400 mt-1 text-right">20/10 16:40</p>
+                  </div>
+                </div>
+              </div>
+              <div class="px-5 py-3 bg-white border-t border-gray-200 flex gap-2">
+                <input type="text" placeholder="Responder..." class="flex-1 text-sm border border-gray-200 rounded px-3 py-2 focus:outline-none focus:border-gray-400"/>
+                <button class="text-xs bg-gray-900 text-white px-3 py-2 rounded hover:bg-gray-700">Enviar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-comunicaciones -->
+
+    </div><!-- /overflow-y-auto -->
+  </div><!-- /main content -->
+</div><!-- /vista-admin -->
+
+
+<!-- ===================== VISTA RESIDENTE ===================== -->
+<div id="vista-residente" class="hidden h-screen flex flex-col overflow-hidden">
+
+  <!-- TOP BAR RESIDENTE -->
+  <div class="bg-white border-b border-gray-200 px-8 flex items-center justify-between shrink-0" style="height:57px">
+    <div class="flex items-center gap-2 text-sm">
+      <span class="font-semibold text-gray-900">Confort S.A.</span>
+      <span class="text-gray-300">/</span>
+      <span class="text-gray-400">Edificio Minas</span>
+    </div>
+    <div class="flex gap-0 h-full items-end">
+      <button onclick="showResidenteTab('liquidaciones')" id="res-nav-liq"
+        class="res-nav text-sm font-medium px-4 h-full border-b-2 border-red-600 text-gray-900 transition-colors">
+        Mis liquidaciones
+      </button>
+      <button onclick="showResidenteTab('comunicaciones')" id="res-nav-com"
+        class="res-nav text-sm font-medium px-4 h-full border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-colors">
+        Comunicaciones
+      </button>
+    </div>
+    <div class="flex items-center gap-3">
+      <span class="text-sm text-gray-500">María García · Apto 102</span>
+      <button onclick="showAdmin()" class="text-xs text-gray-400 underline hover:text-gray-600">Volver al admin</button>
+    </div>
+  </div>
+
+  <!-- TAB: MIS LIQUIDACIONES -->
+  <div id="res-tab-liquidaciones" class="flex flex-1 overflow-hidden">
+
+    <!-- Lista de meses (angosta) -->
+    <div class="w-40 bg-gray-50 border-r border-gray-200 overflow-y-auto shrink-0">
+      <div onclick="selectMonth('oct')" id="month-oct"
+        class="px-3 py-3.5 cursor-pointer border-b border-gray-100 border-l-2 border-l-red-600 bg-white">
+        <p class="text-sm font-medium text-gray-800">Oct 2026</p>
+        <p class="text-xs text-red-600 mt-0.5">Pendiente</p>
+      </div>
+      <div onclick="selectMonth('sep')" id="month-sep"
+        class="px-3 py-3.5 cursor-pointer border-b border-gray-100 hover:bg-white">
+        <p class="text-sm font-medium text-gray-700">Sep 2026</p>
+        <p class="text-xs text-green-600 mt-0.5">✓ Pagado</p>
+      </div>
+      <div onclick="selectMonth('ago')" id="month-ago"
+        class="px-3 py-3.5 cursor-pointer border-b border-gray-100 hover:bg-white">
+        <p class="text-sm font-medium text-gray-700">Ago 2026</p>
+        <p class="text-xs text-green-600 mt-0.5">✓ Pagado</p>
+      </div>
+    </div>
+
+    <!-- Detalle de la liquidación -->
+    <div class="flex-1 overflow-y-auto px-8 py-6 bg-white">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <h2 class="text-base font-semibold text-gray-900">Octubre 2026</h2>
+          <span class="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded">Pendiente</span>
+        </div>
+        <button class="border border-gray-200 text-sm text-gray-600 px-3 py-1.5 rounded-md hover:bg-gray-50">
+          Descargar PDF
+        </button>
+      </div>
+
+      <!-- Banner -->
+      <div class="bg-amber-50 border-l-4 border-amber-400 px-4 py-3 rounded-r text-sm text-amber-800 mt-4">
+        Tenés un saldo pendiente de pago.
+      </div>
+
+      <!-- Tabla liquidación -->
+      <div class="mt-6 max-w-md border border-gray-200 rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
+          <tbody class="divide-y divide-gray-100">
+            <tr>
+              <td class="px-5 py-3 text-gray-600">Saldo anterior</td>
+              <td class="px-5 py-3 text-right font-medium text-gray-800">$ 1.240,00</td>
+            </tr>
+            <tr>
+              <td class="px-5 py-3 text-gray-600">Pagos</td>
+              <td class="px-5 py-3 text-right font-medium text-gray-400">$ 0,00</td>
+            </tr>
+            <tr class="bg-gray-50">
+              <td class="px-5 py-3 font-semibold text-gray-900">Nuevo saldo</td>
+              <td class="px-5 py-3 text-right font-semibold text-gray-900">$ 1.240,00</td>
+            </tr>
+            <tr>
+              <td class="px-5 py-3 text-gray-600">Gastos comunes</td>
+              <td class="px-5 py-3 text-right font-medium text-gray-800">$ 2.280,40</td>
+            </tr>
+            <tr>
+              <td class="px-5 py-3 text-gray-400">Fondo de reserva</td>
+              <td class="px-5 py-3 text-right text-gray-300">—</td>
+            </tr>
+            <tr>
+              <td class="px-5 py-3 text-gray-400">Cuota extraordinaria</td>
+              <td class="px-5 py-3 text-right text-gray-400">$ 0,00</td>
+            </tr>
+            <tr class="bg-gray-50">
+              <td class="px-5 py-3 font-semibold text-gray-900">Total del mes</td>
+              <td class="px-5 py-3 text-right font-semibold text-gray-900">$ 2.280,40</td>
+            </tr>
+            <tr class="border-t-2 border-gray-300">
+              <td class="px-5 py-4 font-bold text-gray-900 text-base">Total a pagar</td>
+              <td class="px-5 py-4 text-right font-bold text-red-600 text-base">$ 3.520,40</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Comprobante -->
+      <div class="mt-6 max-w-md">
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">Comprobante de pago</p>
+        <div class="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+          <div class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span class="text-sm text-gray-700">comprobante_octubre.jpg</span>
+          </div>
+          <div class="flex gap-3">
+            <button class="text-sm text-gray-500 underline">Ver</button>
+            <button class="text-xs text-gray-400 underline">Reemplazar</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB: COMUNICACIONES -->
+  <div id="res-tab-comunicaciones" class="flex-1 flex flex-col overflow-hidden hidden">
+
+    <!-- Sub-tabs comunicaciones -->
+    <div class="bg-white border-b border-gray-100 px-8 flex gap-0 shrink-0">
+      <button onclick="showResCommSubTab('avisos')" id="comm-nav-avisos"
+        class="comm-nav text-sm font-medium px-4 py-3 border-b-2 border-red-600 text-gray-900 transition-colors">
+        Avisos
+      </button>
+      <button onclick="showResCommSubTab('reclamos')" id="comm-nav-reclamos"
+        class="comm-nav text-sm font-medium px-4 py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-colors">
+        Reclamos de cobro
+      </button>
+      <button onclick="showResCommSubTab('reportar')" id="comm-nav-reportar"
+        class="comm-nav text-sm font-medium px-4 py-3 border-b-2 border-transparent text-gray-400 hover:text-gray-600 transition-colors">
+        Reportar problema
+      </button>
+    </div>
+
+    <!-- Avisos -->
+    <div id="comm-tab-avisos" class="flex-1 overflow-y-auto px-8 py-2">
+      <div class="max-w-2xl">
+        <div class="border-l-2 border-red-600 pl-4 py-4 border-b border-gray-100">
+          <p class="text-sm font-medium text-gray-900">Corte de agua — 23 de octubre</p>
+          <p class="text-sm text-gray-500 mt-1">El día 23/10 de 9 a 13h habrá corte de agua por mantenimiento de tanques.</p>
+          <p class="text-xs text-gray-400 mt-2">21/10/2026 · Confort S.A.</p>
+        </div>
+        <div class="py-4 border-b border-gray-100">
+          <p class="text-sm font-medium text-gray-900">Asamblea anual — 15 de noviembre</p>
+          <p class="text-sm text-gray-500 mt-1">Asamblea ordinaria el 15/11/2026 a las 19:00h en el salón del edificio.</p>
+          <p class="text-xs text-gray-400 mt-2">18/10/2026 · Confort S.A.</p>
+        </div>
+        <div class="py-4 border-b border-gray-100">
+          <p class="text-sm font-medium text-gray-900">Recordatorio de pago</p>
+          <p class="text-sm text-gray-500 mt-1">Le recordamos que el vencimiento de los gastos comunes es el 28 de cada mes.</p>
+          <p class="text-xs text-gray-400 mt-2">15/10/2026 · Confort S.A.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reclamos de cobro -->
+    <div id="comm-tab-reclamos" class="flex-1 flex overflow-hidden hidden">
+      <div class="w-56 border-r border-gray-200 bg-white overflow-y-auto shrink-0">
+        <div class="px-4 py-3.5 border-b border-gray-100 bg-gray-50 border-l-2 border-l-red-600 cursor-pointer">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+            <p class="text-sm font-medium text-gray-800 truncate">Cargo incorrecto</p>
+          </div>
+          <p class="text-xs text-gray-400 truncate">Oct 2026 · Hace 2h</p>
+        </div>
+        <div class="px-4 py-3.5 border-b border-gray-100 cursor-pointer hover:bg-gray-50 opacity-60">
+          <p class="text-sm font-medium text-gray-700 truncate">Consulta saldo</p>
+          <p class="text-xs text-gray-400">Sep 2026 · 15/09</p>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col bg-gray-50">
+        <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
+          <p class="text-sm font-semibold text-gray-900">Cargo incorrecto — Oct 2026</p>
+          <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded">Pendiente</span>
+        </div>
+        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          <div class="flex justify-end">
+            <div class="max-w-sm">
+              <div class="bg-slate-900 text-white text-sm px-4 py-2.5 rounded-lg rounded-tr-none">Hola, me llegó un cargo de fondo de reserva pero soy inquilina. ¿Pueden revisarlo?</div>
+              <p class="text-xs text-gray-400 mt-1 text-right">21/10 · 09:14</p>
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <div class="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600 shrink-0">CA</div>
+            <div class="max-w-sm">
+              <div class="bg-white border border-gray-200 text-sm px-4 py-2.5 rounded-lg rounded-tl-none text-gray-700">Gracias por avisarnos. Estamos revisando la liquidación.</div>
+              <p class="text-xs text-gray-400 mt-1">21/10 · 10:32</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-t border-gray-200 px-6 py-4 flex gap-3 shrink-0">
+          <textarea rows="2" placeholder="Escribir mensaje..." class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-gray-400 text-gray-700 placeholder-gray-400"></textarea>
+          <button class="bg-slate-900 text-white text-sm font-medium px-4 py-2 rounded-md self-end hover:bg-slate-800">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reportar problema -->
+    <div id="comm-tab-reportar" class="flex-1 flex overflow-hidden hidden">
+      <div class="w-56 border-r border-gray-200 bg-white overflow-y-auto shrink-0">
+        <div class="px-4 py-3.5 border-b border-gray-100 bg-gray-50 border-l-2 border-l-red-600 cursor-pointer">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+            <p class="text-sm font-medium text-gray-800 truncate">Luz pasillo quemada</p>
+          </div>
+          <p class="text-xs text-gray-400">3er piso · Hoy</p>
+        </div>
+      </div>
+      <div class="flex-1 flex flex-col bg-gray-50">
+        <div class="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
+          <p class="text-sm font-semibold text-gray-900">Luz pasillo quemada</p>
+          <span class="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded">Nuevo</span>
+        </div>
+        <div class="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          <div class="flex justify-end">
+            <div class="max-w-sm">
+              <div class="bg-slate-900 text-white text-sm px-4 py-2.5 rounded-lg rounded-tr-none">La luz del pasillo del tercer piso lleva 3 días quemada. ¿Pueden reponerla?</div>
+              <p class="text-xs text-gray-400 mt-1 text-right">21/10 · 08:45</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-t border-gray-200 px-6 py-4 flex gap-3 shrink-0">
+          <textarea rows="2" placeholder="Escribir mensaje..." class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:border-gray-400 text-gray-700 placeholder-gray-400"></textarea>
+          <button class="bg-slate-900 text-white text-sm font-medium px-4 py-2 rounded-md self-end hover:bg-slate-800">Enviar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /vista-residente -->
+
+
+<script>
+  // --- Building navigation ---
+  function selectBuilding(name, address, key) {
+    document.querySelectorAll('.nav-building').forEach(function(el) {
+      el.classList.remove('active-building', 'border-l-2', 'border-red-600', 'bg-gray-50', 'pl-3.5');
+      el.classList.add('hover:bg-gray-50');
+    });
+    var target = document.getElementById('nav-' + key);
+    if (target) {
+      target.classList.add('active-building', 'border-l-2', 'border-red-600', 'bg-gray-50', 'pl-3.5');
+      target.classList.remove('hover:bg-gray-50');
+    }
+    document.getElementById('building-name').textContent = name;
+    document.getElementById('building-address').textContent = address + ' · 12 unidades';
+  }
+
+  // --- Admin tabs ---
+  function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(function(el) {
+      if (el.closest('#vista-admin')) {
+        el.classList.remove('active');
+      }
+    });
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.classList.remove('border-red-600', 'text-gray-900', 'font-medium');
+      btn.classList.add('border-transparent', 'text-gray-400');
+    });
+    var content = document.getElementById('tab-' + tab);
+    var btn = document.getElementById('tab-btn-' + tab);
+    if (content) content.classList.add('active');
+    if (btn) {
+      btn.classList.add('border-red-600', 'text-gray-900', 'font-medium');
+      btn.classList.remove('border-transparent', 'text-gray-400');
+    }
+    // Reset comm sub-tabs when switching to comunicaciones
+    if (tab === 'comunicaciones') {
+      showCommSubTab('avisos-admin');
+    }
+  }
+
+  // --- Admin comm sub-tabs ---
+  function showCommSubTab(subtab) {
+    document.querySelectorAll('.sub-tab-content').forEach(function(el) {
+      if (el.id && el.id.endsWith('-admin')) {
+        el.classList.remove('active');
+      }
+    });
+    document.querySelectorAll('.comm-admin-btn').forEach(function(btn) {
+      btn.classList.remove('border-red-600', 'text-gray-900', 'font-medium');
+      btn.classList.add('border-transparent', 'text-gray-400');
+    });
+    var content = document.getElementById('subtab-' + subtab);
+    var btn = document.getElementById('comm-admin-btn-' + subtab);
+    if (content) content.classList.add('active');
+    if (btn) {
+      btn.classList.add('border-red-600', 'text-gray-900', 'font-medium');
+      btn.classList.remove('border-transparent', 'text-gray-400');
+    }
+  }
+
+  // --- Toggle views ---
+  function showResidente() {
+    document.getElementById('vista-admin').classList.add('hidden');
+    document.getElementById('vista-residente').classList.remove('hidden');
+    document.getElementById('vista-residente').classList.add('flex');
+  }
+
+  function showAdmin() {
+    document.getElementById('vista-residente').classList.add('hidden');
+    document.getElementById('vista-residente').classList.remove('flex');
+    document.getElementById('vista-admin').classList.remove('hidden');
+  }
+
+  // --- Residente tabs ---
+  function showResidenteTab(tab) {
+    ['liquidaciones','comunicaciones'].forEach(function(t) {
+      var panel = document.getElementById('res-tab-' + t);
+      if (panel) panel.classList.toggle('hidden', t !== tab);
+      var nav = document.getElementById(t === 'liquidaciones' ? 'res-nav-liq' : 'res-nav-com');
+      if (nav) {
+        nav.className = 'res-nav text-sm font-medium px-4 h-full border-b-2 transition-colors ' +
+          (t === tab ? 'border-red-600 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600');
+      }
+    });
+    if (tab === 'comunicaciones') {
+      showResCommSubTab('avisos');
+    }
+  }
+
+  // --- Residente: seleccionar mes ---
+  function selectMonth(m) {
+    ['oct','sep','ago'].forEach(function(mo) {
+      var el = document.getElementById('month-' + mo);
+      if (!el) return;
+      if (mo === m) {
+        el.className = 'px-3 py-3.5 cursor-pointer border-b border-gray-100 border-l-2 border-l-red-600 bg-white';
+      } else {
+        el.className = 'px-3 py-3.5 cursor-pointer border-b border-gray-100 hover:bg-white';
+      }
+    });
+  }
+
+  // --- Residente: comunicaciones sub-tabs ---
+  function showResCommSubTab(tab) {
+    ['avisos','reclamos','reportar'].forEach(function(t) {
+      var panel = document.getElementById('comm-tab-' + t);
+      if (panel) panel.classList.toggle('hidden', t !== tab);
+      var nav = document.getElementById('comm-nav-' + t);
+      if (nav) {
+        nav.className = 'comm-nav text-sm font-medium px-4 py-3 border-b-2 transition-colors ' +
+          (t === tab ? 'border-red-600 text-gray-900' : 'border-transparent text-gray-400 hover:text-gray-600');
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
