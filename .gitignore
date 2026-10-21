@@ -1,1 +1,27 @@
+# Claude Code
 .claude/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# Django
+backend/.env
+backend/.env.local
+backend/.env.production
+*.sqlite3
+
+# Liquidaciones (documentos reales de clientes)
+liquidaciones/
+
+# Node
+node_modules/
+.next/
