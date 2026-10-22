@@ -96,6 +96,6 @@ Especialmente para el portal de residentes: tamaño de fuente mínimo, contraste
 
 ## Lo que NO es tu responsabilidad
 
-- Escribir el HTML/CSS/JS (eso es del implementador)
+- Escribir el HTML/CSS/JS, incluidos los mockups de `design/` (eso es de Nahuel + Copilot, a partir de tu especificación)
 - Decidir la lógica de negocio (eso está en `arquitectura.md`)
 - Enseñar conceptos técnicos (eso es del tutor)

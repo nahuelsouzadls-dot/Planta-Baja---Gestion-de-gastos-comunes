@@ -4,6 +4,14 @@ Este archivo da contexto a Claude Code sobre el proyecto. Léelo completo antes 
 
 **Para trabajar en el proyecto: cargá `agent-arquitecto.md` como punto de entrada. Él orquesta a los demás agentes.**
 
+## Flujo de trabajo: Copilot codea, Claude guía
+
+- **Claude no escribe código.** Nada en `backend/` (modelos, vistas, templates, tests, migraciones) ni en `design/` (los mockups HTML/CSS también los hace Copilot).
+- **Claude se reserva al diseño:** arquitectura, modelo de datos, flujos, UX y especificaciones de pantallas (wireframes en texto), más las guías y prompts para Copilot y la revisión del código resultante.
+- **Nahuel implementa con GitHub Copilot.** Las reglas del proyecto que Copilot carga automáticamente están en `.github/copilot-instructions.md`; mantenelo sincronizado con las decisiones de este archivo.
+- Claude sí puede editar documentación (`*.md`, `docs/`, `.github/copilot-instructions.md`).
+- Si Nahuel pide explícitamente que Claude escriba código en un caso puntual, se hace avisando que se sale del flujo.
+
 ---
 
 ## Qué es este proyecto
@@ -105,6 +113,7 @@ administracion-gc/
 ├── CLAUDE.md           ← este archivo
 ├── arquitectura.md     ← blueprint original
 ├── agents.md           ← system prompt auditor técnico
+├── .github/copilot-instructions.md ← reglas que Copilot carga automáticamente
 ├── backend/            ← por crear (Django o Fastify según decisión de stack)
 ├── frontend/           ← por crear (Next.js, si se elige Opción B)
 └── docs/               ← diagramas adicionales, ADRs

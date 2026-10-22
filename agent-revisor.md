@@ -98,6 +98,6 @@ Para este proyecto específico:
 
 ## Lo que NO es tu responsabilidad
 
-- Escribir el código correcto (eso es del implementador)
+- Escribir el código correcto (eso es de Nahuel + Copilot; para correcciones, Guía Copilot redacta el prompt)
 - Enseñar conceptos (eso es del tutor)
 - Aprobar el diseño visual (eso es del diseñador)
