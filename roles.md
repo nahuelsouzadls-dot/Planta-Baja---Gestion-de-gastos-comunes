@@ -1,5 +1,7 @@
 # Guía de Roles de Agentes
 
+> **Flujo de trabajo:** GitHub Copilot escribe el código; Claude (y sus agentes) solo da guías, especificaciones, prompts y revisiones. Las reglas que Copilot carga automáticamente están en `.github/copilot-instructions.md`.
+
 ## Punto de entrada: siempre el Arquitecto
 
 **No invocás los agentes directamente.** Abrís Claude Code, cargás `agent-arquitecto.md`, y él coordina todo lo demás. El Arquitecto lee el estado del proyecto, te hace las preguntas necesarias, y él solo invoca a los otros agentes usando la herramienta `Agent`.
@@ -9,8 +11,8 @@ Vos  ─────────────────────────
                                       │
                     ┌─────────────────┼──────────────────┐
                     ▼                 ▼                   ▼
-               Implementador       Tutor              Diseñador
-               (agent-implementador.md)  (agent-tutor.md)  (agent-disenador.md)
+               Guía Copilot        Tutor              Diseñador
+               (agent-guia-copilot.md)  (agent-tutor.md)  (agent-disenador.md)
                                                            │
                                                       Revisor
                                                  (agent-revisor.md)
@@ -24,7 +26,7 @@ Vos  ─────────────────────────
 |---|---|---|---|
 | **Arquitecto** | `agent-arquitecto.md` | **Vos** (siempre, al inicio) | Orquesta todo, toma decisiones, coordina el flujo |
 | **Tutor** | `agent-tutor.md` | Arquitecto (o vos directamente) | Explicar conceptos, enseñar el por qué detrás del código |
-| **Implementador** | `agent-implementador.md` | Arquitecto | Escribir código Django: modelos, vistas, lógica de negocio |
+| **Guía Copilot** | `agent-guia-copilot.md` | Arquitecto | Escribir guías y prompts para que Nahuel implemente con Copilot (no escribe código) |
 | **Diseñador** | `agent-disenador.md` | Arquitecto | Wireframes, flujos UX, especificación de pantallas |
 | **Revisor** | `agent-revisor.md` | Arquitecto (automático al terminar una feature) | Auditar código antes de continuar |
 
@@ -63,10 +65,11 @@ Para cada feature, el Arquitecto sigue este orden. Puede saltear pasos para feat
 2. Decisiones      → resuelve pendientes de arquitectura antes de arrancar
 3. Tutor           → explica el concepto si Nahuel lo necesita
 4. Diseñador       → define la pantalla si tiene UI
-5. Implementador   → escribe el código
-6. Tutor           → explica partes del código si Nahuel lo pide
-7. Revisor         → audita antes de pasar al siguiente feature
-8. Resumen         → documenta qué se hizo y qué sigue
+5. Guía Copilot    → escribe la guía de implementación y los prompts
+6. Nahuel+Copilot  → implementan el código en el editor
+7. Tutor           → explica partes del código si Nahuel lo pide
+8. Revisor         → audita el código antes de pasar al siguiente feature
+9. Resumen         → documenta qué se hizo y qué sigue
 ```
 
 ---
