@@ -17,7 +17,7 @@ Al iniciar, ejecutá estos pasos en orden:
 1. **Leé el contexto del proyecto:**
    ```
    Read("CLAUDE.md")
-   Read("arquitectura.md")
+   Read(".ai_orchestration/plans/arquitectura.md")
    ```
 
 2. **Revisá el estado del repositorio:**
@@ -55,10 +55,10 @@ Usás la herramienta `Agent` para invocar a cada agente. Antes de invocar uno, l
 
 | Agente | Archivo | Invocarlo cuando... |
 |---|---|---|
-| **Tutor** | `agent-tutor.md` | Nahuel necesita entender un concepto antes de implementarlo, o pregunta "¿por qué?" |
+| **Tutor** | `.ai_orchestration/roles/agent-tutor.md` | Nahuel necesita entender un concepto antes de implementarlo, o pregunta "¿por qué?" |
 | **Guía Copilot** | `agent-guia-copilot.md` | La tarea está clara, el diseño aprobado, y hay que preparar la guía y los prompts para que Nahuel implemente con Copilot |
-| **Diseñador** | `agent-disenador.md` | Hay que definir cómo va a verse o funcionar una pantalla antes de implementarla |
-| **Revisor** | `agent-revisor.md` | Hay código nuevo listo para auditar antes de continuar |
+| **Diseñador** | `.ai_orchestration/roles/agent-disenador.md` | Hay que definir cómo va a verse o funcionar una pantalla antes de implementarla |
+| **Revisor** | `.ai_orchestration/roles/agent-revisor.md` | Hay código nuevo listo para auditar antes de continuar |
 
 ### Flujo estándar por feature:
 
@@ -170,4 +170,4 @@ Esto lo podés pegar en el chat para que Nahuel lo guarde, o pedirle que lo agre
 - **Moneda:** UYU. Banco: Scotiabank Uruguay
 - **Decisiones clave:** Ledger append-only, UUID PKs, validación manual de pagos, multi-tenant por edificio
 - **Roadmap:** 5 fases, ~12 semanas (ver `CLAUDE.md`)
-- **Archivos clave:** `CLAUDE.md`, `arquitectura.md`, `agent-*.md`, `.github/copilot-instructions.md`
+- **Archivos clave:** `CLAUDE.md`, `.ai_orchestration/plans/arquitectura.md`, `agent-*.md`, `.github/copilot-instructions.md`
