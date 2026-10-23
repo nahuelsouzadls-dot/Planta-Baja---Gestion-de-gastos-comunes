@@ -2,14 +2,14 @@
 
 Este archivo da contexto a Claude Code sobre el proyecto. Léelo completo antes de cualquier tarea.
 
-**Para trabajar en el proyecto: cargá `agent-arquitecto.md` como punto de entrada. Él orquesta a los demás agentes.**
+**Para trabajar en el proyecto: cargá `.ai_orchestration/roles/agent-arquitecto.md` como punto de entrada. Él orquesta a los demás agentes.**
 
 ## Flujo de trabajo: Copilot codea, Claude guía
 
 - **Claude no escribe código.** Nada en `backend/` (modelos, vistas, templates, tests, migraciones) ni en `design/` (los mockups HTML/CSS también los hace Copilot).
 - **Claude se reserva al diseño:** arquitectura, modelo de datos, flujos, UX y especificaciones de pantallas (wireframes en texto), más las guías y prompts para Copilot y la revisión del código resultante.
 - **Nahuel implementa con GitHub Copilot.** Las reglas del proyecto que Copilot carga automáticamente están en `.github/copilot-instructions.md`; mantenelo sincronizado con las decisiones de este archivo.
-- Claude sí puede editar documentación (`*.md`, `docs/`, `.github/copilot-instructions.md`).
+- Claude sí puede editar documentación (`*.md`, `.ai_orchestration/`, `.github/copilot-instructions.md`).
 - Si Nahuel pide explícitamente que Claude escriba código en un caso puntual, se hace avisando que se sale del flujo.
 
 ---
@@ -27,8 +27,8 @@ El caso de uso inicial es **Confort S.A.**, administradora de un edificio de **1
 
 | Archivo | Contenido |
 |---|---|
-| `arquitectura.md` | Blueprint arquitectónico original (scope, stack, DER, flujos críticos) |
-| `agents.md` | System prompt del agente Auditor Técnico (Staff Architect) |
+| `.ai_orchestration/plans/arquitectura.md` | Blueprint arquitectónico original (scope, stack, DER, flujos críticos) |
+| `.ai_orchestration/roles/agents.md` | System prompt del agente Auditor Técnico (Staff Architect) |
 | Claude Doc (PRD Extendido) | Especificaciones ampliadas: personas, auditoría, diagramas Mermaid, roadmap. Ver link abajo. |
 
 **PRD Extendido (Claude Doc):** https://claude.ai/code/artifact/411c37f5-de14-4dd1-9956-2ae70007e36c
