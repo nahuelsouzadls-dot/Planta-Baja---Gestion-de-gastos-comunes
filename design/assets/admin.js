@@ -38,6 +38,7 @@
     taskFilter: 'all',
   };
   let lastFocus = null;
+  let lastScreen = null;
 
   const tasksOf = (state) => state.tasks || DEFAULT_TASKS;
 
@@ -72,6 +73,11 @@
       (view.route === 'home' ? GC.views.home(state, view) : GC.views.building(state, view)) + '</div>' +
       GC.views.fabs(state, view, tasksOf(state)) + '</div>';
     document.title = (view.route === 'home' ? 'Cartera' : state.buildings.find((b) => b.id === view.buildingId).name) + ' · Administración GC';
+
+    // Animar la entrada solo al cambiar de pantalla, no en cada actualización de datos.
+    const screen = view.route + ':' + view.buildingId + ':' + view.tab;
+    if (screen !== lastScreen) main.querySelector('.col').classList.add('enter');
+    lastScreen = screen;
 
     if (searching) {
       const input = main.querySelector('[data-action="search"]');

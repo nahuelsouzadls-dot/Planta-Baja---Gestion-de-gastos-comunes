@@ -174,7 +174,7 @@ body{margin:0}
 .rc{min-width:0}
 @media (min-width:960px){.cols{display:grid;grid-template-columns:400px minmax(0,1fr);gap:32px;align-items:start}.lc{position:sticky;top:20px}.rc .panel{margin-top:20px!important}}
 .tdate{font-size:13px;color:var(--ink-3);white-space:nowrap}
-.due{padding:0;overflow:hidden;text-align:left;border-top:3px solid var(--acc)}
+.due{padding:0;overflow:hidden;text-align:left}
 .dtop{padding:20px 22px 18px}
 .dl{display:block;font-size:13px;letter-spacing:.02em}
 .da{font-size:40px;margin-top:4px}
@@ -272,7 +272,7 @@ body{margin:0}
 @media (min-width:960px){
 .cols{grid-template-columns:minmax(0,1fr)!important;gap:24px!important}
 .lc{position:static!important;gap:14px}
-.pay{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;background:#fff;border:1px solid var(--bd);border-top:3px solid var(--acc);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.pay{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;background:#fff;border:1px solid var(--bd);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.05)}
 .pay .dtop{padding:22px 26px;display:flex;flex-direction:column;justify-content:center;grid-column:1/-1}
 .pay .dtop:not(:last-child){grid-column:1}
 .pay:has(.bank) .dtop{grid-column:1}
@@ -301,7 +301,10 @@ body{margin:0}
 /* Integración con la app (no viene del prototipo) */
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .pt label.big{cursor:pointer}
-.pt label.big:focus-within{outline:3px solid var(--acc);outline-offset:2px}
+/* .pt p{margin:0} del prototipo le ganaba a .uph */
+.pt .uph{margin-top:14px}
+/* Solo con teclado: con el mouse el input queda enfocado y el contorno no se iba. */
+.pt label.big:has(input:focus-visible){outline:3px solid var(--acc);outline-offset:2px}
 .ferr{font-size:13px;color:#a8392f;margin-top:6px;text-align:center}
 .toast-region{position:fixed;left:50%;bottom:24px;z-index:80;display:grid;gap:8px;transform:translateX(-50%);pointer-events:none}
 .toast{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;background:#12151a;color:#fff;font:500 14px 'DM Sans',Inter,sans-serif;box-shadow:0 12px 28px rgba(16,24,40,.25);animation:fadeIn .2s both}

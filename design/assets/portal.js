@@ -376,8 +376,15 @@
   });
 
   document.addEventListener('change', (event) => {
-    if (event.target.matches('[data-action="upload"]')) handleUpload(event.target);
+    if (!event.target.matches('[data-action="upload"]')) return;
+    event.target.blur();
+    handleUpload(event.target);
   });
+
+  // Al cerrar el selector de archivos sin elegir, el input quedaba enfocado y con contorno.
+  document.addEventListener('cancel', (event) => {
+    if (event.target.matches && event.target.matches('[data-action="upload"]')) event.target.blur();
+  }, true);
 
   document.addEventListener('submit', (event) => {
     const form = event.target.closest('[data-form]');

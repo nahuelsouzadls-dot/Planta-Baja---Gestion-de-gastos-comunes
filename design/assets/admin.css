@@ -433,3 +433,13 @@ body{margin:0}
 .toast{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;background:#12151a;color:#fff;font:500 13px Inter,sans-serif;box-shadow:0 12px 28px rgba(16,24,40,.25);animation:fadeIn .2s both}
 .toast::before{content:'';width:8px;height:8px;border-radius:50%;background:#7fd1a0}
 .toast--warn::before{background:#f0a79f}
+/* Filtros: el seleccionado queda en negro, igual que el hover */
+.ch.on,.tfc.on{background:var(--btn);color:#fff;box-shadow:none}
+.ch.on b{opacity:.8}
+/* Pie de la barra lateral: .foot a (base del prototipo) pisaba a .nv */
+.foot a.nv{display:flex;font-size:13px}
+.foot a.nv:hover{background:rgba(255,255,255,.1);color:#fff}
+/* Cambio de pantalla (edificio, pestaña, cartera) */
+.col.enter{animation:colIn .32s cubic-bezier(.2,.7,.2,1) both}
+@keyframes colIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.col.enter{animation:none}}

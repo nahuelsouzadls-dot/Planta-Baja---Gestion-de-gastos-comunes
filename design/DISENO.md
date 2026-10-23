@@ -3,13 +3,12 @@
 Producto B2B SaaS de gastos comunes (propiedad horizontal, Uruguay). Dos superficies: **panel de administración** (Confort S.A. administra edificios) y **portal del residente**. Logo y nombre ("Gastos comunes") son provisorios.
 
 ## Archivos
-- `prototipos/gc-admin.html`, `gc-portal.html`, `gc-login-admin.html`, `gc-login-residente.html`: prototipos autocontenidos, interactivos, abribles en el navegador (los 4 se enlazan entre sí en la misma carpeta). Usan un shim propio de x-dc; la lógica vive en el `<script type="text/x-dc">` de cada uno (clase `Component`, `state`, `renderVals`).
-- `fuentes-canvas/*.dc.html`: mismo código en formato del canvas de diseño (necesita su runtime `support.js`; solo referencia).
-- Los logins tienen la foto de fondo incrustada en base64 (CSS `.gl`).
+- **Front final** (lo que se implementa): `admin.html`, `portal-residente.html`, `gc-login-admin.html`, `gc-login-residente.html` y `assets/` (CSS del prototipo + JS con el store y el ledger compartidos entre admin y portal).
+- `ref/`: referencia de fidelidad del handoff. `ref/gc-*.html` son los prototipos interactivos originales (shim x-dc, lógica en `<script type="text/x-dc">`), `ref/css/` el CSS exacto, `ref/dom/` el HTML renderizado y `ref/capturas/` cómo se ve cada pantalla a 1440 y 390 px.
 
 ## Dirección visual
-Plano, sobrio, profesional. Fondo gris `#f4f5f7`, tarjetas blancas con borde 1px `#e3e6eb`, radio 12. Color solo en la barra lateral (tema) y acentos chicos. Sin degradados, sin brillo/pulso continuo, sin serif. **Excepciones aprobadas:** barra lateral del admin con "vidrio líquido" (manchas desenfocadas lentas + reflejo) y las pantallas de login con foto desenfocada.
-Lo que NO le gusta al cliente: cian/azul como relleno de botones, acentos amarillos, exceso de cajas, tarjetas enormes, botones muy redondos/gruesos, bordes "encendidos" permanentes, selección en negro sólido, serif, aspecto "startup".
+Plano, sobrio, profesional. Fondo gris `#f4f5f7`, tarjetas blancas con borde 1px `#e3e6eb`, radio 12. Color solo en la barra lateral (tema) y acentos chicos. Sin degradados, sin brillo/pulso continuo, sin serif. **Excepciones aprobadas:** barra lateral del admin y bloque del monto en la tarjeta de pago del portal con "vidrio líquido" (manchas desenfocadas lentas + reflejo) y las pantallas de login con foto desenfocada.
+Lo que NO le gusta al cliente: cian/azul como relleno de botones, acentos amarillos, exceso de cajas, tarjetas enormes, botones muy redondos/gruesos, bordes "encendidos" permanentes, serif, aspecto "startup".
 
 ## Tokens
 - Texto `#12151a` / `#454c57` / `#5d6573`; línea `#e8ebef`; hover `#f0f2f5`; botón primario `#12151a` (hover `#2b3038`).
@@ -18,7 +17,8 @@ Lo que NO le gusta al cliente: cian/azul como relleno de botones, acentos amaril
 - Estados: pagado verde, revisión ámbar, pendiente ámbar claro, moroso rojo. Edificio con cuenta ≥2 meses vencida: fila con fondo rojo suave + barra lateral roja.
 
 ## Reglas de interacción
-- Seleccionado = tinte suave del acento + borde fino (admin) / borde negro 1.5px sobre blanco (portal). **El negro de fondo aparece solo en hover** de chips/botones secundarios del admin.
+- Seleccionado: en el admin, los filtros (chips de estado, filtros de tareas, subpestañas) quedan en **negro con letra blanca**, igual que su hover; en el portal, borde negro 1.5px sobre blanco.
+- La tarjeta de pago del portal no lleva borde de acento arriba; el bloque del monto usa vidrio líquido.
 - Admin: barra lateral flotante colapsable (empieza solo íconos, tooltips), búsqueda 340px, FABs abajo a la derecha (Atajos, Cobrado por mes, Tareas), tareas por edificio, "Ver comprobante" abre diálogo con checklist y Aprobar/Rechazar.
 - Portal: escritorio = saludo arriba solo, bloque de pago (monto izquierda, datos de transferencia con "Copiar" a la derecha), botón "Subir comprobante" (color oscuro del tema) pegado debajo con texto chico gris, y debajo pestañas a ancho completo. Celular = una columna (el cliente aprueba el celular tal cual).
 - Pestañas del portal: Mi liquidación (selector de mes con flechas + calendario por año, hasta 5 años atrás, sin meses futuros, puntos de estado), Mis comprobantes (aprobado/en revisión/rechazado con motivo y reintento, abre comprobante), Avisos, Problemas y reclamos (hilo tipo chat/ticket con estado Recibido/En proceso/Resuelto).
