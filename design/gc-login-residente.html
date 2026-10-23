@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal de gastos comunes</title>
+<style>
+/* Extraído del prototipo. Las capas v11+ al final pisan a las anteriores: el resultado visual es la suma en orden. */
+
+.lg{--bg:#f4f5f7;--bd:#e3e6eb;--ink:#12151a;--ink-2:#454c57;--ink-3:#5d6573;--btn:#12151a;--btn-h:#2b3038;--tb:var(--side);--tb-h:color-mix(in srgb,var(--side) 80%,#fff);--side:#0e4a5e;--acc:#12909f;--accl:#7fe0ee;--acc-soft:rgba(18,144,159,.12);
+min-height:100vh;display:flex;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+.lg[data-theme="noche"]{--side:#14233d;--acc:#2a86bd;--accl:#8fd3f4;--acc-soft:rgba(42,134,189,.12)}
+.lg[data-theme="berenjena"]{--side:#3b1f45;--acc:#1f9e80;--accl:#86e3c8;--acc-soft:rgba(31,158,128,.12)}
+.lg[data-theme="bosque"]{--side:#1d3b2f;--acc:#a97a2b;--accl:#e6c98a;--acc-soft:rgba(169,122,43,.13)}
+.lg[data-theme="grafito"]{--side:#25282e;--acc:#d9604f;--accl:#f3a396;--acc-soft:rgba(217,96,79,.12)}
+.lg *{box-sizing:border-box}.lg :where(button,input,a){font:inherit;color:inherit}.lg :where(button){background:none;border:0;cursor:pointer;padding:0}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{width:34px;height:34px;border-radius:9px;background:var(--side);color:var(--accl);display:grid;place-items:center}
+.brand b{font:700 16px Manrope,Inter,sans-serif;letter-spacing:-.01em}
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:32px 20px;min-width:0}
+.card{width:100%;max-width:400px;background:#fff;border:1px solid var(--bd);border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.05);border-top:3px solid var(--acc);padding:28px 28px 24px}
+.card h1{font:700 24px Manrope,Inter,sans-serif;letter-spacing:-.02em;margin:22px 0 4px}
+.card .lead{color:var(--ink-3);font-size:14px;margin-bottom:22px}
+.fld{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.fld label,.row label{font-size:13px;font-weight:500;color:var(--ink-2)}
+.row{display:flex;justify-content:space-between;align-items:center}
+.inp{height:44px;border-radius:8px;border:1px solid #cfd4dc;background:#fff;padding:0 12px;width:100%;font-size:15px}
+.inp:focus{outline:none;border-color:var(--side);box-shadow:0 0 0 4px var(--acc-soft)}
+.pw{position:relative}.pw .inp{padding-right:64px}
+.eye{position:absolute;right:6px;top:6px;height:32px;padding:0 10px!important;border-radius:6px;font-size:13px;color:var(--ink-3)}
+.eye:hover{background:#f0f2f5;color:var(--ink)}
+.lk{font-size:13px;color:var(--side);text-decoration:underline;text-underline-offset:3px;border-radius:4px}
+.lk:hover{color:var(--ink)}
+.go{display:flex;align-items:center;justify-content:center;width:100%;height:46px;margin-top:8px;border-radius:8px;background:var(--tb);color:#fff!important;font-weight:600;text-decoration:none;transition:background .15s}
+.go:hover{background:var(--tb-h)}
+.hint{margin-top:18px;padding-top:16px;border-top:1px solid #e8ebef;font-size:13px;color:var(--ink-3);text-align:center}
+.foot{margin-top:18px;font-size:12px;color:var(--ink-3);text-align:center}
+.main{flex-direction:column}.top{width:100%%;max-width:400px;margin-bottom:22px}
+.pad{width:100%%;max-width:400px;display:flex;flex-direction:column;align-items:stretch}
+/* vidrio líquido */
+.lg{position:relative;overflow:hidden;isolation:isolate}
+.gl{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.gl i{position:absolute;border-radius:50%;filter:blur(70px)}
+.gl i:nth-child(1){width:560px;height:560px;left:-120px;top:-140px;background:var(--acc);opacity:.8;animation:b1 26s ease-in-out infinite alternate}
+.gl i:nth-child(2){width:520px;height:520px;right:-120px;bottom:-160px;background:var(--accl);opacity:.5;animation:b2 32s ease-in-out infinite alternate}
+.gl i:nth-child(3){width:380px;height:380px;left:38%;top:30%;background:color-mix(in srgb,var(--acc) 55%,#fff);opacity:.45;animation:b3 38s ease-in-out infinite alternate}
+@keyframes b1{to{transform:translate(32vw,26vh) scale(1.2)}}
+@keyframes b2{to{transform:translate(-30vw,-24vh) scale(.9)}}
+@keyframes b3{to{transform:translate(-22vw,18vh) scale(1.3)}}
+@media (prefers-reduced-motion:reduce){.gl i{animation:none}}
+.card{background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(30px) saturate(150%);backdrop-filter:blur(30px) saturate(150%);border:0;border-radius:20px;box-shadow:0 24px 70px rgba(0,10,30,.28);color:#fff}
+.card h1{color:#fff}.card .lead,.foot,.hint{color:rgba(255,255,255,.78)}
+.fld label,.row label{color:rgba(255,255,255,.88)}
+.inp{background:rgba(255,255,255,.14);border:0;color:#fff}
+.inp::placeholder{color:rgba(255,255,255,.6)}
+.inp:focus{outline:none;box-shadow:0 0 0 3px rgba(255,255,255,.32)}
+.eye{color:rgba(255,255,255,.8)}.eye:hover{background:rgba(255,255,255,.16);color:#fff}
+.lk{color:#fff}.lk:hover{color:#fff;opacity:.85}
+.go{background:#fff;color:var(--side)!important}.go:hover{background:rgba(255,255,255,.88)}
+.hint{border-top-color:rgba(255,255,255,.2)}
+.mark{background:rgba(255,255,255,.18);color:#fff}
+.brand b{color:#fff}
+/* ajuste: fondo profundo igual en ambos, cristal más transparente, botón de vidrio */
+.lg{background:color-mix(in srgb,var(--side) 82%,#000)}
+.gl i:nth-child(1){width:clamp(240px,46vmax,520px);height:clamp(240px,46vmax,520px);left:-8%;top:-10%;opacity:.7}
+.gl i:nth-child(2){width:clamp(220px,40vmax,480px);height:clamp(220px,40vmax,480px);right:-8%;bottom:-10%;opacity:.32}
+.gl i:nth-child(3){width:clamp(160px,28vmax,360px);height:clamp(160px,28vmax,360px);opacity:.3}
+.card{background:rgba(255,255,255,.07);-webkit-backdrop-filter:blur(44px) saturate(160%);backdrop-filter:blur(44px) saturate(160%);box-shadow:0 24px 70px rgba(0,10,30,.35)}
+.inp{background:rgba(255,255,255,.1)}
+.go{background:rgba(255,255,255,.16);color:#fff!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:inset 0 1px 0 rgba(255,255,255,.32);transition:background .2s,box-shadow .2s,transform .1s}
+.go:hover{background:rgba(255,255,255,.3);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 26px rgba(150,230,255,.5)}
+.go:active{transform:translateY(1px)}
+/* vidrio real: formas nítidas detrás de la cajita para que se vea el desenfoque */
+.gl b{position:absolute;border-radius:50%;left:50%;top:50%}
+.gl b:nth-child(4){width:clamp(150px,22vmax,260px);height:clamp(150px,22vmax,260px);background:var(--accl);opacity:.95;margin:calc(clamp(150px,22vmax,260px) * -1.25) 0 0 calc(clamp(150px,22vmax,260px) * -1.45);animation:f1 14s ease-in-out infinite alternate}
+.gl b:nth-child(5){width:clamp(110px,16vmax,190px);height:clamp(110px,16vmax,190px);background:color-mix(in srgb,var(--acc) 70%,#fff);opacity:.9;margin:calc(clamp(110px,16vmax,190px) * .55) 0 0 calc(clamp(110px,16vmax,190px) * .9);animation:f2 18s ease-in-out infinite alternate}
+.gl b:nth-child(6){width:clamp(70px,9vmax,110px);height:clamp(70px,9vmax,110px);background:#fff;opacity:.85;margin:-30px 0 0 calc(clamp(70px,9vmax,110px) * -2.6);animation:f1 22s ease-in-out infinite alternate-reverse}
+@keyframes f1{to{transform:translate(26px,18px)}}
+@keyframes f2{to{transform:translate(-22px,-20px)}}
+@media (prefers-reduced-motion:reduce){.gl b{animation:none}}
+.card{background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(26px) saturate(190%) brightness(1.08);backdrop-filter:blur(26px) saturate(190%) brightness(1.08);box-shadow:0 24px 60px rgba(0,10,30,.3),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 40px rgba(255,255,255,.04)}
+.go:hover{background:rgba(255,255,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 0 12px rgba(150,230,255,.22)}
+/* estilo panel de reservas del hotel: sin relleno, desenfoque, borde fino, campos con divisores, botón sólido */
+.gl b{opacity:.5!important;filter:blur(5px)}
+.card{padding:0;background:rgba(6,22,32,.16);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.2);border-radius:6px;box-shadow:none;overflow:hidden}
+.card>.brand{padding:28px 28px 0}
+.card h1{padding:0 28px;margin:22px 0 4px}
+.card>h1:first-child{padding-top:28px;margin-top:0!important}
+.card .lead{padding:0 28px;margin-bottom:24px}
+.fld{margin:0;padding:14px 28px;gap:5px;border-top:1px solid rgba(255,255,255,.12);transition:background .2s}
+.fld:focus-within{background:rgba(255,255,255,.05)}
+.fld label,.row label{font-size:10px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;color:var(--accl)}
+.inp{height:auto;padding:2px 0;background:transparent;border:0;border-radius:0;box-shadow:none;font-size:15px;font-weight:300;color:#fff}
+.inp:focus{box-shadow:none}
+.pw .inp{padding-right:70px}
+.eye{right:-8px;top:-8px}
+.row .lk{font-size:11px;letter-spacing:.04em;opacity:.8}
+.go{margin:0;height:54px;border-radius:0 0 5px 5px;background:var(--accl);color:#06222c!important;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;transition:background .3s}
+.go:hover{background:color-mix(in srgb,var(--accl) 82%,#fff);box-shadow:none}
+.go:active{transform:none}
+.card .foot,.card .hint{margin:0;padding:16px 28px;border-top:1px solid rgba(255,255,255,.12)}
+.card .foot{text-align:center}
+.pw{display:flex;align-items:center;gap:8px}.pw .inp{padding-right:0;flex:1}
+.eye{position:static;height:auto;padding:2px 0!important;font-size:11px;letter-spacing:.06em}
+.go{border-radius:0}
+/* foto de fondo */
+.gl i,.gl b{display:none}
+.top b,.pad>.foot{text-shadow:0 1px 10px rgba(0,0,0,.75)}
+.top .mark{background:rgba(6,22,32,.55)}
+.pad>.foot{color:#fff}
+/* desenfoque marcado como el panel del hotel */
+.card{background:rgba(6,22,32,.06);-webkit-backdrop-filter:blur(40px) saturate(120%);backdrop-filter:blur(40px) saturate(120%)}
+.card .foot,.card .hint{background:transparent}
+/* foto entera desenfocada */
+.gl{filter:blur(14px);transform:scale(1.12)}
+.card{-webkit-backdrop-filter:blur(28px) saturate(120%);backdrop-filter:blur(28px) saturate(120%)}
+/* caja más redondeada, botón transparente con color al hover */
+.card{border-radius:24px}
+.go{background:transparent;color:#fff!important;border-top:1px solid rgba(255,255,255,.14);transition:background .3s,color .3s}
+.go:hover{background:var(--accl);color:#06222c!important}
+.go:hover{background:color-mix(in srgb,var(--accl) 34%,transparent);color:#fff!important}
+/* foto: esquina de edificio, cielo azul */
+.gl{background:linear-gradient(rgba(6,22,32,.3),rgba(6,22,32,.3)),url("assets/foto-fondo.jpg") center/cover no-repeat}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+
+
+<div class="lg" data-theme="lagoon"><div class="gl" aria-hidden="true"><i></i><i></i><i></i><b></b><b></b><b></b></div>
+<main class="main"><div class="pad">
+<div class="top brand"><span class="mark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 21V4h9v17M14 9h5v12M3 21h18M8.5 8h2M8.5 12h2M8.5 16h2"></path></svg></span><b>Gastos comunes</b></div>
+<form class="card" style="margin-top:0" action="portal-residente.html" method="get">
+<h1 style="margin-top:0">Portal de gastos comunes</h1><p class="lead">Ingresá para ver y pagar tus gastos.</p>
+<div class="fld"><label for="em">Correo o número de apartamento</label><input class="inp" id="em" type="text" autocomplete="username" placeholder="Ej.: juan@correo.com o 101"></div>
+<div class="fld"><div class="row"><label for="pw">Contraseña</label><a class="lk" href="#">Olvidé mi contraseña</a></div>
+<div class="pw"><input class="inp" id="pw" type="password" autocomplete="current-password" placeholder="••••••••"><button type="button" class="eye">Mostrar</button></div></div>
+<a class="go" href="portal-residente.html">Ingresar</a>
+<p class="hint">¿Primera vez? Pedile a la administración tu acceso.</p>
+</form>
+<p class="foot">¿Administrás edificios? <a class="lk" href="gc-login-admin.html">Panel de administración</a></p>
+</div></main>
+</div>
+</div>
+<script type="text/x-dc" data-dc-script="" data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:760}}">
+class Component extends DCLogic {
+  state = { show: false };
+  renderVals() {
+    let stored = null; try { stored = window.localStorage.getItem('gc-theme'); } catch (e) { stored = null; }
+    return { theme: stored || 'lagoon', ptype: this.state.show ? 'text' : 'password', plabel: this.state.show ? 'Ocultar' : 'Mostrar', toggle: () => this.setState({ show: !this.state.show }) };
+  }
+}
+</script>
+
+
+
+</body>
+</html>
