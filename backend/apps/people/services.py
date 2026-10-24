@@ -8,10 +8,13 @@ from django.db.models import Q
 from apps.accounts.models import Organization
 from apps.buildings.models import Unit
 from apps.audit.context import audit_context
+from apps.ledger.models import ReceiptAllocation
 from apps.ledger.payments import assert_member
 from apps.ledger.services import balance
 
 from .models import Occupancy, Person
+
+UNSET = object()
 
 
 @transaction.atomic
@@ -34,49 +37,173 @@ def create_person(
     )
 
 
-@transaction.atomic
 def move_in(
     unit: Unit,
     person: Person,
     role: str,
     start_date: date,
+    user,
 ) -> Occupancy:
+    organization = unit.building.organization
+    assert_member(user, organization)
     if person.organization_id != unit.building.organization_id:
         raise ValidationError(
             'La persona y la unidad deben pertenecer a la misma organización.'
         )
+    if role == Occupancy.Role.OWNER and current_occupancy(unit, role, start_date):
+        raise ValidationError('El cambio de propietario debe hacerse mediante una venta.')
 
-    try:
+    with audit_context(user, organization=organization):
+        try:
+            with transaction.atomic():
+                return Occupancy.objects.create(
+                    unit=unit,
+                    person=person,
+                    role=role,
+                    start_date=start_date,
+                )
+        except IntegrityError as error:
+            if 'occupancy_no_overlap' not in str(error).lower():
+                raise
+            raise ValidationError(
+                f'La unidad {unit.number} ya tiene {dict(Occupancy.Role.choices).get(role, role).lower()} '
+                'en esas fechas.'
+            ) from error
+
+
+def move_out(occupancy: Occupancy, end_date: date, user) -> Occupancy:
+    organization = occupancy.unit.building.organization
+    assert_member(user, organization)
+    with audit_context(user, organization=organization):
         with transaction.atomic():
-            return Occupancy.objects.create(
-                unit=unit,
-                person=person,
-                role=role,
-                start_date=start_date,
+            occupancy = Occupancy.objects.select_for_update().get(pk=occupancy.pk)
+            if occupancy.role != Occupancy.Role.TENANT:
+                raise ValidationError(
+                    'Un propietario no se muda; la ocupación se cierra mediante una venta.'
+                )
+            if occupancy.end_date is not None:
+                raise ValidationError('La ocupación ya está cerrada.')
+            if end_date < occupancy.start_date:
+                raise ValidationError(
+                    'La fecha de salida no puede ser anterior a la fecha de inicio.'
+                )
+
+            occupancy.end_date = end_date
+            occupancy.save(update_fields=['end_date', 'updated_at'])
+            return occupancy
+
+
+def replace_tenant(
+    unit: Unit,
+    new_person: Person,
+    change_date: date,
+    user,
+) -> Occupancy:
+    organization = unit.building.organization
+    assert_member(user, organization)
+    if new_person.organization_id != organization.id:
+        raise ValidationError('La persona y la unidad deben pertenecer a la misma organización.')
+
+    with audit_context(user, organization=organization):
+        with transaction.atomic():
+            current = (
+                Occupancy.objects.select_for_update()
+                .filter(unit=unit, role=Occupancy.Role.TENANT, start_date__lte=change_date)
+                .filter(Q(end_date__isnull=True) | Q(end_date__gte=change_date))
+                .first()
             )
-    except IntegrityError as error:
-        if 'occupancy_no_overlap' not in str(error).lower():
-            raise
-        raise ValidationError(
-            f'La unidad {unit.number} ya tiene {dict(Occupancy.Role.choices).get(role, role).lower()} '
-            'en esas fechas.'
-        ) from error
+            if current is not None:
+                if current.person_id == new_person.id:
+                    raise ValidationError('El nuevo inquilino ya es el actual.')
+                current.end_date = change_date - timedelta(days=1)
+                current.save(update_fields=['end_date', 'updated_at'])
+
+            try:
+                with transaction.atomic():
+                    return Occupancy.objects.create(
+                        unit=unit,
+                        person=new_person,
+                        role=Occupancy.Role.TENANT,
+                        start_date=change_date,
+                    )
+            except IntegrityError as error:
+                if 'occupancy_no_overlap' not in str(error).lower():
+                    raise
+                raise ValidationError(
+                    f'La unidad {unit.number} ya tiene inquilino en esas fechas.'
+                ) from error
 
 
-@transaction.atomic
-def move_out(occupancy: Occupancy, end_date: date) -> Occupancy:
-    if occupancy.role != Occupancy.Role.TENANT:
-        raise ValidationError(
-            'Un propietario no se muda; la ocupación se cierra mediante una venta.'
-        )
-    if occupancy.end_date is not None:
-        raise ValidationError('La ocupación ya está cerrada.')
-    if end_date < occupancy.start_date:
-        raise ValidationError('La fecha de salida no puede ser anterior a la fecha de inicio.')
+def correct_occupancy(
+    occupancy: Occupancy,
+    user,
+    *,
+    person=None,
+    start_date=None,
+    end_date=UNSET,
+) -> Occupancy:
+    organization = occupancy.unit.building.organization
+    assert_member(user, organization)
+    with audit_context(user, organization=organization):
+        with transaction.atomic():
+            occupancy = Occupancy.objects.select_for_update().get(pk=occupancy.pk)
+            if occupancy.entries.exists() or ReceiptAllocation.objects.filter(
+                occupancy=occupancy
+            ).exists():
+                raise ValidationError(
+                    'La ocupación ya tiene cargos o pagos: corregí con un ajuste en la cuenta'
+                )
+            if person is not None and person.organization_id != organization.id:
+                raise ValidationError(
+                    'La persona y la unidad deben pertenecer a la misma organización.'
+                )
 
-    occupancy.end_date = end_date
-    occupancy.save(update_fields=['end_date', 'updated_at'])
-    return occupancy
+            if person is not None:
+                occupancy.person = person
+            if start_date is not None:
+                occupancy.start_date = start_date
+            if end_date is not UNSET:
+                occupancy.end_date = end_date
+
+            try:
+                with transaction.atomic():
+                    update_fields = []
+                    if person is not None:
+                        update_fields.append('person')
+                    if start_date is not None:
+                        update_fields.append('start_date')
+                    if end_date is not UNSET:
+                        update_fields.append('end_date')
+                    if update_fields:
+                        occupancy.save(update_fields=update_fields + ['updated_at'])
+            except IntegrityError as error:
+                if 'occupancy_no_overlap' not in str(error).lower():
+                    raise
+                raise ValidationError('La corrección se superpone con otra ocupación.') from error
+            return occupancy
+
+
+def update_person(person: Person, user, **fields) -> Person:
+    organization = person.organization
+    assert_member(user, organization)
+    allowed = {'first_name', 'last_name', 'document', 'phone', 'email'}
+    unknown = set(fields) - allowed
+    if unknown:
+        raise ValidationError('Solo se pueden editar datos personales autorizados.')
+    if 'email' in fields:
+        fields['email'] = fields['email'].strip().lower()
+        if person.user_id is not None and fields['email'] != person.email:
+            raise ValidationError(
+                'Esta persona ya tiene cuenta: el email de acceso se cambia reenviando la invitación'
+            )
+
+    with audit_context(user, organization=organization):
+        with transaction.atomic():
+            person = Person.objects.select_for_update().get(pk=person.pk)
+            for field, value in fields.items():
+                setattr(person, field, value)
+            person.save(update_fields=list(fields) + ['updated_at'])
+            return person
 
 
 def current_occupancy(
