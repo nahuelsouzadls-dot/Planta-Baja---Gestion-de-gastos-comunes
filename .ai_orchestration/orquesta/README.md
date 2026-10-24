@@ -27,10 +27,11 @@ orquesta/
 ## Reglas para los agentes de Copilot
 
 1. **Tocá solo los archivos que tu tarea lista en "Archivos tuyos".** Otros agentes trabajan en paralelo sobre el mismo repo. Si necesitás cambiar un archivo que no es tuyo, no lo cambies: pedilo en el reporte.
-2. **No hagas commit, ni `git add`, ni `git stash`, ni `git checkout`.** El orquestador commitea después de revisar. Si dos agentes hacen operaciones de git a la vez, se rompe el trabajo del otro.
-3. **Respetá `.github/copilot-instructions.md`** y la guía que indique tu tarea.
-4. **Si algo es ambiguo, no adivines.** Hacé lo que esté claro y marcá el resto como pregunta en el reporte.
-5. **Al terminar, escribí `orquesta/reportes/<tu-nombre>.md`** (reemplazando el contenido anterior) con este formato exacto:
+2. **No toques `orquesta/agente.sh`, `README.md` ni `tablero.md`**: son del orquestador (en una corrida, `agente.sh` quedó vacío y ningún agente pudo volver a arrancar).
+3. **No hagas commit, ni `git add`, ni `git stash`, ni `git checkout`.** El orquestador commitea después de revisar. Si dos agentes hacen operaciones de git a la vez, se rompe el trabajo del otro.
+4. **Respetá `.github/copilot-instructions.md`** y la guía que indique tu tarea.
+5. **Si algo es ambiguo, no adivines.** Hacé lo que esté claro y marcá el resto como pregunta en el reporte.
+6. **Al terminar, escribí `orquesta/reportes/<tu-nombre>.md`** (reemplazando el contenido anterior) con este formato exacto:
 
 ```markdown
 # Reporte: <nombre> — <id de la tarea>
