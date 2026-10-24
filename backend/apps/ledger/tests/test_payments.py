@@ -81,6 +81,21 @@ def test_submit_is_pending_and_does_not_create_ledger_entry():
     assert not LedgerEntry.objects.exists()
 
 
+def test_resident_can_submit_own_receipt_but_not_another_persons():
+    organization = OrganizationFactory()
+    resident = UserFactory()
+    other_resident = UserFactory()
+    person = make_person(organization)
+    person.user = resident
+    person.save(update_fields=['user', 'updated_at'])
+    other = make_person(organization, 'other')
+    occupancy = make_occupancy(organization, '1', person)
+    other_occupancy = make_occupancy(organization, '2', other)
+    assert submit(person, resident, occupancy).uploaded_by_id == resident.id
+    with pytest.raises(PermissionDenied):
+        submit(other, resident, other_occupancy, '1.00')
+
+
 @pytest.mark.parametrize(
     'content_type,size_bytes',
     [('image/gif', 100), ('application/pdf', 10_485_761)],
@@ -182,6 +197,31 @@ def test_approve_splits_one_receipt_between_two_occupancies():
     assert {
         entry.occupancy_id: -entry.amount for entry in entries
     } == {first.pk: Decimal('2615.00'), second.pk: Decimal('2385.00')}
+
+
+def test_approve_can_replace_allocations_and_audits_deletion():
+    organization = OrganizationFactory()
+    employee = UserFactory()
+    OrgMembershipFactory(user=employee, organization=organization)
+    person = make_person(organization)
+    first = make_occupancy(organization, '1', person)
+    second = make_occupancy(organization, '2', person)
+    receipt = submit_receipt(
+        person, employee, file_key='corrected-split', file_sha256='a' * 64,
+        content_type='application/pdf', size_bytes=1, declared_amount=Decimal('5000.00'),
+        transfer_date=date.today(), allocations={first: Decimal('2615.00'), second: Decimal('2385.00')},
+        note='Dos unidades',
+    )
+    entries = approve_receipt(
+        receipt, employee, {first: Decimal('3000.00'), second: Decimal('2000.00')}
+    )
+    assert {entry.occupancy_id: -entry.amount for entry in entries} == {
+        first.pk: Decimal('3000.00'), second.pk: Decimal('2000.00')
+    }
+    assert RowChange.objects.filter(
+        table_name='ledger_receiptallocation', operation=RowChange.Operation.DELETE,
+        actor=employee,
+    ).exists()
 
 
 def test_other_organization_cannot_review_or_record_payment():

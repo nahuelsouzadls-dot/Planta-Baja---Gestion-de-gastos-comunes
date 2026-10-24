@@ -52,7 +52,13 @@ def submit_receipt(
     allocations,
     note='',
 ):
-    assert_member(uploaded_by, person.organization)
+    if uploaded_by is None or (
+        getattr(person, 'user_id', None) != uploaded_by.id
+        and not OrgMembership.objects.filter(
+            user=uploaded_by, organization=person.organization
+        ).exists()
+    ):
+        raise PermissionDenied('No está autorizado a subir este comprobante.')
     declared_amount = _decimal(declared_amount)
     if declared_amount <= 0:
         raise ValidationError('El monto declarado debe ser mayor que cero.')
@@ -102,33 +108,66 @@ def submit_receipt(
 
 
 @transaction.atomic
-def approve_receipt(receipt, user):
+def approve_receipt(receipt, user, allocations=None):
     locked = (
         Receipt.objects.select_for_update()
         .select_related('person__organization')
         .get(pk=receipt.pk)
     )
-    allocations = list(locked.allocations.select_related('occupancy__unit__building__organization'))
-    organizations = {_occupancy_organization(allocation.occupancy).id for allocation in allocations}
+    original_allocations = list(
+        locked.allocations.select_related('occupancy__unit__building__organization')
+    )
+    organizations = {
+        _occupancy_organization(allocation.occupancy).id for allocation in original_allocations
+    }
     if not organizations or len(organizations) != 1:
         raise ValidationError('El comprobante no tiene ocupaciones válidas.')
-    organization = _occupancy_organization(allocations[0].occupancy)
+    organization = _occupancy_organization(original_allocations[0].occupancy)
     assert_member(user, organization)
     if locked.status != Receipt.Status.PENDING:
         raise ValidationError('El comprobante ya fue revisado.')
 
+    if allocations is None:
+        final_allocations = [(allocation.occupancy, allocation.amount) for allocation in original_allocations]
+    else:
+        if not allocations:
+            raise ValidationError('Debe indicar al menos una imputación.')
+        final_allocations = []
+        for occupancy, amount in allocations.items():
+            if (
+                occupancy.person_id != locked.person_id
+                or occupancy.unit.building.organization_id != organization.id
+            ):
+                raise ValidationError('Todas las ocupaciones deben pertenecer a la persona.')
+            amount = _decimal(amount)
+            if amount <= 0:
+                raise ValidationError('Cada imputación debe ser mayor que cero.')
+            final_allocations.append((occupancy, amount))
+        if len(final_allocations) > 1 and not locked.note.strip():
+            raise ValidationError('Debe indicar una aclaración cuando reparte el pago.')
+        if sum((amount for _, amount in final_allocations), Decimal('0.00')) != locked.declared_amount:
+            raise ValidationError('La suma de las imputaciones debe coincidir con el monto declarado.')
+
     with audit_context(user, organization=organization):
+        if allocations is not None:
+            locked.allocations.all().delete()
+            ReceiptAllocation.objects.bulk_create(
+                [
+                    ReceiptAllocation(receipt=locked, occupancy=occupancy, amount=amount)
+                    for occupancy, amount in final_allocations
+                ]
+            )
         entries = [
             LedgerEntry(
-                occupancy=allocation.occupancy,
+                occupancy=occupancy,
                 date=locked.transfer_date,
                 kind=LedgerEntry.Kind.PAYMENT,
-                amount=-allocation.amount,
+                amount=-amount,
                 receipt=locked,
                 created_by=user,
                 description='Transferencia verificada contra el banco',
             )
-            for allocation in allocations
+            for occupancy, amount in final_allocations
         ]
         LedgerEntry.objects.bulk_create(entries)
         locked.status = Receipt.Status.APPROVED
