@@ -23,25 +23,23 @@ Sistema de gestión para edificios de propiedad horizontal. Digitaliza el trabaj
 administracion-gc/
 ├── backend/          # Django — modelos, API REST, seed data
 │   ├── apps/
-│   │   ├── buildings/   # Edificios y apartamentos
-│   │   ├── residents/   # Residentes (propietarios e inquilinos)
-│   │   ├── expenses/    # Gastos mensuales
-│   │   └── ledger/      # Libro mayor (movimientos financieros)
+│   │   ├── core/        # UUIDs, timestamps y extensiones de PostgreSQL
+│   │   └── accounts/    # Usuarios, organizaciones y membresías
 │   └── config/          # Settings, URLs, WSGI
 ├── design/           # Prototipo navegable: admin.html + portal-residente.html (archivo/ = mockups viejos)
 ├── docker-compose.yml
 └── CLAUDE.md         # Contexto del proyecto para desarrollo con IA
 ```
 
-## Correr en local
+## Correr el backend en local
 
 ```bash
-# Levantar base de datos y servidor
-docker compose up
-
-# En otra terminal, aplicar migraciones y cargar datos de prueba
+cp backend/.env.example backend/.env
+python -c "from django.core.management.utils import get_random_secret_key as g; print(g())"
+docker compose up -d
 docker compose exec web python manage.py migrate
-docker compose exec web python manage.py seed_data
+docker compose exec web python manage.py createsuperuser
+docker compose exec web pytest
 ```
 
 El servidor queda en `http://localhost:8000`.
