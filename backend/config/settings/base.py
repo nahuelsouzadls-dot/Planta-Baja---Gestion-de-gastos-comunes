@@ -39,6 +39,7 @@ LOCAL_APPS = [
     'apps.buildings',
     'apps.people',
     'apps.settlements',
+    'apps.ledger',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

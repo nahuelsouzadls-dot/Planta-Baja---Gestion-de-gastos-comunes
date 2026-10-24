@@ -6,6 +6,7 @@ from apps.accounts.models import OrgMembership, Organization, User
 from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.people.models import Occupancy, Person
 from apps.settlements.models import Settlement, SettlementItem
+from apps.ledger.models import LedgerEntry
 
 
 class UserFactory(DjangoModelFactory):
@@ -103,3 +104,14 @@ class SettlementItemFactory(DjangoModelFactory):
         lambda item: ExpenseConceptFactory(building=item.settlement.building)
     )
     amount = '100.00'
+
+
+class LedgerEntryFactory(DjangoModelFactory):
+    class Meta:
+        model = LedgerEntry
+
+    occupancy = factory.SubFactory(OccupancyFactory)
+    date = '2026-10-01'
+    kind = LedgerEntry.Kind.OPENING
+    amount = '100.00'
+    created_by = factory.SubFactory(UserFactory)

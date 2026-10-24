@@ -21,6 +21,7 @@ Fuente de verdad funcional: el front final (`design/assets/ledger.js`, `data.js`
 | N9 | Deuda y mudanzas | La deuda es de **la persona por el período que ocupó la unidad**, como establece el contrato de alquiler. Quien se va sigue debiendo su período; quien entra arranca en 0. Sin inquilino, el propietario asume todo. |
 | N10 | Mitad de mes | **Prorrateo por días** entre quienes ocuparon la unidad ese mes. |
 | N11 | Venta | **El vendedor tiene que estar al día** para cerrar su ocupación. El sistema lo bloquea si tiene saldo. |
+| N14 | Control de empleados | **Tiene que quedar registrado en la base qué empleado edita qué**, con el valor anterior y el nuevo, para evitar desvíos. Vale para cualquier camino de edición: panel, admin de Django o acceso directo a la base. |
 | N13 | Qué vale como pago | **Lo que cuenta es la verificación de una persona de la administración**, que confirma el pago contra el banco. El comprobante es solo respaldo: se guarda como prueba de que el pago existió, por si después hay un error o un reclamo. La administración también puede registrar un pago sin comprobante (por ejemplo, uno que vio directo en el extracto). |
 | N12 | Un pago, varias unidades | Se acepta, **con aclaración**: al subir el comprobante, el residente indica cuánto va a cada unidad. La administración lo verifica y puede corregir el reparto al aprobar. |
 
@@ -108,6 +109,7 @@ Todas tienen `id` UUID y `created_at`; las mutables tienen además `updated_at`.
 - `Task`: `organization`, `building`, `text`, `due_date` (opcional), `done`, `created_by`.
 
 **audit**
+- `RowChange` (registro de cambios por fila, [ADR-0015](adr/0015-registro-de-cambios-en-la-base.md)): `table_name`, `row_id`, `operation` (`INSERT` | `UPDATE` | `DELETE`), `old_values` (JSON), `new_values` (JSON; en `UPDATE`, solo lo que cambió), `actor` (FK `User`, nula si el cambio no vino de la app), `db_user`, `organization` (nula si no aplica), `request_ip`, `request_path`, `created_at`. Lo escribe **un trigger de Postgres**, no el código Django. Append-only.
 - `AuditLog`: `actor` (`User`), `organization`, `action` (por ejemplo, `receipt.approve`), `target_type`, `target_id`, `data` (JSON, **sin datos sensibles**), `ip`, `created_at`. Append-only, igual que el libro mayor.
 
 ## 5. Reglas de cálculo
@@ -149,13 +151,14 @@ Cada una es una tarea de Copilot (`implementador`) con su lista de archivos. Yo 
 |---|---|---|---|
 | B0 | **Reset y bases** | `accounts.User` por email, `Organization`, `OrgMembership`; modelo base con UUID y timestamps; Argon2, axes, `IsAuthenticated` por defecto; se borran las migraciones viejas. | `migrate` desde cero; tests de creación de usuario y login por email. |
 | B1 | **Edificios** | `Building`, `Unit`, `ExpenseConcept` y los conceptos por defecto. | Tests de unicidad y del servicio "suma de coeficientes = 1". |
-| B2 | **Personas y ocupaciones** | `Person`, `Occupancy` con restricción de exclusión; servicios de mudanza y venta (N9, N11). | Tests: superposición rechazada, venta con deuda bloqueada, unidad sin propietario rechazada. |
+| B2 | **Personas y ocupaciones** | `Person`, `Occupancy` con restricción de exclusión; servicios de alta y mudanza (N9). La venta pasa a B6 porque necesita el saldo del libro mayor. | Tests: superposición rechazada, unidad sin propietario rechazada, días ocupados por mes. |
 | B3 | **Liquidaciones** | `Settlement`, `SettlementItem`; borrador editable, emitida inmutable. | Tests de estados. |
 | B4 | **Libro mayor** | `LedgerEntry` más el trigger append-only. | Test: `UPDATE` y `DELETE` por ORM y por SQL crudo fallan. |
+| B4b | **Registro de cambios** (adelantada desde B8 por N14) | `RowChange` + trigger genérico en todas las tablas de negocio existentes; actor por transacción (`set_config`) desde un middleware y un helper `audit_context`; append-only. | Tests: un cambio desde el ORM, desde el admin y por SQL crudo queda registrado con antes/después y actor (o actor nulo en SQL crudo); el registro no se puede editar ni borrar; `password` nunca aparece. |
 | B5 | **Emisión con prorrateo** | Servicio de §5. | Tests con los casos de `ledger.js` (mismos resultados que el front) más mudanza a mitad de mes y redondeo exacto. |
-| B6 | **Pagos y comprobantes** | Servicio "registrar pago" (con o sin comprobante); `Receipt` y `ReceiptAllocation` como evidencia; aprobar y rechazar; estado y FIFO. | Tests: pago sin comprobante, pago parcial, saldo a favor, reparto entre dos unidades, rechazo que no toca el libro mayor, estados del front. |
+| B6 | **Pagos, comprobantes y venta** | Servicio "registrar pago" (con o sin comprobante); venta de la unidad con saldo 0 obligatorio (N11); `Receipt` y `ReceiptAllocation` como evidencia; aprobar y rechazar; estado y FIFO. | Tests: pago sin comprobante, pago parcial, saldo a favor, reparto entre dos unidades, rechazo que no toca el libro mayor, estados del front, venta con deuda bloqueada. |
 | B7 | **Comunicaciones y tareas** | `Notice`, `Claim`, `ClaimMessage`, `Task`. | Tests básicos. |
-| B8 | **Auditoría** | `AuditLog` append-only, enganchado a los servicios de B2–B7. | Test: cada acción sensible deja registro. |
+| B8 | **Eventos de negocio** | `AuditLog` append-only, enganchado a los servicios de B2–B7. Las tablas nuevas de B5–B7 se suman al trigger de `RowChange` en su propia tarea. | Test: cada acción sensible deja su evento. |
 | B9 | **Seed de la demo** | Minas, Centro y Pocitos con los datos del front. | Las cifras de la cartera coinciden con el front ($ 42.025 cobrado, $ 18.120 de deuda, etc.). |
 
 Después, en otro plan: invitaciones y login (C1), permisos por organización y por ocupación (C2), la API por pantalla (C3), conectar el front reemplazando `GC.store` (C4), R2 (C5), PDF de la liquidación y emails con Celery (C6) y el deploy en Railway (C7).
