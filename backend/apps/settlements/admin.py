@@ -24,9 +24,10 @@ class SettlementAdmin(admin.ModelAdmin):
     inlines = (SettlementItemInline,)
 
     def get_readonly_fields(self, request, obj=None):
+        readonly = ('status', 'issued_at', 'issued_by')
         if obj is not None and obj.status == Settlement.Status.ISSUED:
-            return ('building', 'month', 'status', 'issued_at', 'issued_by')
-        return ()
+            return ('building', 'month') + readonly
+        return readonly
 
     def has_change_permission(self, request, obj=None):
         if obj is not None and obj.status == Settlement.Status.ISSUED:

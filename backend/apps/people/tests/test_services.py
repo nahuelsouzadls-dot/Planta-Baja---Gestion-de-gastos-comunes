@@ -4,7 +4,9 @@ from decimal import Decimal
 import pytest
 from django.core.exceptions import PermissionDenied, ValidationError
 
-from apps.people.models import Occupancy
+from apps.people.models import Occupancy, Person
+from apps.buildings.services import create_building
+from apps.buildings.models import Unit
 from apps.people.services import (
     UNSET,
     correct_occupancy,
@@ -22,7 +24,7 @@ from apps.ledger.models import LedgerEntry
 from apps.ledger.services import record_opening
 from apps.audit.models import RowChange
 from tests.factories import (
-    BuildingFactory, OccupancyFactory, OrgMembershipFactory, PersonFactory, UnitFactory,
+    BuildingFactory, OccupancyFactory, OrgMembershipFactory, OrganizationFactory, PersonFactory, UnitFactory,
     UserFactory,
 )
 
@@ -255,6 +257,26 @@ def test_days_in_month_handles_non_overlapping_february():
     assert days_in_month(april_occupancy, date(2026, 2, 1)) == 0
 
 
+def test_days_in_month_normalizes_non_first_day_of_leap_february():
+    organization = OrganizationFactory()
+    building = create_building(organization, name='Bisiesto', address='Calle 29')
+    unit = Unit.objects.create(
+        building=building, number='1', floor=1, coefficient='1.000000'
+    )
+    person = Person.objects.create(
+        organization=organization, first_name='Dueño', last_name='Bisiesto'
+    )
+    occupancy = Occupancy.objects.create(
+        unit=unit,
+        person=person,
+        role=Occupancy.Role.OWNER,
+        start_date=date(2028, 1, 1),
+    )
+
+    assert days_in_month(occupancy, date(2028, 2, 29)) == 29
+    assert owner_gaps(unit, date(2028, 2, 29)) == 0
+
+
 @pytest.mark.django_db
 def test_occupancies_in_month_and_owner_gaps():
     unit = UnitFactory()
@@ -269,7 +291,7 @@ def test_occupancies_in_month_and_owner_gaps():
 
 
 def test_sell_rejects_debtor_and_rolls_back():
-    owner = OccupancyFactory(role=Occupancy.Role.OWNER)
+    owner = OccupancyFactory(role=Occupancy.Role.OWNER, start_date=date(2026, 1, 1))
     buyer = PersonFactory(organization=owner.unit.building.organization)
     user = UserFactory()
     OrgMembershipFactory(user=user, organization=owner.unit.building.organization)
@@ -285,7 +307,7 @@ def test_sell_rejects_debtor_and_rolls_back():
 
 
 def test_sell_closes_owner_and_creates_buyer():
-    owner = OccupancyFactory(role=Occupancy.Role.OWNER)
+    owner = OccupancyFactory(role=Occupancy.Role.OWNER, start_date=date(2026, 1, 1))
     buyer = PersonFactory(organization=owner.unit.building.organization)
     user = UserFactory()
     OrgMembershipFactory(user=user, organization=owner.unit.building.organization)
@@ -297,7 +319,7 @@ def test_sell_closes_owner_and_creates_buyer():
 
 
 def test_sell_allows_credit_and_rejects_foreign_employee():
-    owner = OccupancyFactory(role=Occupancy.Role.OWNER)
+    owner = OccupancyFactory(role=Occupancy.Role.OWNER, start_date=date(2026, 1, 1))
     buyer = PersonFactory(organization=owner.unit.building.organization)
     user = UserFactory()
     OrgMembershipFactory(user=user, organization=owner.unit.building.organization)

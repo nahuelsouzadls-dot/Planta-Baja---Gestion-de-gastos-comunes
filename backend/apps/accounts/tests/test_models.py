@@ -1,6 +1,6 @@
 import pytest
 from django.contrib.auth import get_user_model
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 
 from apps.accounts.models import OrgMembership, Organization
 
@@ -23,6 +23,8 @@ def test_duplicate_case_insensitive_email_is_rejected():
 def test_create_user_without_email_raises():
     with pytest.raises(ValueError):
         User.objects.create_user('', 'strong-password')
+    with pytest.raises(ValueError):
+        User.objects.create_user('   ', 'strong-password')
 
 
 @pytest.mark.django_db
@@ -39,3 +41,14 @@ def test_membership_is_unique():
     OrgMembership.objects.create(user=user, organization=organization)
     with pytest.raises(IntegrityError):
         OrgMembership.objects.create(user=user, organization=organization)
+
+
+@pytest.mark.django_db
+def test_email_database_constraint_requires_lowercase_and_nonempty():
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            User.objects.create(email='', password='unused')
+    user = User.objects.create_user('valid@example.com', 'strong-password')
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            User.objects.filter(pk=user.pk).update(email='Valid@Example.com')

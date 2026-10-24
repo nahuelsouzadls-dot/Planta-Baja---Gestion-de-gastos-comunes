@@ -3,7 +3,8 @@ from decimal import Decimal
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.db import DatabaseError, IntegrityError, transaction
+from django.db import DatabaseError, IntegrityError, connection, transaction
+from django.urls import reverse
 
 from apps.accounts.models import User
 from apps.buildings.models import ExpenseConcept
@@ -79,6 +80,8 @@ def test_save_draft_validates_amounts_and_details(building, concepts):
 
     with pytest.raises(TypeError):
         save_draft(building, date(2026, 11, 1), {concepts['Limpieza']: 1.0})
+    with pytest.raises(ValidationError, match='máximo 2 decimales'):
+        save_draft(building, date(2026, 11, 1), {concepts['Limpieza']: Decimal('1.001')})
     with pytest.raises(ValidationError):
         save_draft(building, date(2026, 12, 1), {concepts['Limpieza']: Decimal('-1')})
     with pytest.raises(ValidationError):
@@ -175,28 +178,80 @@ def test_issued_settlement_and_items_are_immutable(building, concepts, db):
         issued_by=admin,
     )
     item = settlement.items.get()
+    draft = save_draft(
+        building,
+        date(2026, 11, 1),
+        {concepts['O.S.E. (agua)']: Decimal('50.00')},
+    )
 
-    with pytest.raises((DatabaseError, IntegrityError)):
+    with pytest.raises(DatabaseError):
         with transaction.atomic():
-            Settlement.objects.filter(pk=settlement.pk).update(status=Settlement.Status.DRAFT)
-    with pytest.raises((DatabaseError, IntegrityError)):
+            Settlement.objects.filter(pk=settlement.pk).update(month=date(2026, 11, 1))
+    with pytest.raises(DatabaseError):
         with transaction.atomic():
-            SettlementItem.objects.filter(pk=item.pk).update(amount=Decimal('1.00'))
-    with pytest.raises((DatabaseError, IntegrityError)):
+            SettlementItem.objects.filter(pk=item.pk).update(settlement=draft)
+    with pytest.raises(DatabaseError):
         with transaction.atomic():
             SettlementItem.objects.create(
                 settlement=settlement,
                 concept=concepts['O.S.E. (agua)'],
                 amount=Decimal('1.00'),
             )
-    with pytest.raises((DatabaseError, IntegrityError)):
+    with pytest.raises(DatabaseError):
         with transaction.atomic():
             SettlementItem.objects.filter(pk=item.pk).delete()
-    with pytest.raises((DatabaseError, IntegrityError)):
+    with pytest.raises(DatabaseError):
         with transaction.atomic():
             settlement.delete()
+    with pytest.raises(DatabaseError):
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute('TRUNCATE settlements_settlementitem')
+    settlement.refresh_from_db()
+    item.refresh_from_db()
+    assert settlement_total(settlement) == Decimal('100.00')
+    assert settlement.items.count() == 1
+    assert item.amount == Decimal('100.00')
     with pytest.raises(ValidationError):
         save_draft(building, date(2026, 10, 1), {concepts['Limpieza']: Decimal('10.00')})
+
+
+def test_admin_cannot_issue_settlement_without_service(building, concepts, client):
+    admin = User.objects.create_superuser(
+        email='settlement-admin@example.com',
+        password='test-password-123',
+    )
+    client.force_login(admin)
+    settlement = save_draft(
+        building,
+        date(2026, 10, 1),
+        {concepts['Limpieza']: Decimal('100.00')},
+    )
+
+    response = client.post(
+        reverse('admin:settlements_settlement_change', args=[settlement.pk]),
+        {
+            'building': str(building.pk),
+            'month': '2026-10-01',
+            'status': Settlement.Status.ISSUED,
+            'issued_at_0': '2026-10-01',
+            'issued_at_1': '12:00:00',
+            'issued_by': str(admin.pk),
+            'items-TOTAL_FORMS': '1',
+            'items-INITIAL_FORMS': '1',
+            'items-MIN_NUM_FORMS': '0',
+            'items-MAX_NUM_FORMS': '1000',
+            'items-0-id': str(settlement.items.get().pk),
+            'items-0-settlement': str(settlement.pk),
+            'items-0-concept': str(concepts['Limpieza'].pk),
+            'items-0-amount': '100.00',
+            'items-0-detail': '',
+        },
+    )
+
+    assert response.status_code == 302
+    settlement.refresh_from_db()
+    assert settlement.status == Settlement.Status.DRAFT
 
 
 def test_settlement_constraints(building, concepts, db):

@@ -223,6 +223,7 @@ def current_occupancy(
 
 
 def days_in_month(occupancy: Occupancy, month: date) -> int:
+    month = month.replace(day=1)
     month_end = date(month.year, month.month, calendar.monthrange(month.year, month.month)[1])
     if occupancy.start_date > month_end:
         return 0
@@ -238,6 +239,7 @@ def occupancies_in_month(
     unit: Unit,
     month: date,
 ) -> list[tuple[Occupancy, int]]:
+    month = month.replace(day=1)
     month_end = date(month.year, month.month, calendar.monthrange(month.year, month.month)[1])
     occupancies = (
         Occupancy.objects.filter(
@@ -251,6 +253,7 @@ def occupancies_in_month(
 
 
 def owner_gaps(unit: Unit, month: date) -> int:
+    month = month.replace(day=1)
     total_days = calendar.monthrange(month.year, month.month)[1]
     owner_days = sum(
         occupied_days

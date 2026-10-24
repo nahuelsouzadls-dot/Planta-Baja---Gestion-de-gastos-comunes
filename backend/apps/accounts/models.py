@@ -10,9 +10,10 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     def _normalize_email(self, email):
-        if not email:
+        cleaned = self.normalize_email(email or '').strip().lower()
+        if not cleaned:
             raise ValueError('El email es obligatorio.')
-        return self.normalize_email(email).strip().lower()
+        return cleaned
 
     def create_user(self, email, password=None, **extra_fields):
         email = self._normalize_email(email)
@@ -50,6 +51,10 @@ class User(UUIDModel, AbstractBaseUser, PermissionsMixin):
     class Meta:
         constraints = [
             models.UniqueConstraint(Lower('email'), name='accounts_user_email_lower_unique'),
+            models.CheckConstraint(
+                condition=~models.Q(email='') & models.Q(email=Lower('email')),
+                name='accounts_user_email_nonempty_lower',
+            ),
         ]
 
     def save(self, *args, **kwargs):

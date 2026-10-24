@@ -114,6 +114,42 @@ def test_constraints_reject_invalid_entries(changes):
             LedgerEntry.objects.create(**kwargs)
 
 
+@pytest.mark.parametrize('changes', [
+    {'kind': 'invalido'},
+    {'days': 999, 'days_in_month': None},
+    {'base_amount': '-1.00'},
+    {'coefficient': '2.000000'},
+    {'adjusts': LedgerEntry},
+])
+def test_database_rejects_invalid_cross_field_combinations(changes):
+    occupancy = OccupancyFactory()
+    user = UserFactory()
+    kwargs = charge_kwargs(occupancy, user)
+    if changes.get('kind') == 'invalido':
+        kwargs = {
+            'occupancy': occupancy,
+            'date': '2026-10-01',
+            'kind': 'invalido',
+            'amount': '1.00',
+            'created_by': user,
+        }
+    elif changes.get('adjusts') is LedgerEntry:
+        original = LedgerEntryFactory(occupancy=occupancy)
+        kwargs = {
+            'occupancy': occupancy,
+            'date': '2026-10-01',
+            'kind': LedgerEntry.Kind.CHARGE,
+            'amount': '1.00',
+            'created_by': user,
+            'adjusts': original,
+        }
+    else:
+        kwargs.update(changes)
+    with pytest.raises(IntegrityError):
+        with transaction.atomic():
+            LedgerEntry.objects.create(**kwargs)
+
+
 def test_unique_charge_and_opening_constraints():
     occupancy = OccupancyFactory()
     user = UserFactory()
@@ -175,6 +211,8 @@ def test_record_opening_zero_and_float():
     assert not LedgerEntry.objects.filter(occupancy=occupancy).exists()
     with pytest.raises(TypeError):
         record_opening(occupancy, 1.0, '2026-10-01', user)
+    with pytest.raises(ValidationError, match='máximo 2 decimales'):
+        record_opening(occupancy, Decimal('0.004'), '2026-10-01', user)
 
 
 def test_admin_is_read_only(client):
@@ -182,6 +220,16 @@ def test_admin_is_read_only(client):
     client.force_login(user)
     response = client.get(reverse('admin:ledger_ledgerentry_add'))
     assert response.status_code == 403
+    entry = LedgerEntryFactory(created_by=user)
+    assert client.post(
+        reverse('admin:ledger_ledgerentry_change', args=[entry.pk]),
+        {'amount': '200.00'},
+    ).status_code == 403
+    assert client.post(
+        reverse('admin:ledger_ledgerentry_delete', args=[entry.pk]),
+    ).status_code == 403
+    entry.refresh_from_db()
+    assert entry.amount == Decimal('100.00')
     model_admin = admin.site._registry[LedgerEntry]
     assert not model_admin.has_add_permission(None)
     assert not model_admin.has_change_permission(None)
