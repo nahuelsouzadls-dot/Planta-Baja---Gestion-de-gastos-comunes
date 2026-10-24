@@ -4,6 +4,7 @@ from factory.django import DjangoModelFactory
 
 from apps.accounts.models import OrgMembership, Organization, User
 from apps.buildings.models import Building, ExpenseConcept, Unit
+from apps.people.models import Occupancy, Person
 
 
 class UserFactory(DjangoModelFactory):
@@ -58,3 +59,26 @@ class ExpenseConceptFactory(DjangoModelFactory):
     building = factory.SubFactory(BuildingFactory)
     name = factory.Sequence(lambda n: f'Concepto {n}')
     kind = ExpenseConcept.Kind.ORDINARY
+
+
+class PersonFactory(DjangoModelFactory):
+    class Meta:
+        model = Person
+
+    organization = factory.SubFactory(OrganizationFactory)
+    first_name = factory.Faker('first_name', locale='es')
+    last_name = factory.Faker('last_name', locale='es')
+    email = factory.Sequence(lambda n: f'person{n}@example.com')
+
+
+class OccupancyFactory(DjangoModelFactory):
+    class Meta:
+        model = Occupancy
+
+    unit = factory.SubFactory(UnitFactory)
+    person = factory.LazyAttribute(
+        lambda occupancy: PersonFactory(organization=occupancy.unit.building.organization)
+    )
+    role = Occupancy.Role.TENANT
+    start_date = factory.Faker('date_object')
+    end_date = None

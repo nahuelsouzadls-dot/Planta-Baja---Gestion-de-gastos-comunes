@@ -9,8 +9,8 @@ from .models import Building, ExpenseConcept
 
 
 DEFAULT_CONCEPTS = [
-    ('O.S.E.', ExpenseConcept.Kind.ORDINARY, False),
-    ('U.T.E.', ExpenseConcept.Kind.ORDINARY, False),
+    ('O.S.E. (agua)', ExpenseConcept.Kind.ORDINARY, False),
+    ('U.T.E. (luz)', ExpenseConcept.Kind.ORDINARY, False),
     ('Limpieza', ExpenseConcept.Kind.ORDINARY, False),
     ('Honorarios de administración', ExpenseConcept.Kind.ORDINARY, False),
     ('Fondo de reserva', ExpenseConcept.Kind.OWNER_ONLY, True),
