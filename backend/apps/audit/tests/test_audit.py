@@ -241,7 +241,14 @@ def test_rowchange_is_append_only():
 
 
 def test_all_business_models_have_audit_trigger():
-    expected_apps = ('accounts', 'buildings', 'people', 'settlements', 'ledger')
+    expected_apps = (
+        'accounts',
+        'buildings',
+        'people',
+        'settlements',
+        'ledger',
+        'communications',
+    )
     with connection.cursor() as cursor:
         for app_label in expected_apps:
             for model in apps.get_app_config(app_label).get_models():
