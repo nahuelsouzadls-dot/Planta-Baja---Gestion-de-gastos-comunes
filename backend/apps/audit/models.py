@@ -6,6 +6,9 @@ from django.db import models
 from django.db.models import Func
 from django.db.models.functions import Now
 
+from apps.accounts.models import Organization
+from apps.core.models import UUIDModel
+
 
 class RowChange(models.Model):
     class Operation(models.TextChoices):
@@ -53,3 +56,41 @@ class RowChange(models.Model):
 
     def __str__(self):
         return f'{self.table_name} {self.operation} {self.row_id}'
+
+
+class AuditLog(UUIDModel):
+    created_at = models.DateTimeField(auto_now_add=True)
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='+',
+    )
+    organization = models.ForeignKey(
+        Organization,
+        on_delete=models.PROTECT,
+        related_name='+',
+    )
+    action = models.CharField(max_length=60)
+    target_type = models.CharField(max_length=60)
+    target_id = models.UUIDField()
+    summary = models.CharField(max_length=300)
+    data = models.JSONField()
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['organization', 'created_at'], name='audit_log_org_date_idx'),
+            models.Index(fields=['actor', 'created_at'], name='audit_log_actor_date_idx'),
+            models.Index(fields=['target_type', 'target_id'], name='audit_log_target_idx'),
+        ]
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError('AuditLog es append-only y no se puede modificar.')
+        return super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError('AuditLog es append-only y no se puede borrar.')
+
+    def __str__(self):
+        return self.summary

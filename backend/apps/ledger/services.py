@@ -6,6 +6,9 @@ from django.db.models import Sum
 from django.utils import timezone
 
 from apps.core.money import to_money
+from apps.core.money import format_money
+from apps.audit.context import audit_context
+from apps.audit.events import record_event
 
 from .models import LedgerEntry
 
@@ -43,13 +46,26 @@ def record_opening(occupancy, amount, on_date, user):
     amount = to_money(amount)
     if amount == 0:
         return None
-    return LedgerEntry.objects.create(
-        occupancy=occupancy,
-        date=on_date,
-        kind=LedgerEntry.Kind.OPENING,
-        amount=amount,
-        created_by=user,
-    )
+    organization = occupancy.unit.building.organization
+    with audit_context(user, organization=organization):
+        entry = LedgerEntry.objects.create(
+            occupancy=occupancy,
+            date=on_date,
+            kind=LedgerEntry.Kind.OPENING,
+            amount=amount,
+            created_by=user,
+        )
+        record_event(
+            user,
+            organization,
+            'ledger.opening',
+            entry,
+            f'Saldo de apertura de {format_money(amount)} en el apto {occupancy.unit.number}',
+            amount=str(amount),
+            unit=occupancy.unit.number,
+            date=on_date.isoformat() if hasattr(on_date, 'isoformat') else str(on_date),
+        )
+    return entry
 
 
 @transaction.atomic
@@ -60,12 +76,28 @@ def adjust(entry, amount, description, user):
         raise ValidationError('La descripción del ajuste es obligatoria.')
     if amount == 0:
         raise ValidationError('El ajuste no puede ser cero.')
-    return LedgerEntry.objects.create(
-        occupancy=entry.occupancy,
-        date=timezone.localdate(),
-        kind=LedgerEntry.Kind.ADJUSTMENT,
-        amount=amount,
-        adjusts=entry,
-        description=description,
-        created_by=user,
-    )
+    organization = entry.occupancy.unit.building.organization
+    with audit_context(user, organization=organization):
+        adjustment = LedgerEntry.objects.create(
+            occupancy=entry.occupancy,
+            date=timezone.localdate(),
+            kind=LedgerEntry.Kind.ADJUSTMENT,
+            amount=amount,
+            adjusts=entry,
+            description=description,
+            created_by=user,
+        )
+        record_event(
+            user,
+            organization,
+            'ledger.adjust',
+            adjustment,
+            (
+                f'Ajuste de {format_money(amount)} en el apto '
+                f'{entry.occupancy.unit.number}: {description.strip()}'
+            ),
+            amount=str(amount),
+            unit=entry.occupancy.unit.number,
+            description=description.strip(),
+        )
+    return adjustment

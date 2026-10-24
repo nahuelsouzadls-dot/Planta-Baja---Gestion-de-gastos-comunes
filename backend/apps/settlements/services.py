@@ -9,9 +9,11 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.audit.context import audit_context
+from apps.audit.events import record_event
 from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.buildings.services import validate_coefficients
 from apps.core.money import to_money
+from apps.core.money import format_money
 from apps.ledger.models import LedgerEntry
 from apps.people.models import Occupancy
 from apps.people.services import owner_gaps
@@ -302,6 +304,19 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
         locked.issued_at = timezone.now()
         locked.issued_by = user
         locked.save(update_fields=['status', 'issued_at', 'issued_by', 'updated_at'])
+        record_event(
+            user,
+            building.organization,
+            'settlement.issue',
+            locked,
+            (
+                f'Emitió la liquidación de {_month_label(locked.month)} de {building.name} '
+                f'por {format_money(expected_total)} ({len(entries)} cargos)'
+            ),
+            month=locked.month.isoformat(),
+            total=str(expected_total),
+            charges_count=len(entries),
+        )
 
     return IssueSummary(
         charges_count=len(entries),

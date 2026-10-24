@@ -5,8 +5,10 @@ from django.db import connection, DatabaseError, transaction
 from django.urls import reverse
 
 from apps.audit.context import audit_context
-from apps.audit.models import RowChange
+from apps.audit.events import record_event
+from apps.audit.models import AuditLog, RowChange
 from apps.buildings.models import Building
+from apps.core.money import format_money
 from apps.ledger.services import record_opening
 from apps.people.models import Person
 from apps.settlements.services import delete_draft
@@ -238,6 +240,59 @@ def test_rowchange_is_append_only():
         with transaction.atomic():
             with connection.cursor() as cursor:
                 cursor.execute('TRUNCATE audit_rowchange')
+
+
+def test_audit_log_is_append_only():
+    user = UserFactory()
+    building = BuildingFactory()
+    event = AuditLog.objects.create(
+        actor=user,
+        organization=building.organization,
+        action='test.event',
+        target_type='buildings.building',
+        target_id=building.id,
+        summary='Evento de prueba',
+        data={},
+    )
+    with pytest.raises(DatabaseError):
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'UPDATE audit_auditlog SET summary = %s WHERE id = %s',
+                    ['alterado', str(event.id)],
+                )
+    with pytest.raises(DatabaseError):
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    'DELETE FROM audit_auditlog WHERE id = %s',
+                    [str(event.id)],
+                )
+    with pytest.raises(DatabaseError):
+        with transaction.atomic():
+            with connection.cursor() as cursor:
+                cursor.execute('TRUNCATE audit_auditlog')
+
+
+def test_record_event_rejects_sensitive_data():
+    user = UserFactory()
+    building = BuildingFactory()
+    with pytest.raises(ValueError):
+        record_event(
+            user,
+            building.organization,
+            'test.event',
+            building,
+            'Evento inválido',
+            data={'phone': '099123456'},
+        )
+
+
+def test_format_money_uses_uyuguayan_format():
+    from decimal import Decimal
+
+    assert format_money(Decimal('48300')) == '$ 48.300,00'
+    assert format_money(Decimal('-61.2')) == '−$ 61,20'
 
 
 def test_all_business_models_have_audit_trigger():

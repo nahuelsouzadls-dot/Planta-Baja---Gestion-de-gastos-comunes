@@ -7,7 +7,8 @@ from django.utils import timezone
 
 from apps.accounts.models import OrgMembership
 from apps.audit.context import audit_context
-from apps.core.money import to_money
+from apps.audit.events import record_event
+from apps.core.money import format_money, to_money
 
 from .models import LedgerEntry, Receipt, ReceiptAllocation
 
@@ -167,6 +168,19 @@ def approve_receipt(receipt, user, allocations=None):
         locked.reviewed_by = user
         locked.reviewed_at = timezone.now()
         locked.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'updated_at'])
+        first_occupancy = final_allocations[0][0]
+        record_event(
+            user,
+            organization,
+            'receipt.approve',
+            locked,
+            (
+                f'Aprobó el comprobante de {locked.person} '
+                f'(apto {first_occupancy.unit.number}) por {format_money(locked.declared_amount)}'
+            ),
+            amount=str(locked.declared_amount),
+            unit=first_occupancy.unit.number,
+        )
     return entries
 
 
@@ -182,6 +196,7 @@ def reject_receipt(receipt, user, reason):
         raise ValidationError('El comprobante ya fue revisado.')
     if not reason or not reason.strip():
         raise ValidationError('El motivo del rechazo es obligatorio.')
+    first_allocation = locked.allocations.select_related('occupancy__unit').first()
     with audit_context(user, organization=locked.person.organization):
         locked.status = Receipt.Status.REJECTED
         locked.rejection_reason = reason.strip()
@@ -191,6 +206,22 @@ def reject_receipt(receipt, user, reason):
             update_fields=[
                 'status', 'rejection_reason', 'reviewed_by', 'reviewed_at', 'updated_at'
             ]
+        )
+        record_event(
+            user,
+            locked.person.organization,
+            'receipt.reject',
+            locked,
+            (
+                f'Rechazó el comprobante de {locked.person}: '
+                f'{locked.rejection_reason}'
+                + (
+                    f' (apto {first_allocation.occupancy.unit.number})'
+                    if first_allocation is not None else ''
+                )
+            ),
+            reason=locked.rejection_reason,
+            unit=first_allocation.occupancy.unit.number if first_allocation is not None else None,
         )
     return locked
 
@@ -205,7 +236,7 @@ def record_manual_payment(occupancy, amount, on_date, user, source):
     if not source or not source.strip():
         raise ValidationError('La fuente de verificación es obligatoria.')
     with audit_context(user, organization=organization):
-        return LedgerEntry.objects.create(
+        entry = LedgerEntry.objects.create(
             occupancy=occupancy,
             date=on_date,
             kind=LedgerEntry.Kind.PAYMENT,
@@ -213,3 +244,17 @@ def record_manual_payment(occupancy, amount, on_date, user, source):
             created_by=user,
             description=source.strip(),
         )
+        record_event(
+            user,
+            organization,
+            'payment.record_manual',
+            entry,
+            (
+                f'Registró un pago sin comprobante de {format_money(amount)} '
+                f'para el apto {occupancy.unit.number} (fuente: {source.strip()})'
+            ),
+            amount=str(amount),
+            unit=occupancy.unit.number,
+            source=source.strip(),
+        )
+        return entry
