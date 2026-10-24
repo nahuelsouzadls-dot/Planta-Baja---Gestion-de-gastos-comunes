@@ -7,6 +7,7 @@ from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.people.models import Occupancy, Person
 from apps.settlements.models import Settlement, SettlementItem
 from apps.ledger.models import LedgerEntry
+from apps.communications.models import Claim, ClaimMessage, Notice, Task
 
 
 class UserFactory(DjangoModelFactory):
@@ -114,4 +115,48 @@ class LedgerEntryFactory(DjangoModelFactory):
     date = '2026-10-01'
     kind = LedgerEntry.Kind.OPENING
     amount = '100.00'
+    created_by = factory.SubFactory(UserFactory)
+
+
+class NoticeFactory(DjangoModelFactory):
+    class Meta:
+        model = Notice
+
+    building = factory.SubFactory(BuildingFactory)
+    title = factory.Sequence(lambda n: f'Aviso {n}')
+    body = 'Información importante para residentes.'
+    published_by = factory.SubFactory(UserFactory)
+
+
+class ClaimFactory(DjangoModelFactory):
+    class Meta:
+        model = Claim
+
+    building = factory.SubFactory(BuildingFactory)
+    unit = factory.LazyAttribute(lambda claim: UnitFactory(building=claim.building))
+    author = factory.LazyAttribute(
+        lambda claim: PersonFactory(organization=claim.building.organization)
+    )
+    kind = Claim.Kind.REPORT
+    title = factory.Sequence(lambda n: f'Reclamo {n}')
+    status = Claim.Status.PENDING
+
+
+class ClaimMessageFactory(DjangoModelFactory):
+    class Meta:
+        model = ClaimMessage
+
+    claim = factory.SubFactory(ClaimFactory)
+    author = factory.SubFactory(UserFactory)
+    from_admin = False
+    text = 'Mensaje del reclamo.'
+
+
+class TaskFactory(DjangoModelFactory):
+    class Meta:
+        model = Task
+
+    building = factory.SubFactory(BuildingFactory)
+    organization = factory.LazyAttribute(lambda task: task.building.organization)
+    text = factory.Sequence(lambda n: f'Tarea {n}')
     created_by = factory.SubFactory(UserFactory)
