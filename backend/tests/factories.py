@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import make_password
 from factory.django import DjangoModelFactory
 
 from apps.accounts.models import OrgMembership, Organization, User
+from apps.buildings.models import Building, ExpenseConcept, Unit
 
 
 class UserFactory(DjangoModelFactory):
@@ -29,3 +30,31 @@ class OrgMembershipFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     organization = factory.SubFactory(OrganizationFactory)
+
+
+class BuildingFactory(DjangoModelFactory):
+    class Meta:
+        model = Building
+
+    organization = factory.SubFactory(OrganizationFactory)
+    name = factory.Sequence(lambda n: f'Edificio {n}')
+    address = factory.Sequence(lambda n: f'Calle {n} 1234')
+
+
+class UnitFactory(DjangoModelFactory):
+    class Meta:
+        model = Unit
+
+    building = factory.SubFactory(BuildingFactory)
+    number = factory.Sequence(lambda n: str(n + 1))
+    floor = 1
+    coefficient = '0.086000'
+
+
+class ExpenseConceptFactory(DjangoModelFactory):
+    class Meta:
+        model = ExpenseConcept
+
+    building = factory.SubFactory(BuildingFactory)
+    name = factory.Sequence(lambda n: f'Concepto {n}')
+    kind = ExpenseConcept.Kind.ORDINARY
