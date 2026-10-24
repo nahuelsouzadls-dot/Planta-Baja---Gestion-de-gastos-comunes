@@ -5,6 +5,7 @@ from factory.django import DjangoModelFactory
 from apps.accounts.models import OrgMembership, Organization, User
 from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.people.models import Occupancy, Person
+from apps.settlements.models import Settlement, SettlementItem
 
 
 class UserFactory(DjangoModelFactory):
@@ -82,3 +83,23 @@ class OccupancyFactory(DjangoModelFactory):
     role = Occupancy.Role.TENANT
     start_date = factory.Faker('date_object')
     end_date = None
+
+
+class SettlementFactory(DjangoModelFactory):
+    class Meta:
+        model = Settlement
+
+    building = factory.SubFactory(BuildingFactory)
+    month = '2026-10-01'
+    status = Settlement.Status.DRAFT
+
+
+class SettlementItemFactory(DjangoModelFactory):
+    class Meta:
+        model = SettlementItem
+
+    settlement = factory.SubFactory(SettlementFactory)
+    concept = factory.LazyAttribute(
+        lambda item: ExpenseConceptFactory(building=item.settlement.building)
+    )
+    amount = '100.00'
