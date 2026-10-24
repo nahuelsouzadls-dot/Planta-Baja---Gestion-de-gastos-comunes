@@ -1,79 +1,51 @@
-# Tarea: C1 — API de sesión e invitaciones
+# Tarea: C3b — API del panel: escritura
 
 ## Contexto
-El modelo de datos está cerrado (B0–B9, SEC1, SEC2; commit `23fa98a`). Arranca la API. Leé `docs/plan-mvp.md` (sección C), `docs/adr/0002`, `0004`, `0005` y `0016`, y `docs/arquitectura/secuencias.md` §6 (invitación) y §7 (login).
+C3a (lectura) está auditada. Ahora, todo lo que el panel **escribe**. Cada endpoint **solo traduce HTTP y llama al servicio de dominio que ya existe y está probado** (con sus permisos, su log y sus eventos). Ninguna regla de negocio nueva en las vistas.
 
-**Decisión de estructura:** la API vive en una app nueva, `apps/api/`, con un paquete por versión (`apps/api/v1/`). Las vistas y serializers **solo traducen HTTP**: validan la entrada, resuelven permisos y llaman a un **servicio de dominio**. Ninguna regla de negocio en las vistas. Todo bajo `/api/v1/`.
+**No hagas commit.**
 
-## Archivos tuyos
-- `backend/apps/api/` (app nueva)
-- `backend/apps/accounts/` (modelo `Invitation`, servicios de invitación y recuperación, migración, tests)
-- `backend/config/urls.py`, `backend/config/settings/base.py` y `development.py` (email y throttling)
-- `backend/tests/factories.py`
+## Reglas para todos los endpoints de escritura
+- `IsEmployee` y alcance de C2: el objeto de la URL se obtiene con `get_in_scope_or_404` **antes** de llamar al servicio (lo ajeno → 404).
+- CSRF obligatorio (sesión de Django).
+- Errores: `ValidationError` del servicio → **400** `{"detail": "..."}` (si trae varios mensajes, el primero en `detail` y la lista en `errors`); `PermissionDenied` → **403**; `TypeError` por montos `float` → **400** con un mensaje claro.
+- Montos en el cuerpo como **string** (`"2615.00"`); si llega un número JSON → 400 "Los montos se envían como texto".
+- Respuesta: el objeto creado o modificado, con el mismo formato que su endpoint de lectura de C3a (reusá los serializers).
+- Cada escritura deja su `AuditLog` (lo hace el servicio).
 
-## 1. Modelo `Invitation` (`apps/accounts/models.py`)
-`TimeStampedModel`. Sirve para empleados y residentes:
-- `organization` → FK `Organization`, `PROTECT`
-- `kind`: `employee` | `resident`
-- `person` → FK `people.Person`, null, `PROTECT` (solo para `resident`)
-- `email` (normalizado), `first_name` y `last_name` (solo para `employee`; para `resident` salen de la persona)
-- `token_hash` (CharField 64, **único**): sha256 del token; **el token en claro nunca se guarda**
-- `expires_at`, `used_at` (null), `revoked_at` (null), `created_by` → FK user, `PROTECT`
-- Constraints: `resident` ⇔ `person` no nula; `employee` ⇔ `person` nula.
-- Engancharla al log con `AuditTrigger` excluyendo `token_hash`.
+## Endpoints
+| Método y ruta | Servicio |
+|---|---|
+| `POST /api/v1/organizations/{org}/buildings` | `create_building` |
+| `POST /api/v1/buildings/{id}/units` | `add_unit` |
+| `POST /api/v1/organizations/{org}/people` · `PATCH /api/v1/people/{id}` | `create_person` · `update_person` |
+| `POST /api/v1/units/{id}/move-in` · `POST /api/v1/occupancies/{id}/move-out` | `move_in` · `move_out` |
+| `POST /api/v1/units/{id}/replace-tenant` · `POST /api/v1/units/{id}/sell` | `replace_tenant` · `sell_unit` |
+| `PATCH /api/v1/occupancies/{id}` | `correct_occupancy` |
+| `PUT /api/v1/buildings/{id}/settlements/{YYYY-MM}` | `save_draft` (ítems por `concept_id` → monto string, con `detail` opcional) |
+| `DELETE /api/v1/buildings/{id}/settlements/{YYYY-MM}` | `delete_draft` |
+| `POST /api/v1/buildings/{id}/settlements/{YYYY-MM}/issue` | `issue_settlement` (devuelve el `IssueSummary` serializado) |
+| `POST /api/v1/receipts/{id}/approve` (reparto corregido opcional) · `POST /api/v1/receipts/{id}/reject` (`reason`) | `approve_receipt` · `reject_receipt` |
+| `POST /api/v1/occupancies/{id}/payments` | `record_manual_payment` (`amount`, `date`, `source`) |
+| `POST /api/v1/occupancies/{id}/adjustments` | `adjust` (`entry_id` del asiento a corregir, que tiene que ser de esa ocupación; `amount`; `description`) |
+| `POST /api/v1/occupancies/{id}/opening` | `record_opening` |
+| `POST /api/v1/buildings/{id}/notices` | `publish_notice` |
+| `POST /api/v1/claims/{id}/replies` · `PATCH /api/v1/claims/{id}` (`status`) | `reply_as_admin` · `set_claim_status` |
+| `POST /api/v1/organizations/{org}/tasks` · `POST /api/v1/tasks/{id}/toggle` | `create_task` · `toggle_task` |
 
-## 2. Servicios (`apps/accounts/invitations.py`)
-Todo en `transaction.atomic()` y `audit_context`; los eventos con `record_event` (B8).
-- `invite_employee(organization, user, *, email, first_name, last_name) -> (Invitation, token)`: `assert_member`. Si ya hay un empleado con ese email en la organización → `ValidationError`.
-- `invite_resident(person, user) -> (Invitation, token)`: `assert_member` de la organización de la persona; la persona tiene email y todavía no tiene cuenta (si no, `ValidationError` claro).
-- Ambas: token = `secrets.token_urlsafe(32)`; vence en 72 h; **revocan** (`revoked_at`) las invitaciones vigentes anteriores para ese email y organización; envían el email con `transaction.on_commit` (por ahora `send_mail` directo; en D2/D3 pasa a Celery). El link: `{FRONTEND_BASE_URL}/aceptar-invitacion?token=<token>`.
-- `accept_invitation(token, password, *, first_name=None, last_name=None) -> User`: busca por `sha256(token)` con `select_for_update`; tiene que existir, no estar usada, ni revocada, ni vencida (un **único** mensaje para todos los casos: "El link no es válido o venció"). Valida la contraseña con los validadores de Django.
-  - Si **no** existe un `User` con ese email: lo crea.
-  - Si **ya** existe (el mismo humano en otra organización, D8): no cambia su contraseña; exige que la que mandó sea la suya (`check_password`), y si no coincide, el mismo mensaje genérico.
-  - `employee` → crea el `OrgMembership`; `resident` → setea `person.user`. Marca `used_at`.
-- **Recuperar contraseña:** `request_password_reset(email)` y `confirm_password_reset(uid, token, password)` con `PasswordResetTokenGenerator` de Django. `request_password_reset` **no revela** si el email existe: siempre termina igual.
-
-## 3. Endpoints (`apps/api/v1/auth.py`)
-DRF con `SessionAuthentication` + CSRF. Respuestas de error con forma `{"detail": "..."}`.
-| Método y ruta | Quién | Qué hace |
-|---|---|---|
-| `GET /api/v1/auth/csrf` | cualquiera | setea la cookie CSRF (`ensure_csrf_cookie`); 204 |
-| `POST /api/v1/auth/login` | cualquiera | `{email, password}` → `authenticate(request, email=…, password=…)` (axes funciona) y `login()` (rota la sesión). Falla → 400 `"Email o contraseña incorrectos"`, **siempre el mismo mensaje**. Bloqueado por axes → 429 |
-| `POST /api/v1/auth/logout` | autenticado | cierra la sesión; 204 |
-| `GET /api/v1/auth/me` | autenticado | `{id, email, first_name, last_name, organizations: [{id, name}], persons: [{id, organization_id, occupancies: [{id, unit_number, building_name, role, start_date, end_date}]}]}`. **Sin** hash, sin permisos internos |
-| `POST /api/v1/invitations/employees` | empleado | invita a un empleado de **su** organización |
-| `POST /api/v1/invitations/residents` | empleado | `{person_id}`; la persona tiene que ser de su organización (si no, **404**) |
-| `POST /api/v1/invitations/accept` | cualquiera | `{token, password, first_name?, last_name?}` → acepta e **inicia sesión** |
-| `POST /api/v1/auth/password-reset` | cualquiera | `{email}` → 204 siempre |
-| `POST /api/v1/auth/password-reset/confirm` | cualquiera | `{uid, token, password}` |
-
-- **Throttling** (DRF `ScopedRateThrottle`): `login` 10/min, `invitation_accept` 10/hora, `password_reset` 5/hora, por IP.
-- Los endpoints públicos (`csrf`, `login`, `accept`, `password-reset*`) son los **únicos** con `AllowAny`; todo lo demás hereda `IsAuthenticated`.
-
-## 4. Configuración
-- `development.py`: `EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'`, `FRONTEND_BASE_URL = 'http://localhost:8000'`.
-- `base.py`: `FRONTEND_BASE_URL = env('FRONTEND_BASE_URL', default='')`, `DEFAULT_FROM_EMAIL` desde el entorno, y las tasas de throttling.
-
-## 5. Tests (`apps/api/tests/test_auth.py` y `apps/accounts/tests/test_invitations.py`)
-Usá el cliente de DRF (`APIClient(enforce_csrf_checks=True)`) **con CSRF activado**: primero `GET /auth/csrf` y después mandar el header `X-CSRFToken`.
-1. Login correcto → 200 y sesión; sin CSRF → 403; contraseña mala o email inexistente → 400 con el **mismo** texto; email con mayúsculas y espacios funciona.
-2. Tras 5 fallos, el sexto → 429 (axes), aun con la contraseña correcta.
-3. `me` sin sesión → 403; con sesión devuelve sus organizaciones y personas, y **no** incluye `password`.
-4. `logout` → la sesión deja de valer.
-5. Invitar empleado: lo hace un empleado → 201 y un email en `mail.outbox` con el link; un empleado de **otra** organización → 404 o 403 sin crear nada; un residente → 403.
-6. Invitar residente: persona de otra organización → 404; persona sin email o que ya tiene cuenta → 400.
-7. Aceptar: token válido → crea el usuario, liga la membresía o la persona e inicia sesión; el mismo token otra vez, uno vencido o uno revocado (por reenvío) → 400 con el **mismo** mensaje; contraseña débil → 400. El token en claro **no** aparece en la base (buscalo en `accounts_invitation` y en `audit_rowchange`).
-8. Aceptar con un email que ya tiene usuario: con su contraseña correcta, liga sin cambiarla; con otra, el mensaje genérico.
-9. Recuperar contraseña: email existente y no existente devuelven lo mismo (204) y solo el existente recibe email; confirmar con el token cambia la contraseña; un token usado o alterado → 400.
-10. Throttling: el 11.º login en un minuto desde la misma IP → 429.
-11. Cada invitación y cada aceptación dejan su `AuditLog`.
+## Tests (`apps/api/tests/test_panel_write.py`) — primero los tests
+1. **Por cada endpoint**, un caso feliz que verifique la respuesta **y** el efecto en la base (por ejemplo: aprobar → existen los `payment` y el comprobante está `approved`; emitir → existen los cargos y la liquidación está `issued`).
+2. **Parametrizado sobre todas las rutas de escritura:** empleado de otra organización → 404 y **nada** cambia en la base; residente → 403; sin CSRF → 403.
+3. Errores de dominio → 400 con el mensaje del servicio: emitir dos veces, aprobar un comprobante ya aprobado, vender con deuda (el mensaje dice el monto), monto con 3 decimales, monto como número JSON, ajuste sobre un asiento de **otra** ocupación (→ 404 o 400, nunca crea el ajuste).
+4. Cada escritura deja **un** `AuditLog` con el empleado como actor.
+5. **De punta a punta con la demo:** como María Fernández, aprobar el comprobante de María García (102 de Minas) por la API y después `GET portfolio`: `in_review` baja en ese monto, `collected` sube, y la cola tiene 3 comprobantes.
 
 ## Cómo verificar (pegalo en el reporte)
 ```bash
 docker compose exec -T db dropdb -U postgres --if-exists test_propiedad_horizontal
 docker compose run --rm web pytest -q -p no:cacheprovider
-docker compose run --rm web python manage.py makemigrations --check --dry-run
+docker compose run --rm web python manage.py spectacular --validate --file /tmp/schema.yml
 ```
-1. Suite completa → verde, con el conteo total (eran 150). Si algo queda en rojo: `ESTADO: bloqueado`.
-2. Pegá un email de invitación real impreso por el backend de consola (sin el token: reemplazalo por `<token>`).
-3. Qué test cubre cada punto del 1 al 11.
+1. Primero la salida de los tests fallando (antes de implementar), después la suite completa en verde con el conteo total.
+2. Cuántas rutas de escritura cubre el test parametrizado del punto 2.
+3. El esquema valida sin errores ni advertencias.

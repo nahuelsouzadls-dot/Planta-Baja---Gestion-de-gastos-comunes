@@ -8,8 +8,8 @@ Los rediseños anteriores (crm-look, redesign-corporate, glass-ui, tokens.css/ui
 
 | Agente | Herramienta | Tarea | Archivos | Estado |
 |---|---|---|---|---|
-| auditor | agy | E3 — CI en GitHub Actions | `.github/workflows/ci.yml`, `docs/ci.md` | 🟡 orden dada |
-| implementador | copilot | C1 — API de sesión e invitaciones | `backend/apps/api/`, `backend/apps/accounts/`, settings, urls | 🟡 orden dada |
+| auditor | agy | — | — | ⛔ cuota agotada (2026-10-24 04:59; vuelve en ~6 días). D1 sin arrancar |
+| implementador | copilot | — | — | ⛔ cuota mensual agotada (2026-10-24 03:20) |
 
 ## Cómo se reparten los agentes
 Un agente por **área**, no por pantalla. Cuando arranque el backend se suma otro agente (por ejemplo, `backend`) con sus propios archivos.
