@@ -7,19 +7,12 @@ from django.utils import timezone
 
 from apps.accounts.models import OrgMembership
 from apps.audit.context import audit_context
+from apps.core.money import to_money
 
 from .models import LedgerEntry, Receipt, ReceiptAllocation
 
 MAX_RECEIPT_SIZE = 10_485_760
 ALLOWED_CONTENT_TYPES = {content_type for content_type, _ in Receipt.CONTENT_TYPES}
-
-
-def _decimal(value):
-    if isinstance(value, float):
-        raise TypeError('Los montos deben ser Decimal, no float.')
-    if not isinstance(value, Decimal):
-        raise TypeError('Los montos deben ser Decimal.')
-    return value
 
 
 def assert_member(user, organization):
@@ -59,7 +52,7 @@ def submit_receipt(
         ).exists()
     ):
         raise PermissionDenied('No está autorizado a subir este comprobante.')
-    declared_amount = _decimal(declared_amount)
+    declared_amount = to_money(declared_amount)
     if declared_amount <= 0:
         raise ValidationError('El monto declarado debe ser mayor que cero.')
     if not allocations:
@@ -77,7 +70,7 @@ def submit_receipt(
             or occupancy.unit.building.organization_id != person.organization_id
         ):
             raise ValidationError('Todas las ocupaciones deben pertenecer a la persona.')
-        amount = _decimal(amount)
+        amount = to_money(amount)
         if amount <= 0:
             raise ValidationError('Cada imputación debe ser mayor que cero.')
         normalized.append((occupancy, amount))
@@ -139,7 +132,7 @@ def approve_receipt(receipt, user, allocations=None):
                 or occupancy.unit.building.organization_id != organization.id
             ):
                 raise ValidationError('Todas las ocupaciones deben pertenecer a la persona.')
-            amount = _decimal(amount)
+            amount = to_money(amount)
             if amount <= 0:
                 raise ValidationError('Cada imputación debe ser mayor que cero.')
             final_allocations.append((occupancy, amount))
@@ -206,7 +199,7 @@ def reject_receipt(receipt, user, reason):
 def record_manual_payment(occupancy, amount, on_date, user, source):
     organization = _occupancy_organization(occupancy)
     assert_member(user, organization)
-    amount = _decimal(amount)
+    amount = to_money(amount)
     if amount <= 0:
         raise ValidationError('El monto del pago debe ser mayor que cero.')
     if not source or not source.strip():

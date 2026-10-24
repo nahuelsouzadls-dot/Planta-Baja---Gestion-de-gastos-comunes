@@ -5,13 +5,9 @@ from django.db import transaction
 from django.db.models import Sum
 from django.utils import timezone
 
+from apps.core.money import to_money
+
 from .models import LedgerEntry
-
-
-def _ensure_decimal(value):
-    if isinstance(value, float):
-        raise TypeError('Los montos deben ser Decimal, no float.')
-    return value if isinstance(value, Decimal) else Decimal(value)
 
 
 def _ensure_user(user):
@@ -44,7 +40,7 @@ def statement(occupancy):
 @transaction.atomic
 def record_opening(occupancy, amount, on_date, user):
     _ensure_user(user)
-    amount = _ensure_decimal(amount)
+    amount = to_money(amount)
     if amount == 0:
         return None
     return LedgerEntry.objects.create(
@@ -59,7 +55,7 @@ def record_opening(occupancy, amount, on_date, user):
 @transaction.atomic
 def adjust(entry, amount, description, user):
     _ensure_user(user)
-    amount = _ensure_decimal(amount)
+    amount = to_money(amount)
     if not description or not description.strip():
         raise ValidationError('La descripción del ajuste es obligatoria.')
     if amount == 0:

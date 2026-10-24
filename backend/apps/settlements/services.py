@@ -11,6 +11,7 @@ from django.utils import timezone
 from apps.audit.context import audit_context
 from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.buildings.services import validate_coefficients
+from apps.core.money import to_money
 from apps.ledger.models import LedgerEntry
 from apps.people.models import Occupancy
 from apps.people.services import owner_gaps
@@ -50,23 +51,22 @@ def save_draft(
     normalized_month = first_day(month)
     details = details or {}
 
+    normalized_items = {}
     for concept, amount in items.items():
-        if isinstance(amount, float):
-            raise TypeError('Los montos deben ser Decimal, no float.')
-        if not isinstance(amount, Decimal):
-            raise TypeError('Los montos deben ser Decimal.')
+        amount = to_money(amount)
         if amount < 0:
             raise ValidationError('Los montos no pueden ser negativos.')
         if concept.building_id != building.id:
             raise ValidationError('Todos los conceptos deben pertenecer al mismo edificio.')
         if not concept.is_active:
             raise ValidationError(f'El concepto "{concept}" está inactivo.')
+        normalized_items[concept] = amount
 
-    total = sum((amount for amount in items.values()), Decimal('0'))
+    total = sum(normalized_items.values(), Decimal('0'))
     if total <= 0:
         raise ValidationError('La liquidación debe tener un total mayor que cero.')
 
-    for concept, amount in items.items():
+    for concept, amount in normalized_items.items():
         if (
             amount > 0
             and concept.kind == ExpenseConcept.Kind.OWNER_ONLY
@@ -100,7 +100,7 @@ def save_draft(
                 amount=amount,
                 detail=details.get(concept, '').strip(),
             )
-            for concept, amount in items.items()
+            for concept, amount in normalized_items.items()
             if amount > 0
         ]
     )

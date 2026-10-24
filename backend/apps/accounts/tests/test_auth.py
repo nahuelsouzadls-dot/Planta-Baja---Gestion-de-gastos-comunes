@@ -23,21 +23,20 @@ def test_argon2_is_default_password_hasher():
 
 
 @pytest.mark.django_db
-def test_axes_rejects_sixth_login_attempt_after_five_failures(rf):
-    User.objects.create_user('locked@example.com', 'strong-password')
+def test_axes_rejects_sixth_login_attempt_after_five_failures(client):
+    User.objects.create_superuser('locked@example.com', 'strong-password')
     for _ in range(5):
-        request = rf.post('/login/', REMOTE_ADDR='10.0.0.2')
-        assert authenticate(
-            request=request,
-            email='LOCKED@example.com',
-            password='wrong-password',
-        ) is None
-    request = rf.post('/login/', REMOTE_ADDR='10.0.0.2')
-    assert authenticate(
-        request=request,
-        email='locked@example.com',
-        password='strong-password',
-    ) is None
+        client.post(
+            reverse('admin:login'),
+            {'username': 'locked@example.com', 'password': 'wrong-password'},
+            REMOTE_ADDR='10.0.0.2',
+        )
+    response = client.post(
+        reverse('admin:login'),
+        {'username': 'locked@example.com', 'password': 'strong-password'},
+        REMOTE_ADDR='10.0.0.2',
+    )
+    assert response.status_code != 302
 
 
 @pytest.mark.django_db

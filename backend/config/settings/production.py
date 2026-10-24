@@ -1,5 +1,17 @@
 from .base import *  # noqa: F401, F403
 from .base import env
+from django.core.exceptions import ImproperlyConfigured
+
+SECRET_KEY = env('SECRET_KEY')
+if (
+    len(SECRET_KEY) < 50
+    or SECRET_KEY == 'change-me'
+    or SECRET_KEY.startswith('django-insecure-')
+):
+    raise ImproperlyConfigured('SECRET_KEY de producción debe ser fuerte y única.')
+
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
 DEBUG = False
 
