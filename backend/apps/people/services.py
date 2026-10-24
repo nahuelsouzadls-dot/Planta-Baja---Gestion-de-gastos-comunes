@@ -1,5 +1,5 @@
 import calendar
-from datetime import date
+from datetime import date, timedelta
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
@@ -7,6 +7,9 @@ from django.db.models import Q
 
 from apps.accounts.models import Organization
 from apps.buildings.models import Unit
+from apps.audit.context import audit_context
+from apps.ledger.payments import assert_member
+from apps.ledger.services import balance
 
 from .models import Occupancy, Person
 
@@ -128,3 +131,39 @@ def owner_gaps(unit: Unit, month: date) -> int:
         if occupancy.role == Occupancy.Role.OWNER
     )
     return max(0, total_days - owner_days)
+
+
+@transaction.atomic
+def sell_unit(unit: Unit, buyer: Person, sale_date: date, user) -> Occupancy:
+    organization = unit.building.organization
+    assert_member(user, organization)
+    if buyer.organization_id != organization.id:
+        raise ValidationError('El comprador y la unidad deben pertenecer a la misma organización.')
+
+    seller_occupancy = (
+        Occupancy.objects.select_for_update()
+        .filter(
+            unit=unit,
+            role=Occupancy.Role.OWNER,
+            start_date__lte=sale_date,
+        )
+        .filter(Q(end_date__isnull=True) | Q(end_date__gte=sale_date))
+        .first()
+    )
+    if seller_occupancy is None:
+        raise ValidationError('La unidad no tiene propietario vigente en la fecha de venta.')
+    seller_balance = balance(seller_occupancy)
+    if seller_balance > 0:
+        raise ValidationError(
+            f'El vendedor tiene que estar al día para vender: debe $ {seller_balance:.2f}'
+        )
+
+    with audit_context(user, organization=organization):
+        seller_occupancy.end_date = sale_date - timedelta(days=1)
+        seller_occupancy.save(update_fields=['end_date', 'updated_at'])
+        return Occupancy.objects.create(
+            unit=unit,
+            person=buyer,
+            role=Occupancy.Role.OWNER,
+            start_date=sale_date,
+        )
