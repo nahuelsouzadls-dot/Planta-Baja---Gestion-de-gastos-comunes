@@ -2,6 +2,7 @@ from collections.abc import Mapping
 from datetime import date
 
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied, ValidationError
+from django.db import transaction
 from django.db.models import Q
 from django.http import Http404
 from drf_spectacular.utils import OpenApiTypes, extend_schema
@@ -11,9 +12,14 @@ from rest_framework.views import APIView
 from apps.api.permissions import IsResident
 from apps.api.scoping import get_in_scope_or_404, resident_occupancies
 from apps.api.v1.panel import (
+    _date,
     _error_response,
+    _message_author_name,
+    _money_input,
     _payload,
     _required,
+    issued_settlement_or_404,
+    pdf_url_response,
     coefficient,
     money,
     month_param,
@@ -26,7 +32,10 @@ from apps.ledger.accounts import (
     portal_movements,
     portal_settlement_detail,
 )
+from apps.documents import exports
 from apps.ledger.models import Receipt, ReceiptAllocation
+from apps.ledger.payments import submit_receipt
+from apps.storage import services as storage
 
 
 KIND_ALIASES = {
@@ -79,13 +88,6 @@ def _parse_month_or_404(raw_month: str) -> date:
     if parsed.strftime('%Y-%m') != raw_month:
         raise Http404
     return parsed
-
-
-def _message_author_name(message, claim) -> str:
-    if message.from_admin:
-        full_name = f'{message.author.first_name} {message.author.last_name}'.strip()
-        return full_name or claim.building.organization.name
-    return str(claim.author)
 
 
 def _portal_claim_detail_json(claim):
@@ -236,6 +238,37 @@ class PortalMovementsView(PortalAPIView):
 
 
 @extend_schema(responses=OpenApiTypes.OBJECT)
+class PortalSettlementPdfView(PortalAPIView):
+    """La propia liquidación del mes en PDF (D4)."""
+
+    def get(self, request, occupancy_id, month):
+        occupancy = resident_occupancy_or_404(request.user, occupancy_id)
+        settlement = issued_settlement_or_404(occupancy.unit.building, month)
+        return pdf_url_response(settlement, occupancy)
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
+class PortalBuildingPdfView(PortalAPIView):
+    """Liquidación del edificio en PDF (sin nombres de otros residentes)."""
+
+    def get(self, request, occupancy_id, month):
+        occupancy = resident_occupancy_or_404(request.user, occupancy_id)
+        settlement = issued_settlement_or_404(occupancy.unit.building, month)
+        if portal_settlement_detail(occupancy, settlement.month) is None:
+            raise Http404
+        return pdf_url_response(settlement)
+
+
+@extend_schema(responses={(200, exports.XLSX): OpenApiTypes.BINARY})
+class PortalMovementsExportView(PortalAPIView):
+    """La propia cuenta corriente en Excel (D5)."""
+
+    def get(self, request, occupancy_id):
+        occupancy = resident_occupancy_or_404(request.user, occupancy_id)
+        return exports.movements_workbook(occupancy, portal_movements(occupancy))
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
 class PortalReceiptsView(PortalAPIView):
     def get(self, request, occupancy_id):
         occupancy = resident_occupancy_or_404(request.user, occupancy_id)
@@ -255,6 +288,7 @@ class PortalReceiptsView(PortalAPIView):
                         'date': item.receipt.transfer_date.isoformat(),
                         'transfer_date': item.receipt.transfer_date.isoformat(),
                         'file': item.receipt.file_key,
+                        'content_type': item.receipt.content_type,
                         'note': item.receipt.note,
                         'status': item.receipt.status,
                         'reason': (
@@ -272,6 +306,92 @@ class PortalReceiptsView(PortalAPIView):
                 ]
             }
         )
+
+
+@extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+class PortalReceiptUploadView(PortalAPIView):
+    """Paso 1 de D1: URL firmada para subir el archivo directo al almacenamiento."""
+
+    def post(self, request, occupancy_id):
+        occupancy = resident_occupancy_or_404(request.user, occupancy_id)
+        data = _payload(request)
+        intent, post = storage.create_upload_intent(
+            request.user,
+            occupancy,
+            content_type=data.get('content_type'),
+            size_bytes=data.get('size_bytes'),
+            filename=data.get('filename', ''),
+        )
+        return Response(
+            {'file_key': intent.file_key, 'url': post['url'], 'fields': post['fields']},
+            status=201,
+        )
+
+
+@extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+class PortalReceiptSubmitView(PortalAPIView):
+    """Paso 2 de D1: verifica el archivo subido y registra el comprobante (queda en revisión)."""
+
+    def post(self, request):
+        data = _payload(request)
+        declared_amount = _money_input(_required(data, 'declared_amount'))
+        transfer_date = _date(_required(data, 'transfer_date'), 'transfer_date')
+        note = data.get('note') or ''
+        if not isinstance(note, str):
+            raise ValidationError('La aclaración debe ser texto.')
+        intent, sha256 = storage.verify_upload(request.user, data.get('file_key'))
+        raw_allocations = data.get('allocations') or [
+            {'occupancy_id': str(intent.occupancy_id), 'amount': data['declared_amount']}
+        ]
+        if not isinstance(raw_allocations, list):
+            raise ValidationError('El reparto del pago no es válido.')
+        allowed = resident_occupancies(request.user).select_related('unit__building', 'person')
+        allocations = {}
+        for item in raw_allocations:
+            if not isinstance(item, Mapping):
+                raise ValidationError('Cada parte del reparto debe ser un objeto.')
+            occupancy = get_in_scope_or_404(allowed, _required(item, 'occupancy_id'))
+            allocations[occupancy] = _money_input(_required(item, 'amount'))
+        with transaction.atomic():
+            receipt = submit_receipt(
+                intent.occupancy.person,
+                request.user,
+                file_key=intent.file_key,
+                file_sha256=sha256,
+                content_type=intent.content_type,
+                size_bytes=intent.size_bytes,
+                declared_amount=declared_amount,
+                transfer_date=transfer_date,
+                allocations=allocations,
+                note=note.strip(),
+            )
+            storage.mark_consumed(intent)
+        return Response(
+            {
+                'id': str(receipt.pk),
+                'status': receipt.status,
+                'declared_amount': money(receipt.declared_amount),
+                'transfer_date': receipt.transfer_date.isoformat(),
+                'file': receipt.file_key,
+            },
+            status=201,
+        )
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
+class PortalReceiptFileView(PortalAPIView):
+    """URL firmada de 5 minutos para que la persona vea su propio comprobante (D1b)."""
+
+    def get(self, request, receipt_id):
+        receipt = get_in_scope_or_404(
+            Receipt.objects.filter(person__user=request.user), receipt_id
+        )
+        if not storage.exists(receipt.file_key):
+            raise Http404
+        return Response({
+            'url': storage.signed_url(receipt.file_key, content_type=receipt.content_type),
+            'content_type': receipt.content_type,
+        })
 
 
 @extend_schema(responses=OpenApiTypes.OBJECT)

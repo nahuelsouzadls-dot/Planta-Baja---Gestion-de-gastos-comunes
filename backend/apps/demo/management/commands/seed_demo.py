@@ -34,6 +34,9 @@ def _content_type(file_name):
     return 'application/pdf' if file_name.lower().endswith('.pdf') else 'image/jpeg'
 
 
+PAPER_UNITS = {('minas', '303')}
+
+
 class Command(BaseCommand):
     help = 'Carga la demo completa desde el golden del front.'
 
@@ -94,7 +97,8 @@ class Command(BaseCommand):
                     address=building_data['address'],
                     neighborhood=building_data['barrio'],
                     bank_name=building_data['bank'].split(' · ', 1)[0],
-                    bank_account='Cuenta corriente en pesos',
+                    # Número inventado, con el formato de una cuenta en pesos de Scotiabank.
+                    bank_account='0012 3456 789',
                     bank_holder=organization.name,
                     due_day=data['meta']['dueDay'],
                     reserve_opening=Decimal(building_data['reserveOpening']),
@@ -108,6 +112,8 @@ class Command(BaseCommand):
                         number=unit_data['n'],
                         floor=unit_data['floor'],
                         coefficient=Decimal(unit_data['coef']),
+                        # La 303 de Minas recibe la liquidación en papel (listado de impresión, D4).
+                        receives_paper=(building_data['id'], unit_data['n']) in PAPER_UNITS,
                     )
                     units[(building_data['id'], unit_data['n'])] = unit
                     for role in ('owner', 'tenant'):

@@ -1,4 +1,4 @@
-.PHONY: up down reset-db migrate test seed shell logs build-prod
+.PHONY: up down reset-db migrate test seed shell logs build-prod cleanup-uploads
 
 up:
 	docker compose up -d
@@ -23,6 +23,7 @@ seed:
 		exit 1; \
 	fi
 	docker compose run --rm -e DEMO_PASSWORD="$(DEMO_PASSWORD)" web python manage.py seed_demo
+	docker compose run --rm web python manage.py seed_demo_files
 
 shell:
 	docker compose run --rm web python manage.py shell
@@ -31,4 +32,7 @@ logs:
 	docker compose logs -f
 
 build-prod:
-	docker build -f backend/Dockerfile -t gc-web:prod backend
+	docker build -f backend/Dockerfile -t gc-web:prod .
+
+cleanup-uploads:
+	docker compose run --rm web python manage.py cleanup_orphan_uploads

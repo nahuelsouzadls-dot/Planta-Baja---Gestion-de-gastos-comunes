@@ -6,3 +6,5 @@ Faker==30.3.0
 django-extensions==3.2.3
 ipython==8.28.0
 coverage==7.6.4
+moto[s3]==5.0.20
+pypdf==5.1.0

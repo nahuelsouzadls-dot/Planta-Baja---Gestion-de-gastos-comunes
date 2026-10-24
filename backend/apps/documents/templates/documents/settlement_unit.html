@@ -1,0 +1,36 @@
+{% extends "documents/_base.html" %}
+{% block title %}Liquidación {{ month_label }} · Apto {{ unit.number }}{% endblock %}
+{% block content %}
+  <h1>Liquidación de {{ month_label }}</h1>
+  <p class="muted">{{ person }} · Apto {{ unit.number }} · {{ role }} · Coeficiente {{ coefficient }}</p>
+
+  <h2>Detalle del mes</h2>
+  <table>
+    <thead><tr><th>Concepto</th><th class="num">Total del edificio</th><th class="num">Le corresponde</th></tr></thead>
+    <tbody>
+      {% for line in lines %}
+      <tr><td>{{ line.concept }}{% if line.detail %}<br><span class="small muted">{{ line.detail }}</span>{% endif %}</td><td class="num">{{ line.building_total }}</td><td class="num">{{ line.amount }}</td></tr>
+      {% endfor %}
+      <tr class="total"><td>Total de {{ month_label }}</td><td></td><td class="num">{{ total }}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box">
+    <table>
+      <tbody>
+        <tr><td>Saldo anterior</td><td class="num">{{ previous }}</td></tr>
+        <tr><td>Liquidación de {{ month_label }}</td><td class="num">{{ total }}</td></tr>
+        <tr class="total"><td>Total a pagar antes del día {{ due_day }}</td><td class="num big">{{ to_pay }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Datos para transferir</h2>
+  <dl>
+    {% if bank.name %}<dt>Banco</dt><dd>{{ bank.name }}</dd>{% endif %}
+    {% if bank.account %}<dt>Cuenta</dt><dd>{{ bank.account }}</dd>{% endif %}
+    <dt>Titular</dt><dd>{{ bank.holder }}</dd>
+    <dt>Concepto</dt><dd>{{ concept }}</dd>
+  </dl>
+  <p class="small muted" style="margin-top:10pt">Después de transferir, subí el comprobante en el portal o entregalo a la administración.</p>
+{% endblock %}

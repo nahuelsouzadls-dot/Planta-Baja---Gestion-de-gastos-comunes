@@ -12,10 +12,11 @@ window.GC = window.GC || {};
   const moneyFmtCents = new Intl.NumberFormat('es-UY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   GC.fmt = {
+    /** Solo para mostrar: acepta el texto que devuelve la API ("4153.80") o un número. */
     money(value, withCents) {
-      const abs = Math.abs(value);
+      const abs = Math.abs(Number(value) || 0);
       const body = withCents ? moneyFmtCents.format(abs) : moneyFmt.format(Math.round(abs));
-      return (value < 0 ? '− ' : '') + '$ ' + body;
+      return (Number(value) < 0 && body !== '0' && body !== '0,00' ? '− ' : '') + '$ ' + body;
     },
     monthLong(key) {
       const [y, m] = key.split('-').map(Number);
@@ -92,6 +93,40 @@ window.GC = window.GC || {};
     setTimeout(() => el.remove(), 3200);
   };
 
+  /** Nombre a mostrar de un archivo: las keys del almacenamiento (receipts/<org>/<uuid>) no dicen nada. */
+  GC.fileLabel = function (key) {
+    return String(key || '').startsWith('receipts/') ? 'Comprobante' : String(key || '');
+  };
+
+  /** Monto escrito por una persona → texto para la API: "4.153,80" o "4153.80" → "4153.80".
+   * Devuelve null si no es un monto válido (positivo, hasta 2 decimales). Nunca pasa por Number. */
+  GC.amountText = function (raw) {
+    const text = String(raw || '').trim();
+    const normalized = text.includes(',') ? text.replace(/\./g, '').replace(',', '.') : text;
+    return /^\d{1,9}(\.\d{1,2})?$/.test(normalized) && /[1-9]/.test(normalized) ? normalized : null;
+  };
+
+  /** Abre una URL firmada que se pide a la API, sin que el navegador bloquee la ventana. */
+  GC.openSigned = function (request) {
+    const win = window.open('', '_blank');
+    return request.then((data) => {
+      if (win) win.location = data.url;
+      else location.href = data.url;
+    }, (err) => {
+      if (win) win.close();
+      throw err;
+    });
+  };
+
+  GC.ROLE_LABEL = { owner: 'Propietario', tenant: 'Inquilino' };
+  GC.STATUS_LABEL = {
+    pagado: 'Al día',
+    revision: 'En revisión',
+    pendiente: 'Pendiente',
+    moroso: 'Moroso',
+    'sin-cargar': 'Sin liquidación',
+  };
+
   GC.views = GC.views || {};
 
   /** Pastilla de estado de cuenta. `label` opcional reemplaza el texto por defecto. */
@@ -104,6 +139,10 @@ window.GC = window.GC || {};
   };
 
   /**
+   * RETIRADO (C4): el panel y el portal leen y escriben por la API (`GC.api`, api.js).
+   * Este store de localStorage ya no se carga en ninguna pantalla; queda solo como
+   * referencia del prototipo y se borra junto con data.js y ledger.js.
+   *
    * Estado de la demo. Se guarda en localStorage para que lo que hace un residente
    * en el portal (p. ej. subir un comprobante) aparezca en el panel de la
    * administración. Si el storage no está disponible, la demo funciona en memoria.

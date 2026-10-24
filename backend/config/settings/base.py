@@ -45,6 +45,9 @@ LOCAL_APPS = [
     'apps.communications',
     'apps.audit',
     'apps.demo',
+    'apps.frontend',
+    'apps.storage',
+    'apps.documents',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -111,6 +114,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# El front (ADR-0002) vive en design/: las pantallas las sirve apps.frontend y
+# design/assets va como estáticos en /static/assets/. En Docker se monta o copia en /design.
+FRONTEND_DIR = Path(env('FRONTEND_DIR', default=str(BASE_DIR.parent / 'design')))
+STATICFILES_DIRS = [('assets', FRONTEND_DIR / 'assets')]
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -173,3 +181,14 @@ SPECTACULAR_SETTINGS = {
 
 FRONTEND_BASE_URL = env('FRONTEND_BASE_URL', default='')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@example.com')
+
+# Almacenamiento S3 (ADR-0012): MinIO en Docker, Cloudflare R2 en producción. El backend
+# habla con S3_ENDPOINT_URL; las URLs firmadas que usa el navegador se firman contra
+# S3_PUBLIC_ENDPOINT_URL. En R2 hay que permitir CORS (POST y GET) desde el dominio del front.
+S3_ENDPOINT_URL = env('S3_ENDPOINT_URL', default='')
+S3_PUBLIC_ENDPOINT_URL = env('S3_PUBLIC_ENDPOINT_URL', default=S3_ENDPOINT_URL)
+S3_ACCESS_KEY_ID = env('S3_ACCESS_KEY_ID', default=env('MINIO_ROOT_USER', default=''))
+S3_SECRET_ACCESS_KEY = env('S3_SECRET_ACCESS_KEY', default=env('MINIO_ROOT_PASSWORD', default=''))
+S3_BUCKET = env('S3_BUCKET', default=env('MINIO_BUCKET_NAME', default='comprobantes'))
+S3_REGION = env('S3_REGION', default='us-east-1')
+

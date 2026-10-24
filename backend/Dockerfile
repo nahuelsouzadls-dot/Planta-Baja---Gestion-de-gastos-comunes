@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# Se construye desde la raíz del repo: docker build -f backend/Dockerfile .
 
 # ==============================================================================
 # Etapa 1: builder — compila dependencias en un virtualenv aislado
@@ -19,7 +20,7 @@ RUN apt-get update \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements/ requirements/
+COPY backend/requirements/ requirements/
 RUN pip install --no-cache-dir -r requirements/production.txt
 
 # ==============================================================================
@@ -32,8 +33,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
     GUNICORN_WORKERS=2
 
+# libpango/harfbuzz y una fuente: WeasyPrint (PDF de la liquidación, D4).
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq5 \
+    && apt-get install -y --no-install-recommends libpq5 libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz-subset0 fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 app \
     && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin app
@@ -42,9 +44,11 @@ COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
 
-# El código de la aplicación pertenece a root y es de solo lectura para el usuario `app`.
-COPY --chown=root:root . /app
-RUN chmod -R go-w,a+rX /app \
+# El código de la aplicación y el front (ADR-0002) pertenecen a root y son de solo
+# lectura para el usuario `app`. El contexto de build es la raíz del repo.
+COPY --chown=root:root backend/ /app
+COPY --chown=root:root design/ /design
+RUN chmod -R go-w,a+rX /app /design \
     && mkdir -p /app/staticfiles \
     && chown app:app /app/staticfiles
 
