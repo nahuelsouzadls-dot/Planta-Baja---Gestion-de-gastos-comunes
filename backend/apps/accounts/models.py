@@ -93,3 +93,54 @@ class OrgMembership(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user} - {self.organization}'
+
+
+class Invitation(TimeStampedModel):
+    class Kind(models.TextChoices):
+        EMPLOYEE = 'employee', 'Empleado'
+        RESIDENT = 'resident', 'Residente'
+
+    organization = models.ForeignKey(
+        Organization, on_delete=models.PROTECT, related_name='invitations'
+    )
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    person = models.ForeignKey(
+        'people.Person',
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name='invitations',
+    )
+    email = models.EmailField()
+    first_name = models.CharField(max_length=150, blank=True)
+    last_name = models.CharField(max_length=150, blank=True)
+    token_hash = models.CharField(max_length=64, unique=True)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.PROTECT, related_name='created_invitations'
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(kind='resident', person__isnull=False)
+                    | models.Q(kind='employee', person__isnull=True)
+                ),
+                name='invitation_kind_person_consistent',
+            ),
+        ]
+
+    def clean(self):
+        super().clean()
+        if self.email:
+            self.email = self.email.strip().lower()
+
+    def save(self, *args, **kwargs):
+        self.email = self.email.strip().lower()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.email} ({self.kind})'

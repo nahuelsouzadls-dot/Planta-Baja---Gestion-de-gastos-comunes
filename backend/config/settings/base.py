@@ -34,6 +34,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'apps.api',
     'apps.core',
     'apps.accounts',
     'apps.buildings',
@@ -142,4 +143,15 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/min',
+        'invitation_accept': '10/hour',
+        'password_reset': '5/hour',
+    },
 }
+
+FRONTEND_BASE_URL = env('FRONTEND_BASE_URL', default='')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='no-reply@example.com')
