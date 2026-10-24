@@ -1,6 +1,6 @@
 # Tablero
 
-Objetivo actual: **backend v1 según `docs/modelo-datos.md`** (microtareas B0–B9), y en paralelo agy extrae los valores de referencia del front para los tests.
+Objetivo actual: **API (plan C de `docs/plan-mvp.md`)**; en paralelo, CI (E3).
 
 Base de diseño vigente: **front final** en `main` (`cc95571` + `e60d4fe`). Admin y portal generan el HTML de los prototipos de `design/ref/` y usan su CSS (`design/assets/admin.css`, `design/assets/portal.css`); la lógica vive en `core.js`, `data.js` y `ledger.js`. Reglas del cliente en `design/DISENO.md`.
 
@@ -8,8 +8,8 @@ Los rediseños anteriores (crm-look, redesign-corporate, glass-ui, tokens.css/ui
 
 | Agente | Herramienta | Tarea | Archivos | Estado |
 |---|---|---|---|---|
-| auditor | agy | review-backend-b5-b7 | — | ✅ 8 hallazgos (7 abiertos) → SEC2 (después de B9) |
-| implementador | copilot | — (modelo de datos B0–B9 y SEC1–SEC2 cerrados) | `backend/`, `docker-compose.yml`, `README.md` | ✅ |
+| auditor | agy | E3 — CI en GitHub Actions | `.github/workflows/ci.yml`, `docs/ci.md` | 🟡 orden dada |
+| implementador | copilot | C1 — API de sesión e invitaciones | `backend/apps/api/`, `backend/apps/accounts/`, settings, urls | 🟡 orden dada |
 
 ## Cómo se reparten los agentes
 Un agente por **área**, no por pantalla. Cuando arranque el backend se suma otro agente (por ejemplo, `backend`) con sus propios archivos.

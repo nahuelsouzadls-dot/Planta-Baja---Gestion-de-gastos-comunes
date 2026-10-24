@@ -1,6 +1,6 @@
 # ADR-0002: El front es estático (JS puro) y consume la API
 
-- **Estado:** Propuesta
+- **Estado:** Aceptada (Nahuel, 2026-10-24)
 - **Fecha:** 2026-10-23
 
 ## Contexto

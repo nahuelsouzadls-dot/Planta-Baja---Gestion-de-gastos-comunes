@@ -5,7 +5,7 @@ Cada archivo documenta una decisión: el contexto, qué se decidió, qué se des
 | # | Decisión | Estado |
 |---|---|---|
 | 0001 | [Stack: Django + PostgreSQL + Celery + R2 en Railway](0001-stack-django-postgres.md) | Aceptada |
-| 0002 | [El front es estático (JS puro) y consume la API](0002-front-estatico-js-puro.md) | Propuesta |
+| 0002 | [El front es estático (JS puro) y consume la API](0002-front-estatico-js-puro.md) | Aceptada |
 | 0003 | [Aislamiento multi-tenant por organización](0003-multi-tenant-por-organizacion.md) | Aceptada |
 | 0004 | [Modelo de usuario propio con login por email](0004-usuario-propio-con-email.md) | Aceptada |
 | 0005 | [Sesiones de Django con CSRF, sin JWT](0005-sesiones-y-csrf.md) | Aceptada |
