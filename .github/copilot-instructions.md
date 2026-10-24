@@ -35,6 +35,11 @@ El modelo de datos aprobado está en `docs/modelo-datos.md`. Si una tarea contra
 ### Identificadores
 - `id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)` en todos los modelos.
 
+### Registro de cambios (quién editó qué)
+- Toda tabla nueva de negocio engancha el trigger de auditoría en su propia migración con `apps.audit.operations.AuditTrigger(tabla, exclude=[columnas sensibles])`. El test de cobertura de `apps/audit` falla si falta.
+- Toda escritura de negocio corre dentro de `audit_context(actor, organization=...)` o de un request con `AuditContextMiddleware`, para que la base sepa qué empleado hizo el cambio.
+- Nunca guardes secretos (`password`, `token_hash`) en los valores auditados: van en `exclude`.
+
 ### Transacciones y concurrencia
 - Operaciones que tocan más de una tabla van en `transaction.atomic()`.
 - La validación de pagos (update comprobante + insert movimiento + insert notificación) es atómica e idempotente: usar `select_for_update()` y verificar el estado antes de acreditar.

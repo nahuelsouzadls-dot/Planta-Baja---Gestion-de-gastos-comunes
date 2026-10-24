@@ -1,5 +1,8 @@
 # Tarea: golden-front — Valores de referencia del front para los tests del backend
 
+## Estado (retomar)
+Una corrida anterior se cortó. `docs/golden/extraer.mjs` ya existe y funciona: genera `demo.json` y los totales de la cartera coinciden con la pantalla. **No lo reescribas desde cero**: revisalo, corregilo si hace falta, y completá lo que falta: el paso 3 (verificación), el 4 (README con diferencias conocidas) y el 5 (dos cuentas a mano), más la verificación de que es determinístico.
+
 ## Contexto
 El backend se está reescribiendo según `docs/modelo-datos.md`. Para saber si calcula bien, sus tests van a comparar contra **valores de referencia ("golden")** sacados del front final, cuya lógica ya está validada visualmente: `design/assets/ledger.js` (cálculos) y `design/assets/data.js` (datos de la demo: edificios Minas, Centro y Pocitos).
 

@@ -19,3 +19,4 @@ Cada archivo documenta una decisión: el contexto, qué se decidió, qué se des
 | 0013 | [Auditoría append-only de las acciones sensibles](0013-auditoria-append-only.md) | Aceptada |
 | 0014 | [Migración día cero con asiento de apertura](0014-migracion-dia-cero.md) | Aceptada |
 | 0015 | [Registro de cambios en la base: quién editó qué, con antes y después](0015-registro-de-cambios-en-la-base.md) | Aceptada |
+| 0016 | [Cuentas nominativas y log consultable de quién hizo cada cosa](0016-cuentas-nominativas-y-firma-visible.md) | Aceptada |

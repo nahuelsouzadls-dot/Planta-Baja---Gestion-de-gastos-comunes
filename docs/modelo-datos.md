@@ -22,6 +22,7 @@ Fuente de verdad funcional: el front final (`design/assets/ledger.js`, `data.js`
 | N10 | Mitad de mes | **Prorrateo por días** entre quienes ocuparon la unidad ese mes. |
 | N11 | Venta | **El vendedor tiene que estar al día** para cerrar su ocupación. El sistema lo bloquea si tiene saldo. |
 | N14 | Control de empleados | **Tiene que quedar registrado en la base qué empleado edita qué**, con el valor anterior y el nuevo, para evitar desvíos. Vale para cualquier camino de edición: panel, admin de Django o acceso directo a la base. |
+| N15 | Cuentas por empleado y log | **Cada empleado tiene su propia cuenta** ("María de Confort", "Pablo de Confort"), nunca compartida, para que el log de cambios diga quién hizo cada cosa. El log se **consulta cuando hace falta**; no se muestra en pantallas ni hay alertas ([ADR-0016](adr/0016-cuentas-nominativas-y-firma-visible.md)). |
 | N13 | Qué vale como pago | **Lo que cuenta es la verificación de una persona de la administración**, que confirma el pago contra el banco. El comprobante es solo respaldo: se guarda como prueba de que el pago existió, por si después hay un error o un reclamo. La administración también puede registrar un pago sin comprobante (por ejemplo, uno que vio directo en el extracto). |
 | N12 | Un pago, varias unidades | Se acepta, **con aclaración**: al subir el comprobante, el residente indica cuánto va a cada unidad. La administración lo verifica y puede corregir el reparto al aprobar. |
 

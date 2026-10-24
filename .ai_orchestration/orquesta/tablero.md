@@ -9,7 +9,7 @@ Los rediseños anteriores (crm-look, redesign-corporate, glass-ui, tokens.css/ui
 | Agente | Herramienta | Tarea | Archivos | Estado |
 |---|---|---|---|---|
 | auditor | agy | golden-front — valores de referencia | `docs/golden/` | 🟡 orden dada |
-| implementador | copilot | B0 — reset y bases | `backend/`, `docker-compose.yml`, `README.md` | 🟡 orden dada |
+| implementador | copilot | B4b — registro de cambios (quién editó qué) | `backend/`, `docker-compose.yml`, `README.md` | 🟡 orden dada |
 
 ## Cómo se reparten los agentes
 Un agente por **área**, no por pantalla. Cuando arranque el backend se suma otro agente (por ejemplo, `backend`) con sus propios archivos.
