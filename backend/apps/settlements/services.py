@@ -26,18 +26,6 @@ class IssueSummary:
     total_distributed: Decimal
     rounding_differences: dict[str, Decimal]
 
-    @property
-    def charge_count(self) -> int:
-        return self.charges_count
-
-    @property
-    def settlement_total(self) -> Decimal:
-        return self.total_distributed
-
-    @property
-    def difference_by_concept(self) -> dict[str, Decimal]:
-        return self.rounding_differences
-
 
 def first_day(value: date) -> date:
     return value.replace(day=1)
@@ -155,18 +143,20 @@ def _responsible_occupancies(
     month: date,
     days_in_month: int,
     concept_kind: str,
+    occupancies: list[Occupancy] | None = None,
 ) -> dict[Occupancy, int]:
     month_end = date(
         month.year,
         month.month,
         calendar.monthrange(month.year, month.month)[1],
     )
-    occupancies = list(
-        Occupancy.objects.filter(
-            unit=unit,
-            start_date__lte=month_end,
-        ).filter(Q(end_date__isnull=True) | Q(end_date__gte=month))
-    )
+    if occupancies is None:
+        occupancies = list(
+            Occupancy.objects.filter(
+                unit=unit,
+                start_date__lte=month_end,
+            ).filter(Q(end_date__isnull=True) | Q(end_date__gte=month))
+        )
     by_day: dict[Occupancy, int] = {}
     for day_number in range(1, days_in_month + 1):
         current = date(month.year, month.month, day_number)
@@ -230,6 +220,19 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
         days_count = calendar.monthrange(locked.month.year, locked.month.month)[1]
         entries: list[LedgerEntry] = []
         differences: dict[str, Decimal] = {}
+        occupancies_by_unit = {
+            unit.id: list(
+                Occupancy.objects.filter(
+                    unit=unit,
+                    start_date__lte=date(
+                        locked.month.year,
+                        locked.month.month,
+                        days_count,
+                    ),
+                ).filter(Q(end_date__isnull=True) | Q(end_date__gte=locked.month))
+            )
+            for unit in units
+        }
 
         for item in items:
             candidates = []
@@ -239,6 +242,7 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
                     locked.month,
                     days_count,
                     item.concept.kind,
+                    occupancies_by_unit[unit.id],
                 )
                 base = item.amount * unit.coefficient
                 for occupancy, days in days_by_occupancy.items():
@@ -287,6 +291,12 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
                     )
                 )
 
+        distributed_total = sum((entry.amount for entry in entries), Decimal('0.00'))
+        expected_total = settlement_total(locked)
+        if distributed_total != expected_total:
+            raise RuntimeError(
+                'La suma de los cargos creados no coincide con el total de la liquidación.'
+            )
         LedgerEntry.objects.bulk_create(entries)
         locked.status = Settlement.Status.ISSUED
         locked.issued_at = timezone.now()
@@ -295,6 +305,6 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
 
     return IssueSummary(
         charges_count=len(entries),
-        total_distributed=settlement_total(locked),
+        total_distributed=sum((entry.amount for entry in entries), Decimal('0.00')),
         rounding_differences=differences,
     )
