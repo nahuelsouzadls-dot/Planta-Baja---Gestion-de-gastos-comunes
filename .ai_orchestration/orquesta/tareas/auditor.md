@@ -1,33 +1,41 @@
-# Tarea: audit-front-final — Auditar el diseño final del front
+# Tarea: golden-front — Valores de referencia del front para los tests del backend
 
 ## Contexto
-El front quedó cerrado en `main` (commits `cc95571` y `b38b7f5`). Es el diseño final: el admin y el portal generan el mismo HTML que los prototipos de `design/ref/` y usan su CSS. La lógica (store en localStorage, ledger, validación de pagos) es la de siempre y se comparte entre admin y portal.
+El backend se está reescribiendo según `docs/modelo-datos.md`. Para saber si calcula bien, sus tests van a comparar contra **valores de referencia ("golden")** sacados del front final, cuya lógica ya está validada visualmente: `design/assets/ledger.js` (cálculos) y `design/assets/data.js` (datos de la demo: edificios Minas, Centro y Pocitos).
 
-Pantallas a auditar (se abren directo en el navegador, sin servidor):
-- `design/gc-login-admin.html` y `design/gc-login-residente.html`
-- `design/admin.html`: cartera (`#/`) y cada edificio (`#/edificio/minas/cobros`, `/resumen`, `/gastos`, `/comunicaciones`; también `centro` y `pocitos`)
-- `design/portal-residente.html` (por defecto Juan, apto 101; probá también `?b=minas&u=102:tenant` en revisión, `?b=minas&u=203:tenant` moroso y `?b=minas&u=104:owner` al día)
-
-Referencia de cómo tiene que verse: `design/ref/capturas/*.png` (1440 y 390 px) y `design/DISENO.md` (reglas del cliente).
+Tu trabajo es extraer esos valores ejecutando el JS real del front con Node, sin reimplementar nada a mano.
 
 ## Archivos tuyos
-**Ninguno.** Esta tarea es de **solo lectura**: no modifiques ningún archivo del repo. El único archivo que escribís es tu reporte. Si querés hacer pruebas o capturas, trabajá en una copia fuera del repo (por ejemplo en `/tmp`).
+- `docs/golden/` (todo; creala)
 
-## Qué revisar
-1. **Cosas rotas:** errores en la consola, botones que no hacen nada, flujos que fallan. Probá como mínimo:
-   - Admin: abrir y cerrar la ficha de unidad, "Ver comprobante" → Aprobar y Rechazar, "Cargar gastos" → Guardar borrador → Emitir (pestaña Gastos), publicar un aviso, responder un reclamo y cambiarle el estado, filtros de cobros, buscador, tema, barra plegable, atajos, gráfico, tareas (marcar y sumar), "Reiniciar datos de demo", Exportar a Excel.
-   - Portal: tema, selector de mes (flechas y calendario), Copiar, "Ver mis movimientos", Mis comprobantes y su diálogo, avisos, nuevo reclamo, responder, "Simular respuesta", "Simular aprobación" → "Reiniciar la demo".
-   - Que lo que se hace en el admin aparezca en el portal y al revés.
-2. **Visual:** elementos desalineados, textos que se cortan o se superponen, contraste ilegible (sobre todo hovers y estados seleccionados), diferencias contra `ref/capturas`.
-3. **Espaciado y estructura:** márgenes o separaciones inconsistentes entre secciones parecidas, jerarquía de títulos, alineación de columnas numéricas, tamaños de botones.
-4. **Responsive:** a 390 px de ancho y a 1440 px. Ojo: Chrome headless no achica la ventana por debajo de 500 px; para 390 px usá un `<iframe>` de 390 px de ancho o el modo dispositivo.
-5. **Accesibilidad básica:** foco visible con teclado, Escape cierra diálogos, labels en los campos.
+**No toques nada más.** En particular, no modifiques `design/` ni `backend/`: otro agente está trabajando en `backend/` en paralelo.
 
-## Formato de los hallazgos
-En "Hecho" del reporte, una lista ordenada de **más grave a menos grave**. Cada hallazgo con:
-- **Gravedad:** rota / visual / mejora
-- **Dónde:** pantalla y `archivo:línea` si lo identificás
-- **Qué pasa:** pasos para verlo
-- **Sugerencia:** cómo lo arreglarías (sin aplicarlo)
+## Pasos
+1. Leé `design/assets/core.js`, `data.js` y `ledger.js`. Son IIFE que cuelgan todo de `window.GC`.
+2. Escribí `docs/golden/extraer.mjs`, un script de Node (v18 o más) que:
+   - Cree un `window` y un `localStorage` mínimos (objetos simples) antes de evaluar los archivos, y cargue `core.js`, `data.js` y `ledger.js` **leyéndolos del disco** con `vm.runInContext` (no los copies ni los modifiques).
+   - Tome el estado inicial con `GC.createSeed()`.
+   - Escriba `docs/golden/demo.json` con:
+     - `meta`: `today`, `currentMonth`, `dueDay` y el commit de git del que salió (`git rev-parse --short HEAD`).
+     - Por edificio: `id`, `name`, la lista de unidades (`n`, `floor`, `coef` como **string** con todos sus decimales), los gastos de cada mes (cada concepto como string) y su estado (`emitido`/`abierto`).
+     - Por edificio y mes emitido: el cargo de cada cuenta (`unidad:rol`), usando `L.chargeLines` y `L.charge`, con el detalle por concepto.
+     - Por cuenta: el resultado de `L.account(...)` (status, balance, unpaid, overdueMonths, currentCharge) y `L.movements(...)` completo.
+     - Por edificio: el resultado de `L.buildingSummary(...)` sin el array `accounts` (counts, expected, collected, inReview, debt, reserveFund, openThreads, expenseTotal).
+     - `portfolio`: los totales de la cartera como los calcula `admin-views.js` en `GC.views.home` (expected, collected, inReview, debt, threads, accounts, moro), recalculados en el script con la misma fórmula.
+   - **Todos los montos como strings con 2 decimales** (por ejemplo `"4153.80"`), para que el backend los lea como `Decimal` sin pasar por `float`.
+3. Corré el script y verificá que los totales de la cartera coincidan con lo que muestra la pantalla: cobrado **$ 42.025** de **$ 73.830**, en revisión **$ 11.035**, deuda vencida **$ 18.120**, **49** cuentas, **4** morosas, **2** reclamos abiertos. Si algo no coincide, investigá por qué y anotalo; no ajustes los números a mano.
+4. Escribí `docs/golden/README.md` (corto) con:
+   - Qué es cada sección de `demo.json` y cómo regenerarlo (`node docs/golden/extraer.mjs`).
+   - **Diferencias conocidas entre el front y el modelo nuevo** que el backend NO debe copiar. Mirá el código y listá al menos estas, confirmando cada una con un ejemplo concreto del JSON:
+     - El front no prorratea por días: no tiene mudanzas.
+     - El front marca pagados todos los meses adeudados al validar, sin pagos parciales; el modelo nuevo imputa FIFO.
+     - La deuda en el front es de `unidad:rol`; en el modelo nuevo es de la ocupación (persona + período).
+     - Cómo redondea el front (`round2` u otra función) y si la suma de lo distribuido da exactamente el total de cada concepto. Si no da, mostrá la diferencia con un caso real.
+5. Revisá el JSON a mano en dos cuentas (la 101 propietario de Minas y la 203 inquilino de Minas) haciendo la cuenta con lápiz: total del concepto × coeficiente. Dejá esas dos cuentas explicadas paso a paso en el README.
 
-No reportes como problema lo que `DISENO.md` marca como decisión del cliente (por ejemplo, filtros seleccionados en negro o el vidrio líquido en la barra del admin y en la tarjeta de pago).
+## Cómo verificar
+- `node docs/golden/extraer.mjs` corre sin errores y regenera el mismo `demo.json` (determinístico: correrlo dos veces da un diff vacío).
+- `git status` muestra cambios **solo** dentro de `docs/golden/`.
+
+## Formato del reporte
+El del protocolo. En "Hecho" incluí los totales de la cartera que te dio el script y la lista de diferencias conocidas.
