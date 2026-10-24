@@ -21,7 +21,7 @@ class BuildingListSerializer(serializers.ModelSerializer):
         model = Building
         fields = ('id', 'name', 'address', 'units')
 
-    def get_units(self, obj):
+    def get_units(self, obj) -> int:
         return obj.units.count()
 
 
@@ -55,5 +55,5 @@ class OccupancySerializer(serializers.ModelSerializer):
         model = Occupancy
         fields = ('id', 'unit', 'building', 'role', 'start_date', 'end_date', 'closed')
 
-    def get_closed(self, obj):
+    def get_closed(self, obj) -> bool:
         return obj.end_date is not None

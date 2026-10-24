@@ -69,6 +69,14 @@ def reply_as_admin(claim, user, text):
         if locked_claim.status == Claim.Status.PENDING:
             locked_claim.status = Claim.Status.IN_PROGRESS
             locked_claim.save(update_fields=['status', 'updated_at'])
+        record_event(
+            user,
+            organization,
+            'claim.reply',
+            message,
+            f'Respondió al reclamo «{locked_claim.title}»',
+            claim_id=str(locked_claim.pk),
+        )
     return message
 
 
@@ -115,13 +123,22 @@ def create_task(organization, building, user, text, due_date=None):
     assert_member(user, organization)
     text = _validate_length(text, 1, 90, 'La tarea')
     with audit_context(user, organization=organization):
-        return Task.objects.create(
+        task = Task.objects.create(
             organization=organization,
             building=building,
             text=text,
             due_date=due_date,
             created_by=user,
         )
+        record_event(
+            user,
+            organization,
+            'task.create',
+            task,
+            f'Creó la tarea «{task.text}»',
+            building=building.name,
+        )
+        return task
 
 
 @transaction.atomic
@@ -133,6 +150,14 @@ def toggle_task(task, user):
     with audit_context(user, organization=locked_task.organization):
         locked_task.done = not locked_task.done
         locked_task.save(update_fields=['done', 'updated_at'])
+        record_event(
+            user,
+            locked_task.organization,
+            'task.toggle',
+            locked_task,
+            f'Marcó la tarea «{locked_task.text}» como {"hecha" if locked_task.done else "pendiente"}',
+            done=locked_task.done,
+        )
     return locked_task
 
 
@@ -171,13 +196,26 @@ def open_claim(person, unit, kind, title, body, user):
             from_admin=False,
             text=body or title,
         )
+        record_event(
+            user,
+            person.organization,
+            'claim.open',
+            claim,
+            (
+                f'Abrió el {claim.get_kind_display().lower()} '
+                f'«{claim.title}» (apto {unit.number})'
+            ),
+            kind=claim.kind,
+            title=claim.title,
+            unit=unit.number,
+        )
     return claim
 
 
 @transaction.atomic
 def reply_as_resident(claim, person, user, text):
     locked_claim = Claim.objects.select_for_update().select_related(
-        'building__organization'
+        'building__organization', 'unit'
     ).get(pk=claim.pk)
     assert_is_person(user, person)
     if locked_claim.author_id != person.id:
@@ -190,9 +228,19 @@ def reply_as_resident(claim, person, user, text):
         )
     text = _validate_length(text, 1, 1000, 'El mensaje')
     with audit_context(user, organization=locked_claim.building.organization):
-        return ClaimMessage.objects.create(
+        message = ClaimMessage.objects.create(
             claim=locked_claim,
             author=user,
             from_admin=False,
             text=text,
         )
+        record_event(
+            user,
+            locked_claim.building.organization,
+            'claim.reply',
+            message,
+            f'Respondió al reclamo «{locked_claim.title}» (apto {locked_claim.unit.number})',
+            claim_id=str(locked_claim.pk),
+            unit=locked_claim.unit.number,
+        )
+        return message

@@ -5,6 +5,7 @@ from django.db import IntegrityError, transaction
 
 from apps.accounts.models import Organization
 from apps.audit.context import audit_context
+from apps.audit.events import record_event
 from apps.ledger.payments import assert_member
 
 from .models import Building, ExpenseConcept, Unit
@@ -37,6 +38,14 @@ def create_building(organization: Organization, user, **datos) -> Building:
                 for order, (name, kind, is_reserve_fund) in enumerate(DEFAULT_CONCEPTS, start=1)
             ]
         )
+        record_event(
+            user,
+            organization,
+            'building.create',
+            building,
+            f'Creó el edificio {building.name}',
+            name=building.name,
+        )
         return building
 
 
@@ -63,7 +72,7 @@ def add_unit(
         raise ValidationError('El coeficiente debe estar entre 0 y 1.')
     with audit_context(user, organization=building.organization):
         try:
-            return Unit.objects.create(
+            unit = Unit.objects.create(
                 building=building,
                 number=number,
                 floor=floor,
@@ -76,6 +85,16 @@ def add_unit(
             raise ValidationError(
                 f'La unidad {number} ya existe en el edificio.'
             ) from error
+        record_event(
+            user,
+            building.organization,
+            'unit.create',
+            unit,
+            f'Agregó la unidad {unit.number} en {building.name}',
+            unit=unit.number,
+            building=building.name,
+        )
+        return unit
 
 
 def coefficient_sum(building: Building) -> Decimal:

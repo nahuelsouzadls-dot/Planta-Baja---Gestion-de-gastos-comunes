@@ -110,13 +110,26 @@ def save_draft(
                 if amount > 0
             ]
         )
+        record_event(
+            user,
+            building.organization,
+            'settlement.save_draft',
+            settlement,
+            f'Guardó el borrador de {_month_label(normalized_month)} de {building.name}',
+            month=normalized_month.isoformat(),
+            building=building.name,
+        )
     return settlement
 
 
 @transaction.atomic
 def delete_draft(settlement: Settlement, user) -> None:
     assert_member(user, settlement.building.organization)
-    locked = Settlement.objects.select_for_update().get(pk=settlement.pk)
+    locked = (
+        Settlement.objects.select_for_update()
+        .select_related('building__organization')
+        .get(pk=settlement.pk)
+    )
     if locked.status != Settlement.Status.DRAFT:
         raise ValidationError('Solo se pueden borrar liquidaciones en borrador.')
     with audit_context(user, organization=locked.building.organization):
@@ -124,8 +137,17 @@ def delete_draft(settlement: Settlement, user) -> None:
             pk=locked.pk,
             status=Settlement.Status.DRAFT,
         ).delete()
-    if deleted == 0:
-        raise RuntimeError('No se pudo borrar la liquidación en borrador.')
+        if deleted == 0:
+            raise RuntimeError('No se pudo borrar la liquidación en borrador.')
+        record_event(
+            user,
+            locked.building.organization,
+            'settlement.delete_draft',
+            locked,
+            f'Borró el borrador de {_month_label(locked.month)} de {locked.building.name}',
+            month=locked.month.isoformat(),
+            building=locked.building.name,
+        )
 
 
 def settlement_total(settlement: Settlement) -> Decimal:

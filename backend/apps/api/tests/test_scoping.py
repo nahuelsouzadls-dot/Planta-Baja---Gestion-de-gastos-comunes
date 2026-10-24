@@ -114,3 +114,77 @@ def test_employee_and_resident_scopes_are_independent():
         str(employee_org.pk)
     ]
     assert len(client.get('/api/v1/portal/occupancies').json()) == 1
+
+
+@pytest.mark.django_db
+def test_sec3_4_me_and_resident_buildings_match_resident_occupancies_scope():
+    from apps.api.scoping import resident_buildings, resident_occupancies
+
+    organization = make_org('Org N17 Sec3')
+    building, unit = make_building(organization, 'Edificio Sur')
+
+    settled = User.objects.create_user('settled-sec3@example.com', password='password-12345')
+    settled_person = Person.objects.create(
+        organization=organization, first_name='Ex', last_name='Saldado', user=settled
+    )
+    Occupancy.objects.create(
+        unit=unit,
+        person=settled_person,
+        role=Occupancy.Role.TENANT,
+        start_date=date.today() - timedelta(days=120),
+        end_date=date.today() - timedelta(days=30),
+    )
+
+    settled_client = api_client_for(settled)
+    assert settled_client.get('/api/v1/portal/occupancies').status_code == 403
+    assert list(resident_occupancies(settled)) == []
+    assert list(resident_buildings(settled)) == []
+    me_settled = settled_client.get('/api/v1/auth/me')
+    assert me_settled.status_code == 200
+    assert me_settled.json()['persons'][0]['occupancies'] == []
+
+    debtor = User.objects.create_user('debtor-sec3@example.com', password='password-12345')
+    debtor_person = Person.objects.create(
+        organization=organization, first_name='Ex', last_name='Deudor', user=debtor
+    )
+    debtor_occ = Occupancy.objects.create(
+        unit=unit,
+        person=debtor_person,
+        role=Occupancy.Role.TENANT,
+        start_date=date.today() - timedelta(days=240),
+        end_date=date.today() - timedelta(days=130),
+    )
+    LedgerEntry.objects.create(
+        occupancy=debtor_occ,
+        date=date.today() - timedelta(days=140),
+        kind='opening',
+        amount=Decimal('500.00'),
+        created_by=debtor,
+    )
+
+    debtor_client = api_client_for(debtor)
+    assert [o.pk for o in resident_occupancies(debtor)] == [debtor_occ.pk]
+    assert list(resident_buildings(debtor)) == [building]
+    me_debtor = debtor_client.get('/api/v1/auth/me')
+    assert me_debtor.status_code == 200
+    assert [o['id'] for o in me_debtor.json()['persons'][0]['occupancies']] == [str(debtor_occ.pk)]
+
+
+def test_sec3_7_assert_cross_org_404_rejects_uuid_leaked_in_nested_route():
+    from types import SimpleNamespace
+
+    foreign_uuid = '12345678-1234-5678-1234-567812345678'
+
+    class LeakyClient:
+        def get(self, url, **kwargs):
+            return SimpleNamespace(
+                status_code=404,
+                content=f'{{"detail": "Organización {foreign_uuid} no encontrada"}}'.encode('utf-8'),
+            )
+
+    with pytest.raises(AssertionError):
+        assert_cross_org_404(
+            LeakyClient(),
+            f'/api/v1/organizations/{foreign_uuid}/buildings',
+        )
+
