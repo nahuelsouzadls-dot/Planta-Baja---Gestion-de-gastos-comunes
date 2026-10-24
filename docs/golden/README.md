@@ -95,3 +95,14 @@ El backend **no** debe replicar estas simplificaciones del prototipo front:
   - `overdueMonths`: `2026-08` (`"2544.00"`) y `2026-09` (`"2469.60"`) → deuda vencida = `2544.00 + 2469.60 = "5013.60"`.
   - `unpaid`: `2026-08` (`"2544.00"`), `2026-09` (`"2469.60"`), `2026-10` (`"2520.00"`).
   - `balance`: `2544.00 + 2469.60 + 2520.00 = "7533.60"`.
+
+## Diferencias esperadas después de ADR-0017 (redondeo por mayor resto)
+El backend reparte los centavos por el método del mayor resto ([ADR-0017](../adr/0017-redondeo-por-mayor-resto.md)) y el front redondea cada parte por separado. La única consecuencia en la demo es **Edificio Pocitos, agosto 2026, O.S.E. $ 5.350,00**:
+
+| | Front | Backend |
+|---|---|---|
+| Unidades 101 a 204 | $ 334,38 | $ 334,38 |
+| Unidades 301 a 404 | $ 334,38 | $ 334,37 |
+| Total repartido | $ 5.350,08 | $ 5.350,00 |
+
+Por eso el cargo de agosto de 301, 302 (inquilino), 303, 304, 401, 402 (inquilino), 403 y 404 es un centavo menor que en `demo.json`; la deuda del inquilino de la 402 es $ 3.124,99 en vez de $ 3.125,00, y la deuda vencida de la cartera es **$ 18.120,32** en vez de $ 18.120,33. Verificado cuenta por cuenta el 2026-10-24: no hay ninguna otra diferencia.

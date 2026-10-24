@@ -1,7 +1,7 @@
 import calendar
 from dataclasses import dataclass
 from datetime import date
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -15,6 +15,7 @@ from apps.buildings.services import validate_coefficients
 from apps.core.money import to_money
 from apps.core.money import format_money
 from apps.ledger.models import LedgerEntry
+from apps.ledger.payments import assert_member
 from apps.people.models import Occupancy
 from apps.people.services import owner_gaps
 
@@ -45,11 +46,13 @@ def _month_label(month: date) -> str:
 @transaction.atomic
 def save_draft(
     building: Building,
+    user,
     month: date,
     items: dict[ExpenseConcept, Decimal],
     *,
     details: dict[ExpenseConcept, str] | None = None,
 ) -> Settlement:
+    assert_member(user, building.organization)
     normalized_month = first_day(month)
     details = details or {}
 
@@ -77,47 +80,50 @@ def save_draft(
         ):
             raise ValidationError(f'El concepto "{concept}" requiere un detalle.')
 
-    settlement = (
-        Settlement.objects.select_for_update()
-        .filter(building=building, month=normalized_month)
-        .first()
-    )
-    if settlement is not None and settlement.status == Settlement.Status.ISSUED:
-        raise ValidationError(f'La liquidación de {_month_label(normalized_month)} ya fue emitida.')
-
-    if settlement is None:
-        settlement = Settlement.objects.create(
-            building=building,
-            month=normalized_month,
-            status=Settlement.Status.DRAFT,
+    with audit_context(user, organization=building.organization):
+        settlement = (
+            Settlement.objects.select_for_update()
+            .filter(building=building, month=normalized_month)
+            .first()
         )
-    else:
-        settlement.items.all().delete()
+        if settlement is not None and settlement.status == Settlement.Status.ISSUED:
+            raise ValidationError(f'La liquidación de {_month_label(normalized_month)} ya fue emitida.')
 
-    SettlementItem.objects.bulk_create(
-        [
-            SettlementItem(
-                settlement=settlement,
-                concept=concept,
-                amount=amount,
-                detail=details.get(concept, '').strip(),
+        if settlement is None:
+            settlement = Settlement.objects.create(
+                building=building,
+                month=normalized_month,
+                status=Settlement.Status.DRAFT,
             )
-            for concept, amount in normalized_items.items()
-            if amount > 0
-        ]
-    )
+        else:
+            settlement.items.all().delete()
+
+        SettlementItem.objects.bulk_create(
+            [
+                SettlementItem(
+                    settlement=settlement,
+                    concept=concept,
+                    amount=amount,
+                    detail=details.get(concept, '').strip(),
+                )
+                for concept, amount in normalized_items.items()
+                if amount > 0
+            ]
+        )
     return settlement
 
 
 @transaction.atomic
-def delete_draft(settlement: Settlement) -> None:
+def delete_draft(settlement: Settlement, user) -> None:
+    assert_member(user, settlement.building.organization)
     locked = Settlement.objects.select_for_update().get(pk=settlement.pk)
     if locked.status != Settlement.Status.DRAFT:
         raise ValidationError('Solo se pueden borrar liquidaciones en borrador.')
-    deleted, _ = Settlement.objects.filter(
-        pk=locked.pk,
-        status=Settlement.Status.DRAFT,
-    ).delete()
+    with audit_context(user, organization=locked.building.organization):
+        deleted, _ = Settlement.objects.filter(
+            pk=locked.pk,
+            status=Settlement.Status.DRAFT,
+        ).delete()
     if deleted == 0:
         raise RuntimeError('No se pudo borrar la liquidación en borrador.')
 
@@ -195,6 +201,7 @@ def _responsible_occupancies(
 def issue_settlement(settlement: Settlement, user) -> IssueSummary:
     if user is None:
         raise ValueError('issued_by es obligatorio.')
+    assert_member(user, settlement.building.organization)
 
     locked = (
         Settlement.objects.select_for_update()
@@ -248,12 +255,14 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
                 )
                 base = item.amount * unit.coefficient
                 for occupancy, days in days_by_occupancy.items():
-                    part = _round_money(base * days / days_count)
+                    exact = base * days / days_count
+                    part = exact.quantize(CENT, rounding=ROUND_DOWN)
                     candidates.append({
                         'unit': unit,
                         'occupancy': occupancy,
                         'days': days,
                         'base': base,
+                        'remainder': exact - part,
                         'amount': part,
                     })
 
@@ -263,16 +272,18 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
             )
             difference = _round_money(item.amount - distributed)
             differences[item.concept.name] = difference
-            if candidates:
-                target = sorted(
-                    candidates,
-                    key=lambda candidate: (
-                        -candidate['amount'],
-                        _unit_sort_key(candidate['unit']),
-                        0 if candidate['occupancy'].role == Occupancy.Role.OWNER else 1,
-                    ),
-                )[0]
-                target['amount'] += difference
+            extra_cents = int((difference / CENT).to_integral_value())
+            ranked = sorted(
+                candidates,
+                key=lambda candidate: (
+                    -candidate['remainder'],
+                    _unit_sort_key(candidate['unit']),
+                    0 if candidate['occupancy'].role == Occupancy.Role.OWNER else 1,
+                    candidate['occupancy'].start_date,
+                ),
+            )
+            for candidate in ranked[:extra_cents]:
+                candidate['amount'] += CENT
 
             for candidate in candidates:
                 if candidate['amount'] <= 0:

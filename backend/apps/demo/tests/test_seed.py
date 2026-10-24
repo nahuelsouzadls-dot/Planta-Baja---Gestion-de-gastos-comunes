@@ -34,7 +34,7 @@ def test_seed_matches_front_portfolio(monkeypatch, capsys):
     assert totals.expected == Decimal('73830.00')
     assert totals.collected == Decimal('42024.90')
     assert totals.in_review == Decimal('11034.75')
-    assert totals.debt == Decimal('18120.33')
+    assert totals.debt == Decimal('18120.32')
     assert totals.delinquent == 4
     assert totals.open_claims == 2
     assert 'Cartera:' in capsys.readouterr().out

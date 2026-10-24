@@ -10,7 +10,7 @@ from django.db import transaction
 
 from apps.accounts.models import OrgMembership, Organization
 from apps.accounts.models import User
-from apps.buildings.services import create_building
+from apps.buildings.services import add_unit, create_building
 from apps.communications.models import Claim
 from apps.communications.services import (
     open_claim,
@@ -89,6 +89,7 @@ class Command(BaseCommand):
             for building_data in data['buildings']:
                 building = create_building(
                     organization,
+                    maria,
                     name=building_data['name'],
                     address=building_data['address'],
                     neighborhood=building_data['barrio'],
@@ -101,7 +102,9 @@ class Command(BaseCommand):
                 )
                 buildings[building_data['id']] = building
                 for unit_data in building_data['units']:
-                    unit = building.units.create(
+                    unit = add_unit(
+                        building,
+                        maria,
                         number=unit_data['n'],
                         floor=unit_data['floor'],
                         coefficient=Decimal(unit_data['coef']),
@@ -116,6 +119,7 @@ class Command(BaseCommand):
                             first, last = _split_name(person_data['name'])
                             person = create_person(
                                 organization,
+                                maria,
                                 first_name=first,
                                 last_name=last,
                                 email=person_data['email'],
@@ -169,6 +173,7 @@ class Command(BaseCommand):
                         ]
                     settlement = save_draft(
                         building,
+                        maria,
                         date.fromisoformat(f"{expense['month']}-01"),
                         amounts,
                         details=details,

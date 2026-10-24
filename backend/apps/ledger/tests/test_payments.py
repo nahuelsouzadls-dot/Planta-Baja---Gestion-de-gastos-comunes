@@ -315,7 +315,8 @@ def test_database_constraints_and_audit_log():
 def test_settlement_guard_rolls_back_rounding_loss(monkeypatch):
     organization = OrganizationFactory()
     user = UserFactory()
-    building = create_building(organization, name='Minas', address='Prueba 1')
+    OrgMembershipFactory(user=user, organization=organization)
+    building = create_building(organization, user, name='Minas', address='Prueba 1')
     unit = Unit.objects.create(
         building=building, number='1', floor=1, coefficient='1.000000'
     )
@@ -324,7 +325,7 @@ def test_settlement_guard_rolls_back_rounding_loss(monkeypatch):
         unit=unit, person=person, role=Occupancy.Role.OWNER, start_date=date(2026, 1, 1)
     )
     concept = building.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(building, date(2026, 10, 1), {concept: Decimal('100.00')})
+    settlement = save_draft(building, user, date(2026, 10, 1), {concept: Decimal('100.00')})
 
     from apps.settlements import services as settlement_services
 

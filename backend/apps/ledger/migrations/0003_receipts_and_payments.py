@@ -9,6 +9,7 @@ from apps.audit.operations import AuditTrigger
 
 class Migration(migrations.Migration):
     dependencies = [
+        ('audit', '0001_initial'),
         ('ledger', '0002_append_only'),
         ('people', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

@@ -11,10 +11,15 @@ from tests.factories import BuildingFactory, ExpenseConceptFactory, UnitFactory
 @pytest.mark.django_db
 def test_create_building_creates_default_concepts():
     from apps.buildings.services import DEFAULT_CONCEPTS, create_building
-    from tests.factories import OrganizationFactory
+    from apps.accounts.models import OrgMembership
+    from tests.factories import OrganizationFactory, UserFactory
 
+    organization = OrganizationFactory()
+    user = UserFactory()
+    OrgMembership.objects.create(user=user, organization=organization)
     building = create_building(
-        OrganizationFactory(),
+        organization,
+        user,
         name='Edificio Minas',
         address='Minas 1234',
     )

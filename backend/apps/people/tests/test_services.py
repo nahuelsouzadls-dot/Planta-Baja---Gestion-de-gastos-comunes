@@ -113,7 +113,7 @@ def test_move_out_only_closes_current_tenant():
 
 
 def test_move_out_requires_member_and_audits():
-    occupancy = OccupancyFactory()
+    occupancy = OccupancyFactory(start_date=date(2026, 3, 1))
     with pytest.raises(TypeError):
         move_out(occupancy, date(2026, 3, 1))
     user = employee_for(occupancy.unit.building.organization)
@@ -166,7 +166,7 @@ def test_replace_tenant_without_previous_and_same_person():
     person = PersonFactory(organization=organization)
     replacement = replace_tenant(unit, person, date(2026, 3, 15), user)
     assert replacement.person_id == person.id
-    with pytest.raises(ValidationError, match='actual'):
+    with pytest.raises(ValidationError, match='Ya existe un inquilino'):
         replace_tenant(unit, person, date(2026, 3, 15), user)
 
 
@@ -259,7 +259,9 @@ def test_days_in_month_handles_non_overlapping_february():
 
 def test_days_in_month_normalizes_non_first_day_of_leap_february():
     organization = OrganizationFactory()
-    building = create_building(organization, name='Bisiesto', address='Calle 29')
+    user = UserFactory()
+    OrgMembershipFactory(user=user, organization=organization)
+    building = create_building(organization, user, name='Bisiesto', address='Calle 29')
     unit = Unit.objects.create(
         building=building, number='1', floor=1, coefficient='1.000000'
     )

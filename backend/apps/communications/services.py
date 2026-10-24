@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from apps.audit.context import audit_context
 from apps.audit.events import record_event
-from apps.ledger.payments import assert_member
+from apps.ledger.payments import assert_is_person, assert_member
 from apps.people.models import Occupancy, Person
 
 from .models import Claim, ClaimMessage, Notice, Task
@@ -148,8 +148,7 @@ def _current_occupancy(person, unit, on_date):
 
 @transaction.atomic
 def open_claim(person, unit, kind, title, body, user):
-    if user is None or person.user_id != user.id:
-        raise PermissionDenied('La persona no está autorizada para este reclamo.')
+    assert_is_person(user, person)
     if person.organization_id != unit.building.organization_id:
         raise PermissionDenied('La persona no pertenece a este edificio.')
     if not _current_occupancy(person, unit, timezone.localdate()):
@@ -180,8 +179,11 @@ def reply_as_resident(claim, person, user, text):
     locked_claim = Claim.objects.select_for_update().select_related(
         'building__organization'
     ).get(pk=claim.pk)
-    if user is None or person.user_id != user.id or locked_claim.author_id != person.id:
+    assert_is_person(user, person)
+    if locked_claim.author_id != person.id:
         raise PermissionDenied('La persona no está autorizada para este reclamo.')
+    if not _current_occupancy(person, locked_claim.unit, timezone.localdate()):
+        raise PermissionDenied('La persona no ocupa actualmente esta unidad.')
     if locked_claim.status == Claim.Status.RESOLVED:
         raise ValidationError(
             'Este reclamo está resuelto. Si el problema sigue, abrí uno nuevo.'
