@@ -79,6 +79,8 @@ const buildings = state.buildings.map((b) => {
     n: u.n,
     floor: u.floor,
     coef: String(u.coef),
+    owner: u.owner,
+    tenant: u.tenant,
   }));
 
   const expenses = b.expenses.map((e) => ({
@@ -168,11 +170,16 @@ const buildings = state.buildings.map((b) => {
   return {
     id: b.id,
     name: b.name,
+    address: b.address,
+    barrio: b.barrio,
+    bank: b.bank,
     reserveOpening: toDec(b.reserveOpening),
     units,
     expenses,
     chargesByMonth,
     accounts,
+    notices: b.notices,
+    threads: b.threads,
     summary,
   };
 });
@@ -184,6 +191,7 @@ const golden = {
     dueDay: state.dueDay,
     commit,
   },
+  company: state.company,
   portfolio: {
     expected: toDec(rawPortfolio.expected),
     collected: toDec(rawPortfolio.collected),

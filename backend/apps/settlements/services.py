@@ -311,7 +311,8 @@ def issue_settlement(settlement: Settlement, user) -> IssueSummary:
             locked,
             (
                 f'Emitió la liquidación de {_month_label(locked.month)} de {building.name} '
-                f'por {format_money(expected_total)} ({len(entries)} cargos)'
+                f'por {format_money(expected_total)} ({len(entries)} '
+                f'{"cargo" if len(entries) == 1 else "cargos"})'
             ),
             month=locked.month.isoformat(),
             total=str(expected_total),

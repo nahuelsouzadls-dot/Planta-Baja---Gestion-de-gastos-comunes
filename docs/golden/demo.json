@@ -3,7 +3,11 @@
     "today": "2026-10-21",
     "currentMonth": "2026-10",
     "dueDay": 10,
-    "commit": "7f3766e"
+    "commit": "8d79834"
+  },
+  "company": {
+    "name": "Confort S.A.",
+    "email": "administracion@confort.com.uy"
   },
   "portfolio": {
     "expected": "73830.00",
@@ -18,67 +22,166 @@
     {
       "id": "minas",
       "name": "Edificio Minas",
+      "address": "Av. Brasil 2234",
+      "barrio": "Pocitos",
+      "bank": "Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.",
       "reserveOpening": "38500.00",
       "units": [
         {
           "n": "101",
           "floor": 1,
-          "coef": "0.08600000"
+          "coef": "0.08600000",
+          "owner": {
+            "name": "Juan Pérez",
+            "phone": "099 111 222",
+            "email": "juan.perez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "102",
           "floor": 1,
-          "coef": "0.08300000"
+          "coef": "0.08300000",
+          "owner": {
+            "name": "Carlos López",
+            "phone": "099 234 567",
+            "email": "carlos.lopez@correo.com.uy"
+          },
+          "tenant": {
+            "name": "María García",
+            "phone": "098 876 543",
+            "email": "maria.garcia@correo.com.uy"
+          }
         },
         {
           "n": "103",
           "floor": 1,
-          "coef": "0.08000000"
+          "coef": "0.08000000",
+          "owner": {
+            "name": "Beatriz Díaz",
+            "phone": "099 345 678",
+            "email": "beatriz.diaz@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Carlos Rodríguez",
+            "phone": "098 765 432",
+            "email": "carlos.rodriguez@correo.com.uy"
+          }
         },
         {
           "n": "104",
           "floor": 1,
-          "coef": "0.08400000"
+          "coef": "0.08400000",
+          "owner": {
+            "name": "Luis Fernández",
+            "phone": "099 456 789",
+            "email": "luis.fernandez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "201",
           "floor": 2,
-          "coef": "0.08600000"
+          "coef": "0.08600000",
+          "owner": {
+            "name": "Diego Herrera",
+            "phone": "099 567 890",
+            "email": "diego.herrera@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Sofía López",
+            "phone": "098 654 321",
+            "email": "sofia.lopez@correo.com.uy"
+          }
         },
         {
           "n": "202",
           "floor": 2,
-          "coef": "0.08300000"
+          "coef": "0.08300000",
+          "owner": {
+            "name": "Pedro Martínez",
+            "phone": "099 678 901",
+            "email": "pedro.martinez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "203",
           "floor": 2,
-          "coef": "0.08000000"
+          "coef": "0.08000000",
+          "owner": {
+            "name": "Miguel Torres",
+            "phone": "099 789 012",
+            "email": "miguel.torres@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Laura Sánchez",
+            "phone": "098 543 210",
+            "email": "laura.sanchez@correo.com.uy"
+          }
         },
         {
           "n": "204",
           "floor": 2,
-          "coef": "0.08400000"
+          "coef": "0.08400000",
+          "owner": {
+            "name": "Elena Rosario",
+            "phone": "099 890 123",
+            "email": "elena.rosario@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "301",
           "floor": 3,
-          "coef": "0.08700000"
+          "coef": "0.08700000",
+          "owner": {
+            "name": "Felipe Castillo",
+            "phone": "099 901 234",
+            "email": "felipe.castillo@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "302",
           "floor": 3,
-          "coef": "0.08300000"
+          "coef": "0.08300000",
+          "owner": {
+            "name": "Horacio Sosa",
+            "phone": "099 012 345",
+            "email": "horacio.sosa@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Natalia Vidal",
+            "phone": "098 432 109",
+            "email": "natalia.vidal@correo.com.uy"
+          }
         },
         {
           "n": "303",
           "floor": 3,
-          "coef": "0.08000000"
+          "coef": "0.08000000",
+          "owner": {
+            "name": "Andrea Morales",
+            "phone": "099 123 456",
+            "email": "andrea.morales@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "304",
           "floor": 3,
-          "coef": "0.08400000"
+          "coef": "0.08400000",
+          "owner": {
+            "name": "Rosa Herrera",
+            "phone": "099 234 678",
+            "email": "rosa.herrera@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Ramón Herrera",
+            "phone": "098 321 098",
+            "email": "ramon.herrera@correo.com.uy"
+          }
         }
       ],
       "expenses": [
@@ -3343,6 +3446,85 @@
           ]
         }
       },
+      "notices": [
+        {
+          "id": "n1",
+          "date": "2026-10-20",
+          "title": "Corte de agua el jueves 24",
+          "body": "OSE hará trabajos de mantenimiento el jueves 24/10 de 9:00 a 14:00. Recomendamos juntar agua la noche anterior."
+        },
+        {
+          "id": "n2",
+          "date": "2026-10-01",
+          "title": "Liquidación de octubre disponible",
+          "body": "Ya pueden ver y descargar la liquidación de octubre en el portal. Vence el 10 de octubre. Este mes incluye la primera cuota de la impermeabilización de la azotea (solo propietarios)."
+        }
+      ],
+      "threads": [
+        {
+          "id": "t1",
+          "kind": "reclamo",
+          "unit": "202",
+          "author": "Pedro Martínez",
+          "title": "Humedad en el pasillo del 2.º piso",
+          "status": "en-proceso",
+          "date": "2026-10-18",
+          "messages": [
+            {
+              "from": "resident",
+              "name": "Pedro Martínez",
+              "date": "2026-10-18",
+              "text": "Hay una mancha de humedad que crece en la pared del pasillo, al lado del ascensor."
+            },
+            {
+              "from": "admin",
+              "name": "Confort S.A.",
+              "date": "2026-10-19",
+              "text": "Gracias, Pedro. El lunes va un técnico a evaluar si viene de la azotea."
+            }
+          ]
+        },
+        {
+          "id": "t2",
+          "kind": "reporte",
+          "unit": "101",
+          "author": "Juan Pérez",
+          "title": "Luz quemada en la escalera",
+          "status": "pendiente",
+          "date": "2026-10-20",
+          "messages": [
+            {
+              "from": "resident",
+              "name": "Juan Pérez",
+              "date": "2026-10-20",
+              "text": "La lámpara del primer tramo de la escalera está quemada hace varios días."
+            }
+          ]
+        },
+        {
+          "id": "t3",
+          "kind": "reclamo",
+          "unit": "201",
+          "author": "Sofía López",
+          "title": "La puerta principal no cierra",
+          "status": "resuelto",
+          "date": "2026-10-15",
+          "messages": [
+            {
+              "from": "resident",
+              "name": "Sofía López",
+              "date": "2026-10-15",
+              "text": "La puerta de entrada queda sin trabar si no se empuja fuerte."
+            },
+            {
+              "from": "admin",
+              "name": "Confort S.A.",
+              "date": "2026-10-16",
+              "text": "El cerrajero ajustó el pestillo hoy. Avisanos si vuelve a pasar."
+            }
+          ]
+        }
+      ],
       "summary": {
         "counts": {
           "pagado": 9,
@@ -3365,47 +3547,110 @@
     {
       "id": "centro",
       "name": "Edificio Centro",
+      "address": "18 de Julio 1120",
+      "barrio": "Centro",
+      "bank": "Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.",
       "reserveOpening": "21000.00",
       "units": [
         {
           "n": "101",
           "floor": 1,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Graciela Silva",
+            "phone": "099 300 410",
+            "email": "graciela.silva@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "102",
           "floor": 1,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Martín Rodríguez",
+            "phone": "099 301 411",
+            "email": "martin.rodriguez@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Valentina Núñez",
+            "phone": "098 521 631",
+            "email": "valentina.nunez@correo.com.uy"
+          }
         },
         {
           "n": "201",
           "floor": 2,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Gonzalo Pereira",
+            "phone": "099 302 412",
+            "email": "gonzalo.pereira@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "202",
           "floor": 2,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Lucía Fernández",
+            "phone": "099 303 413",
+            "email": "lucia.fernandez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "301",
           "floor": 3,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Rodrigo Cabrera",
+            "phone": "099 304 414",
+            "email": "rodrigo.cabrera@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Florencia Méndez",
+            "phone": "098 524 634",
+            "email": "florencia.mendez@correo.com.uy"
+          }
         },
         {
           "n": "302",
           "floor": 3,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Sebastián Olivera",
+            "phone": "099 305 415",
+            "email": "sebastian.olivera@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "401",
           "floor": 4,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Camila Suárez",
+            "phone": "099 306 416",
+            "email": "camila.suarez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "402",
           "floor": 4,
-          "coef": "0.12500000"
+          "coef": "0.12500000",
+          "owner": {
+            "name": "Andrés Ferreira",
+            "phone": "099 307 417",
+            "email": "andres.ferreira@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Paula Romero",
+            "phone": "098 527 637",
+            "email": "paula.romero@correo.com.uy"
+          }
         }
       ],
       "expenses": [
@@ -5463,6 +5708,8 @@
           ]
         }
       },
+      "notices": [],
+      "threads": [],
       "summary": {
         "counts": {
           "pagado": 9,
@@ -5485,87 +5732,202 @@
     {
       "id": "pocitos",
       "name": "Edificio Pocitos",
+      "address": "Bulevar España 2780",
+      "barrio": "Pocitos",
+      "bank": "Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.",
       "reserveOpening": "64000.00",
       "units": [
         {
           "n": "101",
           "floor": 1,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Camila Suárez",
+            "phone": "099 300 410",
+            "email": "camila.suarez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "102",
           "floor": 1,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Andrés Ferreira",
+            "phone": "099 301 411",
+            "email": "andres.ferreira@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Paula Romero",
+            "phone": "098 521 631",
+            "email": "paula.romero@correo.com.uy"
+          }
         },
         {
           "n": "103",
           "floor": 1,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Joaquín Acosta",
+            "phone": "099 302 412",
+            "email": "joaquin.acosta@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "104",
           "floor": 1,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Mercedes Ramos",
+            "phone": "099 303 413",
+            "email": "mercedes.ramos@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "201",
           "floor": 2,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Ignacio Benítez",
+            "phone": "099 304 414",
+            "email": "ignacio.benitez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "202",
           "floor": 2,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Carolina Píriz",
+            "phone": "099 305 415",
+            "email": "carolina.piriz@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Federico Techera",
+            "phone": "098 525 635",
+            "email": "federico.techera@correo.com.uy"
+          }
         },
         {
           "n": "203",
           "floor": 2,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Inés Viera",
+            "phone": "099 306 416",
+            "email": "ines.viera@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "204",
           "floor": 2,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Matías Gularte",
+            "phone": "099 307 417",
+            "email": "matias.gularte@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "301",
           "floor": 3,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Victoria Correa",
+            "phone": "099 308 418",
+            "email": "victoria.correa@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "302",
           "floor": 3,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Nicolás Sena",
+            "phone": "099 309 419",
+            "email": "nicolas.sena@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Mónica Rivero",
+            "phone": "098 529 639",
+            "email": "monica.rivero@correo.com.uy"
+          }
         },
         {
           "n": "303",
           "floor": 3,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Alejandro Castro",
+            "phone": "099 310 420",
+            "email": "alejandro.castro@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "304",
           "floor": 3,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Daniela Ocampo",
+            "phone": "099 311 421",
+            "email": "daniela.ocampo@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "401",
           "floor": 4,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Pablo Bentancur",
+            "phone": "099 312 422",
+            "email": "pablo.bentancur@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "402",
           "floor": 4,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Graciela Silva",
+            "phone": "099 313 423",
+            "email": "graciela.silva@correo.com.uy"
+          },
+          "tenant": {
+            "name": "Martín Rodríguez",
+            "phone": "098 533 643",
+            "email": "martin.rodriguez@correo.com.uy"
+          }
         },
         {
           "n": "403",
           "floor": 4,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Valentina Núñez",
+            "phone": "099 314 424",
+            "email": "valentina.nunez@correo.com.uy"
+          },
+          "tenant": null
         },
         {
           "n": "404",
           "floor": 4,
-          "coef": "0.06250000"
+          "coef": "0.06250000",
+          "owner": {
+            "name": "Gonzalo Pereira",
+            "phone": "099 315 425",
+            "email": "gonzalo.pereira@correo.com.uy"
+          },
+          "tenant": null
         }
       ],
       "expenses": [
@@ -8563,6 +8925,8 @@
           ]
         }
       },
+      "notices": [],
+      "threads": [],
       "summary": {
         "counts": {
           "pagado": 0,

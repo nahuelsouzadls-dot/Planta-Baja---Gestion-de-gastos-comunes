@@ -40,7 +40,7 @@ Fuente de verdad funcional: el front final (`design/assets/ledger.js`, `data.js`
 | D6 | **Modelo de usuario propio (`accounts.User`) con email como identificador**, creado antes de la primera migración real. | Cambiar el `User` de Django después del primer deploy es muy costoso. Las migraciones actuales se regeneran porque no hay datos reales. |
 | D7 | **Multi-tenant por `Organization`** (la administradora). Toda consulta del panel se filtra por la organización del usuario. | Regla dura de `CLAUDE.md` #7. La RLS de Postgres queda como segunda capa para más adelante; en el MVP, filtro en la aplicación más tests de aislamiento obligatorios. |
 | D8 | **`Person` pertenece a una `Organization`.** El mismo humano en dos administradoras son dos `Person` ligadas al mismo `User`. | Una administradora nunca ve datos de personas de otra. |
-| D9 | **Montos en `Decimal(12,2)`, coeficientes en `Decimal(7,6)`** (fracción: 0,086000 = 8,6 %). Redondeo a centavos con `ROUND_HALF_UP`. La diferencia de redondeo del prorrateo va a la unidad de mayor coeficiente. | Nunca `float`. La suma de lo distribuido tiene que dar exactamente el total. |
+| D9 | **Montos en `Decimal(12,2)`, coeficientes en `Decimal(7,6)`** (fracción: 0,086000 = 8,6 %). Redondeo del prorrateo por el **método del mayor resto** ([ADR-0017](adr/0017-redondeo-por-mayor-resto.md)); el resto de los montos con `ROUND_HALF_UP`. | Nunca `float`. La suma de lo distribuido tiene que dar exactamente el total. |
 | D10 | **Un solo propietario responsable por unidad en cada período.** | Si hay copropietarios, la administración designa a uno como responsable. Simplifica sin bloquear el caso. |
 | D11 | **Archivos en R2 privado:** clave aleatoria (UUID), sha256, tipo MIME y tamaño validados. La subida y la descarga usan URLs firmadas de corta duración. | Regla #8 de `CLAUDE.md`: el archivo no pasa por el servidor y no se puede adivinar la URL. |
 
@@ -123,13 +123,14 @@ Todas tienen `id` UUID y `created_at`; las mutables tienen además `updated_at`.
 3. Quién paga:
    - Concepto `owner_only`: las ocupaciones `owner` que se superponen con M, cada una por sus días.
    - Concepto `ordinary`: las ocupaciones `tenant` por sus días. Los días del mes **sin inquilino** van a la ocupación `owner` de esos días (N9).
-4. Importe de cada parte = `base × días / días_del_mes`, redondeado a centavos. La diferencia de redondeo del ítem se suma a la parte más grande del edificio, así lo distribuido da exactamente el total (D9).
+4. Importe de cada parte = `base × días / días_del_mes`, repartido a centavos por el método del mayor resto (ADR-0017): lo distribuido da exactamente el total del ítem.
 5. Se crea un `LedgerEntry` `charge` por cada (ocupación, concepto) con la foto del cálculo. Se marca `issued`, se audita y, más adelante, se encolan el PDF y los emails.
 
 **Estado de una ocupación** (lo que muestra el front: al día / en revisión / pendiente / moroso):
 - `saldo` = suma de sus asientos.
 - Imputación FIFO: los haberes cubren los cargos por fecha de liquidación, del más viejo al más nuevo. Un mes está pago si sus cargos quedaron cubiertos.
-- Estados: `revision` si tiene un comprobante `pending`; si no, `moroso` si tiene meses anteriores al mes en curso sin cubrir; si no, `pendiente` si tiene saldo > 0; si no, `pagado`.
+- **Ajustes:** un ajuste se aplica **al asiento que corrige** (`adjusts`), no al mes en que se hace. Si corrige un cargo (o una apertura deudora o un recargo), suma o resta en el mes de ese cargo; si corrige un pago (o una apertura a favor), suma o resta en el pozo de haberes. Así, anular un cargo de octubre no "paga" una deuda de agosto, y revertir un pago de agosto vuelve a dejar agosto impago.
+- Estados, en este orden: `revision` si tiene un comprobante `pending`; si no, `moroso` si tiene meses anteriores al mes en curso sin cubrir; si no, `pendiente` si tiene saldo > 0; si no, `sin-cargar` si el edificio no tiene emitida la liquidación del mes en curso; si no, `pagado`. (`pendiente` va antes que `sin-cargar` para no ocultar deuda.)
 
 **Registrar un pago** (la verificación humana, N13): un usuario de la administración confirma monto, fecha y a qué ocupación va. Se crea un `LedgerEntry` `payment` (negativo) con `created_by` y se audita. Hay dos caminos:
 - **Desde un comprobante**: se exige `pending` y que el reparto sume el monto; se crea un `payment` por reparto con `receipt` como evidencia, y el comprobante pasa a `approved`. **Rechazar**: `rejected` con motivo obligatorio; no toca el libro mayor.
