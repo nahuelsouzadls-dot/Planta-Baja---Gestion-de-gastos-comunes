@@ -31,7 +31,8 @@ orquesta/
 3. **No hagas commit, ni `git add`, ni `git stash`, ni `git checkout`.** El orquestador commitea después de revisar. Si dos agentes hacen operaciones de git a la vez, se rompe el trabajo del otro.
 4. **Respetá `.github/copilot-instructions.md`** y la guía que indique tu tarea.
 5. **Si algo es ambiguo, no adivines.** Hacé lo que esté claro y marcá el resto como pregunta en el reporte.
-6. **Al terminar, escribí `orquesta/reportes/<tu-nombre>.md`** (reemplazando el contenido anterior) con este formato exacto:
+6. **No marques una tarea como lista si no corriste los tests.** Si el entorno no te deja correrlos, escribí `ESTADO: bloqueado` con el error exacto: el orquestador lo resuelve y te da otra orden.
+7. **Al terminar, escribí `orquesta/reportes/<tu-nombre>.md`** (reemplazando el contenido anterior) con este formato exacto:
 
 ```markdown
 # Reporte: <nombre> — <id de la tarea>
