@@ -56,7 +56,7 @@ MONEY_KEYS = {
 def demo(monkeypatch):
     monkeypatch.setenv('DEMO_PASSWORD', 'demo-password-123')
     with override_settings(DEBUG=True):
-        call_command('seed_demo', golden='/golden/demo.json')
+        call_command('seed_demo')
     return Organization.objects.get()
 
 
