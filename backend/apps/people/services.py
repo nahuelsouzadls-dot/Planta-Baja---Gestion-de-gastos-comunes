@@ -6,6 +6,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 
 from apps.accounts.models import Organization
+from apps.audit.events import record_event
 from apps.buildings.models import Unit
 from apps.audit.context import audit_context
 from apps.ledger.models import ReceiptAllocation
@@ -56,12 +57,28 @@ def move_in(
     with audit_context(user, organization=organization):
         try:
             with transaction.atomic():
-                return Occupancy.objects.create(
+                occupancy = Occupancy.objects.create(
                     unit=unit,
                     person=person,
                     role=role,
                     start_date=start_date,
                 )
+                record_event(
+                    user,
+                    organization,
+                    'occupancy.move_in',
+                    occupancy,
+                    (
+                        f'Dio de alta a {person} como '
+                        f'{dict(Occupancy.Role.choices).get(role, role).lower()} '
+                        f'del apto {unit.number} desde {start_date:%d/%m/%Y}'
+                    ),
+                    unit=unit.number,
+                    person_id=str(person.id),
+                    role=role,
+                    start_date=start_date.isoformat(),
+                )
+                return occupancy
         except IntegrityError as error:
             if 'occupancy_no_overlap' not in str(error).lower():
                 raise
@@ -90,6 +107,16 @@ def move_out(occupancy: Occupancy, end_date: date, user) -> Occupancy:
 
             occupancy.end_date = end_date
             occupancy.save(update_fields=['end_date', 'updated_at'])
+            record_event(
+                user,
+                organization,
+                'occupancy.move_out',
+                occupancy,
+                f'Dio de baja a {occupancy.person} del apto {occupancy.unit.number} desde {end_date:%d/%m/%Y}',
+                unit=occupancy.unit.number,
+                person_id=str(occupancy.person_id),
+                end_date=end_date.isoformat(),
+            )
             return occupancy
 
 
@@ -120,12 +147,28 @@ def replace_tenant(
 
             try:
                 with transaction.atomic():
-                    return Occupancy.objects.create(
+                    occupancy = Occupancy.objects.create(
                         unit=unit,
                         person=new_person,
                         role=Occupancy.Role.TENANT,
                         start_date=change_date,
                     )
+                    record_event(
+                        user,
+                        organization,
+                        'occupancy.replace_tenant',
+                        occupancy,
+                        (
+                            f'Reemplazó a {current.person if current is not None else "sin inquilino"} '
+                            f'por {new_person} como inquilino del apto {unit.number} '
+                            f'desde {change_date:%d/%m/%Y}'
+                        ),
+                        unit=unit.number,
+                        previous_person_id=str(current.person_id) if current is not None else None,
+                        person_id=str(new_person.id),
+                        start_date=change_date.isoformat(),
+                    )
+                    return occupancy
             except IntegrityError as error:
                 if 'occupancy_no_overlap' not in str(error).lower():
                     raise
@@ -180,6 +223,20 @@ def correct_occupancy(
                 if 'occupancy_no_overlap' not in str(error).lower():
                     raise
                 raise ValidationError('La corrección se superpone con otra ocupación.') from error
+            record_event(
+                user,
+                organization,
+                'occupancy.correct',
+                occupancy,
+                (
+                    f'Corrigió la ocupación de {occupancy.person} del apto '
+                    f'{occupancy.unit.number}: {", ".join(update_fields) or "sin cambios"}'
+                ),
+                unit=occupancy.unit.number,
+                person_id=str(occupancy.person_id),
+                start_date=occupancy.start_date.isoformat(),
+                end_date=occupancy.end_date.isoformat() if occupancy.end_date else None,
+            )
             return occupancy
 
 
@@ -200,9 +257,18 @@ def update_person(person: Person, user, **fields) -> Person:
     with audit_context(user, organization=organization):
         with transaction.atomic():
             person = Person.objects.select_for_update().get(pk=person.pk)
+            changed_fields = list(fields)
             for field, value in fields.items():
                 setattr(person, field, value)
             person.save(update_fields=list(fields) + ['updated_at'])
+            record_event(
+                user,
+                organization,
+                'person.update',
+                person,
+                f'Editó los datos de {person}: {", ".join(changed_fields)}',
+                changed_fields=changed_fields,
+            )
             return person
 
 
@@ -291,9 +357,23 @@ def sell_unit(unit: Unit, buyer: Person, sale_date: date, user) -> Occupancy:
     with audit_context(user, organization=organization):
         seller_occupancy.end_date = sale_date - timedelta(days=1)
         seller_occupancy.save(update_fields=['end_date', 'updated_at'])
-        return Occupancy.objects.create(
+        occupancy = Occupancy.objects.create(
             unit=unit,
             person=buyer,
             role=Occupancy.Role.OWNER,
             start_date=sale_date,
         )
+        record_event(
+            user,
+            organization,
+            'occupancy.sell',
+            occupancy,
+            (
+                f'Registró la venta del apto {unit.number} a {buyer} '
+                f'desde el {sale_date:%d/%m/%Y}'
+            ),
+            unit=unit.number,
+            buyer_id=str(buyer.id),
+            sale_date=sale_date.isoformat(),
+        )
+        return occupancy

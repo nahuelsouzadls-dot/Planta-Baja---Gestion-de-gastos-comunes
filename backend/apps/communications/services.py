@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.audit.context import audit_context
+from apps.audit.events import record_event
 from apps.ledger.payments import assert_member
 from apps.people.models import Occupancy, Person
 
@@ -32,12 +33,22 @@ def publish_notice(building, user, title, body):
     title = _validate_length(title, 3, 120, 'El título')
     body = _validate_length(body, 10, 1200, 'El cuerpo')
     with audit_context(user, organization=organization):
-        return Notice.objects.create(
+        notice = Notice.objects.create(
             building=building,
             title=title,
             body=body,
             published_by=user,
         )
+        record_event(
+            user,
+            organization,
+            'notice.publish',
+            notice,
+            f'Publicó el aviso «{title}»',
+            title=title,
+            building=building.name,
+        )
+        return notice
 
 
 @transaction.atomic
@@ -81,6 +92,19 @@ def set_claim_status(claim, user, status):
     with audit_context(user, organization=organization):
         locked_claim.status = status
         locked_claim.save(update_fields=['status', 'updated_at'])
+        record_event(
+            user,
+            organization,
+            'claim.status',
+            locked_claim,
+            (
+                f'Cambió el estado del reclamo «{locked_claim.title}» '
+                f'a {locked_claim.get_status_display()}'
+            ),
+            status=status,
+            title=locked_claim.title,
+            unit=locked_claim.unit.number,
+        )
     return locked_claim
 
 
