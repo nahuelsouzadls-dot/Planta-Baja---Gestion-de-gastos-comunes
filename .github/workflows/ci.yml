@@ -1,0 +1,107 @@
+name: CI
+
+"on":
+  push:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Django + PostgreSQL)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: propiedad_horizontal
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d propiedad_horizontal"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      SECRET_KEY: ci-test-secret-key-only-for-development-settings
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost
+      DB_NAME: propiedad_horizontal
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      GOLDEN_PATH: ${{ github.workspace }}/docs/golden/demo.json
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: "backend/requirements/*.txt"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements/development.txt
+
+      - name: Verificar migraciones pendientes
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Ejecutar suite de tests (sin skips permitidos)
+        run: |
+          set -euo pipefail
+          output=$(pytest -q -p no:cacheprovider -rs --strict-markers | tee /dev/stderr)
+          if echo "$output" | grep -Eq '[0-9]+ skipped'; then
+            echo "Error: hay tests en estado skipped en CI." >&2
+            exit 1
+          fi
+
+      - name: Verificar configuración de producción (check --deploy)
+        run: |
+          set -euo pipefail
+          # Lista explícita de códigos de warning justificados (ej. "security.W001").
+          # Debe permanecer vacía salvo excepción documentada y justificada.
+          ALLOWED_WARNINGS=()
+
+          SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(64))')"
+          export SECRET_KEY
+          export DJANGO_SETTINGS_MODULE=config.settings.production
+          export ALLOWED_HOSTS=example.com
+          export CSRF_TRUSTED_ORIGINS=https://example.com
+
+          if [ "${#ALLOWED_WARNINGS[@]}" -eq 0 ]; then
+            python manage.py check --deploy --fail-level WARNING
+          else
+            output=$(python manage.py check --deploy 2>&1) || { echo "$output" >&2; exit 1; }
+            echo "$output"
+            warnings=$(echo "$output" | grep -oE '\([a-zA-Z0-9_]+\.W[0-9]+\)' | tr -d '()' || true)
+            for w in $warnings; do
+              allowed=false
+              for a in "${ALLOWED_WARNINGS[@]}"; do
+                if [ "$w" = "$a" ]; then allowed=true; break; fi
+              done
+              if [ "$allowed" = false ]; then
+                echo "Error: warning no exceptuado en check --deploy: $w" >&2
+                exit 1
+              fi
+            done
+          fi

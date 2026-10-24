@@ -1,8 +1,10 @@
 import factory
+from datetime import timedelta
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from factory.django import DjangoModelFactory
 
-from apps.accounts.models import OrgMembership, Organization, User
+from apps.accounts.models import Invitation, OrgMembership, Organization, User
 from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.people.models import Occupancy, Person
 from apps.settlements.models import Settlement, SettlementItem
@@ -34,6 +36,18 @@ class OrgMembershipFactory(DjangoModelFactory):
 
     user = factory.SubFactory(UserFactory)
     organization = factory.SubFactory(OrganizationFactory)
+
+
+class InvitationFactory(DjangoModelFactory):
+    class Meta:
+        model = Invitation
+
+    organization = factory.SubFactory(OrganizationFactory)
+    kind = Invitation.Kind.EMPLOYEE
+    email = factory.Sequence(lambda n: f'invite{n}@example.com')
+    token_hash = factory.Sequence(lambda n: f'{n:064d}')
+    expires_at = factory.LazyFunction(lambda: timezone.now() + timedelta(hours=72))
+    created_by = factory.SubFactory(UserFactory)
 
 
 class BuildingFactory(DjangoModelFactory):
