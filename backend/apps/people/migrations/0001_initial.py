@@ -17,6 +17,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('accounts', '0001_initial'),
         ('buildings', '0001_initial'),
+        ('core', '0001_enable_btree_gist'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
