@@ -19,7 +19,7 @@ Estado al 2026-10-24: **el modelo de datos está terminado** (B0–B9) y pasó d
 ### D — Archivos, PDF, emails y exportación
 | # | Microtarea | Qué entrega |
 |---|---|---|
-| D1 | **Comprobantes en almacenamiento S3** | URLs firmadas para subir y ver; verificación de tipo, tamaño y sha256. En Docker, **MinIO** (compatible con S3); en producción, Cloudflare R2. Mismo código. |
+| D1 | **Comprobantes en almacenamiento S3** | URLs firmadas para subir y ver; verificación de tipo, tamaño y sha256. En Docker, **MinIO** (compatible con S3); en producción, Cloudflare R2. Mismo código. **Pendiente:** las imágenes oficiales de MinIO se retiraron de Docker Hub; E1a usa réplicas de Rancher de 2023 (solo desarrollo). En D1, evaluar reemplazarlas por otra alternativa S3 mantenida antes de depender de ellas. |
 | D2 | **Celery + Redis** | Worker y cola en Docker; tareas idempotentes encoladas con `on_commit`. |
 | D3 | **Emails** | Invitaciones, recuperar contraseña, "se emitió la liquidación", "tu pago fue validado/rechazado". En Docker, **Mailpit** (ves los emails en el navegador sin mandar nada real); en producción, Resend o Brevo. |
 | D4 | **PDF de la liquidación** | Por edificio y por residente, generado en el worker y guardado en el almacenamiento. Requisito duro del cliente (residentes mayores). |

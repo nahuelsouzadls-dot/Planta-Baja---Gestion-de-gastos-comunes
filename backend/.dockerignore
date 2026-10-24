@@ -1,0 +1,38 @@
+# Python bytecode y caches
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+
+# Variables de entorno y secretos (nunca copiar a la imagen)
+.env
+.env*
+
+# Tests y cobertura
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.mypy_cache/
+.ruff_cache/
+
+# Empaquetado y artefactos locales
+*.egg-info/
+dist/
+build/
+*.sqlite3
+staticfiles/
+
+# Git, Docker y sistema operativo
+.git/
+.gitignore
+Dockerfile*
+.dockerignore
+.DS_Store
