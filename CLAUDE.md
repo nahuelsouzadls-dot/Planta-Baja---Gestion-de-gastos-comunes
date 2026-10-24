@@ -126,11 +126,11 @@ administracion-gc/
 - **Stack:** Python 3.12 + Django 5.x + PostgreSQL 16 + Celery + Redis + Cloudflare R2 ✅
 - **Deploy:** Railway ✅
 - **Front:** cerrado en `design/` (admin, portal y logins; CSS de los prototipos de `design/ref/`). Reglas del cliente en `design/DISENO.md`. ✅
+- **Front ↔ backend:** Django sirve el front de `design/` como estático y el JS consume `/api/v1/` (ADR-0002). ✅
 - **Modelo de datos del backend:** aprobado en `docs/modelo-datos.md`; arquitectura, UML y ADR en `docs/`. Se implementa en microtareas B0–B9. ✅
 
 ## Lo que NO está decidido aún
 
 - Nombre comercial del producto
 - Precio de la suscripción mensual
-- Portal de residentes: propuesta en `docs/adr/0002-front-estatico-js-puro.md` (servir el front actual como estático y que consuma la API); falta el ok de Nahuel.
 - Estrategia de onboarding para residentes mayores (considerando baja tech literacy)
