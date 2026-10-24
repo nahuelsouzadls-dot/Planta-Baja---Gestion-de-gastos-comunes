@@ -1,86 +1,24 @@
-# Tarea: B0 — Reset del backend y bases (usuario, organización, seguridad)
+# Tarea: SEC2-fix2 — La suite tiene 8 fallos, y son de SEC2
 
-## Contexto
-Leé primero `docs/modelo-datos.md` (el modelo aprobado) y `.github/copilot-instructions.md`.
-El backend actual (`backend/apps/buildings`, `residents`, `expenses`, `ledger`) es un esqueleto anterior al diseño y **se descarta entero**: no hay datos reales, así que se borran las apps y sus migraciones y se arranca de cero. Esta tarea deja solo las bases; los modelos de negocio vienen en B1–B9, una tarea por vez.
+## Hallazgo
+Las migraciones ya corren (bien resuelto). Pero la suite da **8 failed, 142 passed**, y el reporte anterior los atribuyó a "cambios ajenos de otros agentes". **No lo son:** son los cambios de SEC2, que nunca se llegaron a probar porque la base no arrancaba. Nadie más tocó esos archivos. Y el reporte decía `ESTADO: listo` con la suite en rojo: la regla 6 del protocolo (`orquesta/README.md`) lo prohíbe.
+
+Corré la suite así (base de tests limpia):
+```bash
+docker compose exec -T db dropdb -U postgres --if-exists test_propiedad_horizontal
+docker compose run --rm web pytest -q -p no:cacheprovider --tb=line
+```
+
+## Los 8 fallos y sus causas
+1. **`add_unit` rechaza coeficientes válidos** (rompe `test_seed_matches_front_portfolio`, `test_seed_is_not_repeatable` y `test_seed_records_actors_and_uploaders`): `ValidationError: El coeficiente no puede tener más de 6 decimales` en `apps/buildings/services.py:61`. Los coeficientes de la demo vienen como `"0.08600000"`: ocho dígitos decimales, pero con ceros al final; el valor entra perfecto en `Decimal(7,6)`. La regla correcta es que **el valor** no tenga más de 6 decimales significativos: `value != value.quantize(Decimal('0.000001'))` → error. No mires el exponente de la representación.
+2. **Firma nueva de `create_building` sin propagar** (rompe `test_golden_minas_accounts_match_front`, `test_golden_minas_october_by_account_and_concept` y `test_golden_all_buildings_and_months_balance_exactly`): `TypeError: create_building() missing 1 required positional argument: 'user'`. Actualizá esos helpers de tests (en `ledger/tests/test_accounts.py` y `settlements/tests/test_issue.py`) para pasar un empleado de la organización. Revisá que no quede **ningún** llamado sin `user` (`grep -rn "create_building(" backend/`).
+3. **`test_move_out_requires_member_and_audits`**: `ValidationError: La fecha de salida no puede ser anterior a la fecha de inicio` (`apps/people/services.py:109`). SEC2 cambió esa validación o las fechas del test ya no sirven. Decidí cuál de los dos está mal según la regla del modelo (la salida puede ser el mismo día del inicio: `end_date >= start_date`) y corregilo.
+4. **`test_replace_tenant_without_previous_and_same_person`**: `AssertionError: Regex pattern did not match` (`apps/people/tests/test_services.py:169`). SEC2 cambió el mensaje de error. Alineá el test con el mensaje nuevo **solo si** el mensaje nuevo sigue diciendo lo mismo con claridad; si no, corregí el mensaje.
 
 ## Archivos tuyos
-- `backend/apps/` (todo: borrás las apps viejas y creás `core` y `accounts`)
-- `backend/config/settings/base.py`, `development.py`, `production.py`
-- `backend/config/urls.py`
-- `backend/requirements/base.txt`, `production.txt`
-- `backend/conftest.py`, `backend/tests/` (todo)
-- `backend/.env.example`
-- `docker-compose.yml` (solo la línea `env_file`)
-- `README.md` (solo la sección de cómo levantar el backend, si existe; si no existe, agregala)
+Los mismos de SEC2: `backend/apps/buildings/`, `backend/apps/people/`, `backend/apps/ledger/tests/`, `backend/apps/settlements/tests/`, `backend/apps/demo/`.
 
-No toques `design/`, `docs/` ni `.ai_orchestration/`.
-
-## Pasos
-
-### 1. Borrar lo viejo
-- Borrá `backend/apps/buildings/`, `backend/apps/residents/`, `backend/apps/expenses/` y `backend/apps/ledger/` completas (modelos, vistas, serializers, URLs, tests, migraciones, comando `seed_data`).
-- Sacá sus `include(...)` de `config/urls.py`: quedan solo `admin/`.
-- Vaciá los fixtures de `backend/conftest.py` y reescribí `backend/tests/factories.py` y `backend/tests/conftest.py` para las entidades nuevas (paso 4).
-
-### 2. App `apps.core`
-- `apps/core/models.py` con dos modelos **abstractos**:
-  - `UUIDModel`: `id = UUIDField(primary_key=True, default=uuid.uuid4, editable=False)`.
-  - `TimeStampedModel(UUIDModel)`: `created_at` (`auto_now_add`) y `updated_at` (`auto_now`).
-- Una migración `0001` en `core` que **solo** active la extensión de Postgres `btree_gist` (`django.contrib.postgres.operations.BtreeGistExtension`). La usa B2. Agregá `django.contrib.postgres` a `INSTALLED_APPS`.
-
-### 3. App `apps.accounts`
-- `User` propio: `AbstractBaseUser` + `PermissionsMixin`, heredando de `UUIDModel`.
-  - Campos: `email` (único), `first_name`, `last_name`, `is_active` (default `True`), `is_staff` (default `False`), `date_joined`.
-  - `USERNAME_FIELD = 'email'`, `REQUIRED_FIELDS = []`. Sin `username`.
-  - El email se guarda **siempre en minúsculas y sin espacios** (normalizalo en el manager y en `save()`), con `UniqueConstraint(Lower('email'), name=...)` para que `Ana@x.com` y `ana@x.com` no puedan coexistir.
-  - `UserManager` con `create_user(email, password=None, **extra)` y `create_superuser(...)`. Si falta el email, `ValueError`.
-- `Organization(TimeStampedModel)`: `name`, `tax_id` (blank), `email` (blank).
-- `OrgMembership(TimeStampedModel)`: FK `user` y FK `organization`, ambas `on_delete=PROTECT`, con `UniqueConstraint(user, organization)`. Todos los miembros tienen los mismos permisos: **no agregues campo de rol**.
-- `admin.py`: registrá los tres. Para `User`, adaptá `UserAdmin` a email (sin `username`) y no muestres el hash de la contraseña.
-- `AUTH_USER_MODEL = 'accounts.User'` en `base.py`.
-
-### 4. Tests y factories
-En `backend/tests/factories.py`: `UserFactory` (email único con `Sequence`, contraseña con `make_password` o `PostGenerationMethodCall('set_password', ...)`), `OrganizationFactory` y `OrgMembershipFactory`.
-Tests en `backend/apps/accounts/tests/`:
-- `create_user` normaliza el email (`'  Ana@Example.COM '` → `'ana@example.com'`).
-- No se pueden crear dos usuarios cuyos emails difieren solo en mayúsculas (`IntegrityError`).
-- `create_user` sin email lanza `ValueError`; `create_superuser` deja `is_staff` e `is_superuser` en `True`.
-- `client.login(email=..., password=...)` funciona.
-- El hasher por defecto es Argon2 (`user.password.startswith('argon2')`).
-- Tras 5 intentos de login fallidos, el sexto (aunque sea con la contraseña correcta) es rechazado por axes. Usá `django.test.Client` y `axes` real, no mocks.
-- `OrgMembership` duplicado (mismo usuario y organización) → `IntegrityError`.
-- La configuración de DRF tiene `IsAuthenticated` como permiso por defecto y `SessionAuthentication` como autenticación.
-
-### 5. Seguridad en settings
-En `base.py`:
-- **Variables de entorno:** leé `BASE_DIR / '.env'` solo si existe (`if (BASE_DIR / '.env').exists(): environ.Env.read_env(...)`). **No leas más `.env.example`.**
-- `PASSWORD_HASHERS` con `Argon2PasswordHasher` primero (agregá `argon2-cffi` a `requirements/base.txt`) y los de Django después, para poder migrar hashes.
-- `MinimumLengthValidator` con `min_length: 10`.
-- `django-axes` (agregalo a `requirements/base.txt`): en `INSTALLED_APPS`, `axes.middleware.AxesMiddleware` **al final** de `MIDDLEWARE`, `AUTHENTICATION_BACKENDS = ['axes.backends.AxesStandaloneBackend', 'django.contrib.auth.backends.ModelBackend']`, `AXES_FAILURE_LIMIT = 5`, `AXES_COOLOFF_TIME = 1` (horas), `AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]` y `AXES_USERNAME_FORM_FIELD = 'email'`.
-- Cookies: `SESSION_COOKIE_HTTPONLY = True`, `SESSION_COOKIE_SAMESITE = 'Lax'`, `CSRF_COOKIE_SAMESITE = 'Lax'`, `SESSION_COOKIE_AGE = 60 * 60 * 8`.
-- DRF: `DEFAULT_AUTHENTICATION_CLASSES = ['rest_framework.authentication.SessionAuthentication']` y `DEFAULT_PERMISSION_CLASSES = ['rest_framework.permissions.IsAuthenticated']`.
-- `DEFAULT_AUTO_FIELD` puede quedar, pero todos los modelos nuevos usan `UUIDModel`.
-
-En `production.py`:
-- Borrá `CORS_ALLOWED_ORIGINS`: el front se sirve desde el mismo dominio y no se instala `django-cors-headers`.
-- `STATICFILES_STORAGE` ya no existe en Django 5.1: reemplazalo por `STORAGES = {'default': {...FileSystemStorage}, 'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'}}`.
-- Agregá `SECURE_CONTENT_TYPE_NOSNIFF = True`, `SECURE_REFERRER_POLICY = 'same-origin'`, `X_FRAME_OPTIONS = 'DENY'` y `SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')` (Railway termina TLS en el proxy).
-
-`.env.example`: mismas claves, pero `SECRET_KEY=change-me` (sin valores que parezcan reales).
-`docker-compose.yml`: `env_file: ./backend/.env`.
-`README.md`: cómo levantar el backend (`cp backend/.env.example backend/.env`, generar una `SECRET_KEY` con `python -c "from django.core.management.utils import get_random_secret_key as g; print(g())"`, `docker compose up`, `migrate`, `createsuperuser`, correr tests).
-
-### 6. Migraciones
-- Borrá todas las migraciones viejas (vienen con las apps del paso 1).
-- `makemigrations core accounts` y verificá que `migrate` corra **desde una base vacía**: `docker compose down -v` y después `docker compose up -d db`.
-
-## Cómo verificar (correlo y pegá el resultado resumido en el reporte)
-1. `python manage.py makemigrations --check --dry-run` → "No changes detected".
-2. Base vacía, `python manage.py migrate` → sin errores.
-3. `pytest` → todo verde; pegá el conteo de tests.
-4. `DJANGO_SETTINGS_MODULE=config.settings.production SECRET_KEY=x DB_NAME=x DB_USER=x DB_PASSWORD=x ALLOWED_HOSTS=example.com python manage.py check --deploy` → pegá los warnings que queden (no hace falta que sean cero, pero explicá cada uno).
-5. `grep -rn "django.contrib.auth.models import User" backend/` → sin resultados.
-
-## Fuera de alcance
-Edificios, personas, liquidaciones, libro mayor, API y login con pantalla: vienen en B1 en adelante y en el plan C. No crees endpoints.
+## Cómo verificar (pegalo en el reporte)
+1. La suite completa con base limpia → **150 passed, 0 failed**. Si no llegás a 0 failed, `ESTADO: bloqueado` con la lista de lo que falla.
+2. `makemigrations --check --dry-run` → "No changes detected".
+3. Las reproducciones de agy las corre Claude.
