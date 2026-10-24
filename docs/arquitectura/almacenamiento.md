@@ -15,7 +15,8 @@
 | Sesiones | PostgreSQL | `django_session` (solo el id viaja en la cookie) | Django |
 | Intentos de login | PostgreSQL | tablas de `django-axes` | axes |
 | Invitaciones | PostgreSQL | solo el **sha256 del token** | `InvitationService` |
-| Auditoría | PostgreSQL | `auditlog`, **append-only** | `AuditService` |
+| Quién cambió qué (antes y después) | PostgreSQL | `audit_rowchange`, **append-only** | **trigger de Postgres** en cada tabla de negocio |
+| Eventos de negocio | PostgreSQL | `audit_auditlog`, **append-only** | `AuditService` |
 | Cola de tareas | Redis | mensajes de Celery (solo IDs, nunca datos personales) | `web` |
 | Secretos (claves, credenciales) | variables de entorno de Railway / `.env` local | — | nunca en el repo |
 
@@ -50,7 +51,7 @@ La restricción `EXCLUDE` es la que garantiza en la base que nunca haya dos inqu
 |---|---|---|
 | `settlements_settlement` | `building_id`, `month`, `status`, `issued_at`, `issued_by_id` | `UNIQUE (building_id, month)`; `CHECK (EXTRACT(day FROM month) = 1)` |
 | `settlements_settlementitem` | `settlement_id`, `concept_id`, `amount`, `detail` | `UNIQUE (settlement_id, concept_id)`; `CHECK (amount >= 0)` |
-| `ledger_ledgerentry` | `occupancy_id`, `date`, `kind`, `amount`, `settlement_id`, `concept_id`, `receipt_id`, `adjusts_id`, `created_by_id`, foto del cálculo | índice `(occupancy_id, date)`; `CHECK (kind <> 'payment' OR amount < 0)`; `CHECK (kind <> 'charge' OR amount >= 0)`; **trigger append-only** |
+| `ledger_ledgerentry` | `occupancy_id`, `date`, `kind`, `amount`, `settlement_id`, `concept_id`, `receipt_id`, `adjusts_id`, `created_by_id`, foto del cálculo | índice `(occupancy_id, date)`; `CHECK (kind <> 'payment' OR amount < 0)`; `CHECK (kind <> 'charge' OR amount > 0)`; **trigger append-only** |
 | `ledger_receipt` | `person_id`, `file_key`, `file_sha256`, `declared_amount`, `status`, revisión | `UNIQUE (file_key)`; `CHECK (declared_amount > 0)`; índice `(status)` para la cola de pendientes |
 | `ledger_receiptallocation` | `receipt_id`, `occupancy_id`, `amount` | `UNIQUE (receipt_id, occupancy_id)`; `CHECK (amount > 0)` |
 
@@ -73,7 +74,34 @@ CREATE TRIGGER ledgerentry_no_truncate
   FOR EACH STATEMENT EXECUTE FUNCTION ledger_append_only();
 ```
 
-Lo mismo se aplica a `audit_auditlog` y a `communications_claimmessage`. Como el trigger también bloquea los `DELETE` en cascada, todas las FK hacia estas tablas son `on_delete=PROTECT`: las entidades con historia **se desactivan, no se borran**.
+Lo mismo se aplica a `audit_auditlog`, `audit_rowchange` y `communications_claimmessage`.
+
+**Los triggers solo protegen si la app no es dueña de las tablas.** En Postgres, el dueño de una tabla puede desactivar sus triggers (`ALTER TABLE … DISABLE TRIGGER`) y un superusuario puede saltearlos (`SET session_replication_role = replica`). Por eso, en producción hay **dos roles de base**:
+- `gc_owner`: dueño del esquema; solo lo usan las migraciones en el deploy.
+- `gc_app`: el que usa Django en tiempo de ejecución; `SELECT`, `INSERT`, `UPDATE` y `DELETE` sobre las tablas (los triggers bloquean lo que corresponde), sin `ALTER`, sin `TRUNCATE` y sin ser superusuario.
+
+Así, ni un error de código ni alguien con acceso a la aplicación puede apagar la protección. Se configura en la microtarea de deploy (C7). Como el trigger también bloquea los `DELETE` en cascada, todas las FK hacia estas tablas son `on_delete=PROTECT`: las entidades con historia **se desactivan, no se borran**.
+
+### Registro de cambios (ADR-0015)
+
+Un trigger genérico `AFTER INSERT OR UPDATE OR DELETE` en cada tabla de negocio escribe en `audit_rowchange`. La aplicación le pasa a la base quién está actuando, una vez por transacción:
+
+```sql
+-- lo ejecuta Django al empezar cada transacción que escribe
+SELECT set_config('app.actor_id', '<uuid del usuario>', true),
+       set_config('app.request_ip', '<ip>', true),
+       set_config('app.request_path', '<ruta>', true);
+
+-- dentro del trigger
+INSERT INTO audit_rowchange (table_name, row_id, operation, old_values, new_values,
+                             actor_id, db_user, request_ip, request_path, created_at)
+VALUES (TG_TABLE_NAME, COALESCE(NEW.id, OLD.id), TG_OP,
+        <OLD sin columnas sensibles>, <solo lo que cambió>,
+        NULLIF(current_setting('app.actor_id', true), '')::uuid, current_user,
+        current_setting('app.request_ip', true), current_setting('app.request_path', true), now());
+```
+
+Si `app.actor_id` no está seteado (SQL directo, un script), el cambio se registra igual con `actor_id` nulo y el usuario de Postgres: eso es una alerta. `audit_rowchange` tiene el mismo trigger append-only que el libro mayor.
 
 ### Comunicación, tareas y auditoría
 
