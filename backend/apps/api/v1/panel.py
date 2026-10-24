@@ -1,3 +1,4 @@
+import calendar
 from collections import defaultdict
 from collections.abc import Mapping
 from datetime import date
@@ -6,6 +7,7 @@ from decimal import Decimal
 from django.core.exceptions import PermissionDenied as DjangoPermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
 from django.db.models import Q
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from drf_spectacular.utils import OpenApiTypes, extend_schema
@@ -29,8 +31,12 @@ from apps.buildings.models import Building, ExpenseConcept, Unit
 from apps.communications import services as communication_services
 from apps.communications.models import Claim, Task
 from apps.core.money import to_money
+from apps.documents import data as document_data
+from apps.documents import exports
+from apps.documents import pdf as settlement_pdf
 from apps.ledger import payments as payment_services
 from apps.ledger import services as ledger_services
+from apps.ledger.accounts import portal_movements, portal_settlement_detail
 from apps.ledger.models import LedgerEntry, Receipt
 from apps.ledger.reports import portfolio_totals
 from apps.people import services as people_services
@@ -38,6 +44,7 @@ from apps.people.models import Occupancy, Person
 from apps.settlements import services as settlement_services
 from apps.settlements.models import Settlement
 from apps.settlements.services import settlement_total
+from apps.storage import services as storage
 
 
 MONEY = '{:.2f}'
@@ -167,10 +174,19 @@ def _task_json(task):
         'id': str(task.pk),
         'text': task.text,
         'building': task.building.name,
+        'building_id': str(task.building_id),
         'due_date': task.due_date.isoformat() if task.due_date else None,
         'done': task.done,
         'created_by': str(task.created_by),
     }
+
+
+def _message_author_name(message, claim) -> str:
+    """Nombre visible de quien escribió: el empleado (o la administración) o el residente."""
+    if message.from_admin:
+        full_name = f'{message.author.first_name} {message.author.last_name}'.strip()
+        return full_name or claim.building.organization.name
+    return str(claim.author)
 
 
 def _claim_detail_json(claim):
@@ -185,7 +201,7 @@ def _claim_detail_json(claim):
         'messages': [
             {
                 'id': str(item.pk),
-                'author': str(item.author),
+                'author': _message_author_name(item, claim),
                 'from_admin': item.from_admin,
                 'text': item.text,
                 'date': item.created_at.isoformat(),
@@ -214,6 +230,7 @@ def _receipt_json(receipt):
         'unit': first.occupancy.unit.number if first else None,
         'role': first.occupancy.role if first else None,
         'file': receipt.file_key,
+        'content_type': receipt.content_type,
         'transfer_date': receipt.transfer_date.isoformat(),
         'declared_amount': money(receipt.declared_amount),
         'note': receipt.note,
@@ -262,10 +279,16 @@ def employee_building_or_404(user, building_id):
     )
 
 
+def month_end(month):
+    return month.replace(day=calendar.monthrange(month.year, month.month)[1])
+
+
 def active_occupancies(building, month):
+    """Cuentas del mes: toda ocupación que se superpone con él, como al emitir (un cambio de
+    inquilino a mitad de mes muestra a los dos)."""
     return Occupancy.objects.filter(
         unit__building=building,
-        start_date__lte=month,
+        start_date__lte=month_end(month),
     ).filter(Q(end_date__isnull=True) | Q(end_date__gte=month))
 
 
@@ -308,12 +331,14 @@ def account_row(occupancy, entries, receipts, month, settlement_issued=True):
     account_periods = periods_from_entries(entries)
     overdue = [item for item in account_periods if item[0] < month and item[3] > 0]
     pending_review = bool(receipts)
-    if not settlement_issued and current_charge == 0:
-        status = 'sin-cargar'
-    elif pending_review:
+    # Mismo orden que el portal (ledger.accounts.account_status): un moroso sigue siendo
+    # moroso aunque el mes en curso todavía no tenga liquidación emitida.
+    if pending_review:
         status = 'revision'
     elif overdue:
         status = 'moroso'
+    elif not settlement_issued and current_charge == 0:
+        status = 'sin-cargar'
     elif balance > 0:
         status = 'pendiente'
     else:
@@ -328,10 +353,12 @@ def account_row(occupancy, entries, receipts, month, settlement_issued=True):
             'email': occupancy.person.email,
         },
         'role': occupancy.role,
+        'receives_paper': occupancy.unit.receives_paper,
         'charge': money(current_charge),
         'balance': money(balance),
         'status': status,
         'overdue_months': [item[0].strftime('%Y-%m') for item in overdue],
+        'overdue_amount': money(sum((item[3] for item in overdue), Decimal('0'))),
     }
 
 
@@ -384,7 +411,7 @@ class PortfolioView(PanelAPIView):
         occupancies, by_occ, receipts_by_occ = occupancy_data(
             Occupancy.objects.filter(
                 unit__building__organization=organization,
-                start_date__lte=month,
+                start_date__lte=month_end(month),
             )
             .filter(Q(end_date__isnull=True) | Q(end_date__gte=month))
             .select_related('unit', 'person'),
@@ -429,6 +456,8 @@ class PortfolioView(PanelAPIView):
                     'id': str(building.pk),
                     'name': building.name,
                     'address': building.address,
+                    'neighborhood': building.neighborhood,
+                    'due_day': building.due_day,
                     'units': len(building.units.all()),
                     'counts': counts,
                     'expected': money(expected),
@@ -443,17 +472,12 @@ class PortfolioView(PanelAPIView):
                             Decimal('0'),
                         )
                     ),
+                    # Igual que portfolio_totals: solo lo vencido (meses anteriores al actual).
                     'debt': money(
-                        sum(
-                            (
-                                Decimal(row['balance'])
-                                for row in rows
-                                if row['status'] == 'moroso'
-                            ),
-                            Decimal('0'),
-                        )
+                        sum((Decimal(row['overdue_amount']) for row in rows), Decimal('0'))
                     ),
                     'settlement': settlement.status if settlement else None,
+                    'severe': any(len(row['overdue_months']) >= 2 for row in rows),
                 }
             )
         queue = []
@@ -495,20 +519,72 @@ class PortfolioView(PanelAPIView):
 
 
 @extend_schema(responses=OpenApiTypes.OBJECT)
+class CollectionHistoryView(PanelAPIView):
+    """Cobrado sobre lo emitido en los últimos meses, con la imputación FIFO de cada cuenta."""
+
+    MONTHS = 6
+
+    def get(self, request, organization_id):
+        organization = get_in_scope_or_404(
+            employee_organizations(request.user), organization_id
+        )
+        month = month_param(request)
+        months = sorted(
+            set(
+                Settlement.objects.filter(
+                    building__organization=organization,
+                    status=Settlement.Status.ISSUED,
+                    month__lte=month,
+                ).values_list('month', flat=True)
+            )
+        )[-self.MONTHS:]
+        entries = (
+            LedgerEntry.objects.filter(
+                occupancy__unit__building__organization=organization
+            )
+            .select_related('settlement')
+            .order_by('occupancy_id', 'date', 'created_at', 'pk')
+        )
+        by_occupancy = defaultdict(list)
+        for entry in entries:
+            by_occupancy[entry.occupancy_id].append(entry)
+        charged = defaultdict(lambda: Decimal('0'))
+        collected = defaultdict(lambda: Decimal('0'))
+        for account_entries in by_occupancy.values():
+            for period, amount, covered, _ in periods_from_entries(account_entries):
+                charged[period] += amount
+                collected[period] += covered
+        return Response(
+            {
+                'months': [
+                    {
+                        'month': item.strftime('%Y-%m'),
+                        'charged': money(charged[item]),
+                        'collected': money(collected[item]),
+                    }
+                    for item in months
+                ]
+            }
+        )
+
+
+def building_account_rows(building, month):
+    occupancies, by_occ, receipts = occupancy_data(
+        active_occupancies(building, month).select_related('unit', 'person'), month
+    )
+    settlement_issued = building.settlements.filter(month=month, status='issued').exists()
+    return [
+        account_row(item, by_occ[item.pk], receipts[item.pk], month, settlement_issued)
+        for item in occupancies
+    ]
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
 class BuildingAccountsView(PanelAPIView):
     def get(self, request, building_id):
         building = employee_building_or_404(request.user, building_id)
         month = month_param(request)
-        occupancies, by_occ, receipts = occupancy_data(
-            active_occupancies(building, month).select_related('unit', 'person'), month
-        )
-        settlement_issued = building.settlements.filter(
-            month=month, status='issued'
-        ).exists()
-        rows = [
-            account_row(item, by_occ[item.pk], receipts[item.pk], month, settlement_issued)
-            for item in occupancies
-        ]
+        rows = building_account_rows(building, month)
         status = request.query_params.get('status')
         query = request.query_params.get('q', '').strip().lower()
         if status:
@@ -526,6 +602,89 @@ class BuildingAccountsView(PanelAPIView):
                 'accounts': rows,
             }
         )
+
+
+@extend_schema(responses={(200, exports.XLSX): OpenApiTypes.BINARY})
+class BuildingAccountsExportView(PanelAPIView):
+    """Cobros del edificio en Excel (D5)."""
+
+    def get(self, request, building_id):
+        building = employee_building_or_404(request.user, building_id)
+        month = month_param(request)
+        rows = sorted(
+            building_account_rows(building, month),
+            key=lambda row: (int(row['unit']) if row['unit'].isdigit() else 10**9, row['unit'], row['role'] != 'owner'),
+        )
+        floors = dict(building.units.values_list('number', 'floor'))
+        return exports.accounts_workbook(building, month, rows, floors)
+
+
+@extend_schema(responses={(200, exports.XLSX): OpenApiTypes.BINARY})
+class OccupancyMovementsExportView(PanelAPIView):
+    """Cuenta corriente de una ocupación en Excel (D5)."""
+
+    def get(self, request, occupancy_id):
+        occupancy = get_in_scope_or_404(
+            Occupancy.objects.filter(unit__building__in=employee_buildings(request.user))
+            .select_related('unit__building', 'person'),
+            occupancy_id,
+        )
+        return exports.movements_workbook(occupancy, portal_movements(occupancy))
+
+
+def issued_settlement_or_404(building, month):
+    return get_object_or_404(
+        Settlement.objects.filter(building=building, status=Settlement.Status.ISSUED)
+        .select_related('building__organization', 'issued_by'),
+        month=_month(month),
+    )
+
+
+@extend_schema(responses={(200, exports.XLSX): OpenApiTypes.BINARY})
+class SettlementExportView(PanelAPIView):
+    """Liquidación emitida del mes en Excel: conceptos y prorrateo por unidad (D5)."""
+
+    def get(self, request, building_id, month):
+        building = employee_building_or_404(request.user, building_id)
+        settlement = issued_settlement_or_404(building, month)
+        return exports.settlement_workbook(
+            settlement,
+            document_data.settlement_items(settlement),
+            document_data.settlement_charges(settlement),
+        )
+
+
+def pdf_url_response(settlement, occupancy=None):
+    """URL firmada de 5 minutos al PDF (D4); lo genera la primera vez."""
+    if occupancy is not None and portal_settlement_detail(occupancy, settlement.month) is None:
+        raise Http404
+    document = settlement_pdf.settlement_document(settlement, occupancy)
+    building = settlement.building
+    name = f'liquidacion-{exports.file_slug(building.name)}-{settlement.month:%Y-%m}'
+    if occupancy is not None:
+        name += f'-apto-{occupancy.unit.number}'
+    return Response({'url': settlement_pdf.signed_url(document, name + '.pdf')})
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
+class BuildingSettlementPdfView(PanelAPIView):
+    def get(self, request, building_id, month):
+        building = employee_building_or_404(request.user, building_id)
+        return pdf_url_response(issued_settlement_or_404(building, month))
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
+class OccupancySettlementPdfView(PanelAPIView):
+    """PDF de una cuenta, para imprimir el de quienes reciben la liquidación en papel."""
+
+    def get(self, request, occupancy_id, month):
+        occupancy = get_in_scope_or_404(
+            Occupancy.objects.filter(unit__building__in=employee_buildings(request.user))
+            .select_related('unit__building__organization', 'person'),
+            occupancy_id,
+        )
+        settlement = issued_settlement_or_404(occupancy.unit.building, month)
+        return pdf_url_response(settlement, occupancy)
 
 
 @extend_schema(responses=OpenApiTypes.OBJECT)
@@ -630,8 +789,18 @@ class BuildingSettlementsView(PanelAPIView):
             .prefetch_related('items__concept')
             .all()
         )
+        concepts = building.concepts.filter(is_active=True).order_by('order', 'name')
         return Response(
             {
+                'concepts': [
+                    {
+                        'id': str(concept.pk),
+                        'name': concept.name,
+                        'kind': concept.kind,
+                        'is_reserve_fund': concept.is_reserve_fund,
+                    }
+                    for concept in concepts
+                ],
                 'settlements': [
                     {
                         'month': settlement.month.strftime('%Y-%m'),
@@ -639,6 +808,7 @@ class BuildingSettlementsView(PanelAPIView):
                         'items': [
                             {
                                 'concept': item.concept.name,
+                                'concept_id': str(item.concept_id),
                                 'amount': money(item.amount),
                                 'detail': item.detail,
                             }
@@ -683,10 +853,17 @@ class OccupancyDetailView(PanelAPIView):
             .prefetch_related('items__concept')
             .first()
         )
+        # Total del concepto en el edificio (como en el portal); base_amount es la parte
+        # de la unidad antes de redondear.
+        building_totals = (
+            {item.concept_id: item.amount for item in settlement.items.all()}
+            if settlement
+            else {}
+        )
         lines = [
             {
                 'concept': entry.concept.name,
-                'total': money(entry.base_amount),
+                'total': money(building_totals.get(entry.concept_id, entry.base_amount)),
                 'coefficient': coefficient(entry.coefficient),
                 'days': entry.days,
                 'days_in_month': entry.days_in_month,
@@ -702,6 +879,8 @@ class OccupancyDetailView(PanelAPIView):
             balance += entry.amount
             movements.append(
                 {
+                    'id': str(entry.pk),
+                    'kind': entry.kind,
                     'date': entry.date.isoformat(),
                     'concept': entry.description
                     or (
@@ -727,9 +906,11 @@ class OccupancyDetailView(PanelAPIView):
             {
                 'id': str(occupancy.pk),
                 'unit': occupancy.unit.number,
+                'unit_id': str(occupancy.unit_id),
                 'floor': occupancy.unit.floor,
                 'building': occupancy.unit.building.name,
                 'coefficient': coefficient(occupancy.unit.coefficient),
+                'role': occupancy.role,
                 'status': row['status'],
                 'person': row['person'],
                 'other_occupancies': [
@@ -786,6 +967,25 @@ class ReceiptDetailView(PanelAPIView):
             receipt_id,
         )
         return Response(_receipt_json(receipt))
+
+
+@extend_schema(responses=OpenApiTypes.OBJECT)
+class ReceiptFileView(PanelAPIView):
+    """URL firmada de 5 minutos para ver el archivo del comprobante (D1b)."""
+
+    def get(self, request, receipt_id):
+        receipt = get_in_scope_or_404(
+            Receipt.objects.filter(
+                person__organization__in=employee_organizations(request.user)
+            ),
+            receipt_id,
+        )
+        if not storage.exists(receipt.file_key):
+            raise Http404
+        return Response({
+            'url': storage.signed_url(receipt.file_key, content_type=receipt.content_type),
+            'content_type': receipt.content_type,
+        })
 
 
 @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
@@ -858,7 +1058,7 @@ class ClaimDetailView(PanelAPIView):
     def get(self, request, claim_id):
         claim = get_in_scope_or_404(
             Claim.objects.filter(building__in=employee_buildings(request.user))
-            .select_related('unit', 'author')
+            .select_related('building__organization', 'unit', 'author')
             .prefetch_related('messages__author'),
             claim_id,
         )
@@ -867,7 +1067,7 @@ class ClaimDetailView(PanelAPIView):
     def patch(self, request, claim_id):
         claim = get_in_scope_or_404(
             Claim.objects.filter(building__in=employee_buildings(request.user))
-            .select_related('unit', 'author')
+            .select_related('building__organization', 'unit', 'author')
             .prefetch_related('messages__author'),
             claim_id,
         )
@@ -894,7 +1094,7 @@ class ClaimReplyView(PanelAPIView):
         return Response(
             {
                 'id': str(message.pk),
-                'author': str(message.author),
+                'author': _message_author_name(message, claim),
                 'from_admin': message.from_admin,
                 'text': message.text,
                 'date': message.created_at.isoformat(),

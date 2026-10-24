@@ -1,0 +1,36 @@
+{% extends "documents/_base.html" %}
+{% block title %}Liquidación {{ month_label }} · {{ building.name }}{% endblock %}
+{% block content %}
+  <h1>Liquidación del edificio · {{ month_label }}</h1>
+
+  <h2>Gastos del mes</h2>
+  <table>
+    <thead><tr><th>Concepto</th><th>Paga</th><th class="num">Monto</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+      <tr><td>{{ item.name }}{% if item.detail %}<br><span class="small muted">{{ item.detail }}</span>{% endif %}</td><td>{% if item.owner_only %}Propietario{% else %}Inquilino (o el propietario si no hay){% endif %}</td><td class="num">{{ item.amount }}</td></tr>
+      {% endfor %}
+      <tr class="total"><td>Total</td><td></td><td class="num">{{ total }}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Prorrateo por unidad</h2>
+  {# Sin nombres: este PDF también lo baja cada residente (Ley 18.331). #}
+  <table>
+    <thead><tr><th>Unidad</th><th>Rol</th><th class="num">Coeficiente</th><th class="num">Total</th></tr></thead>
+    <tbody>
+      {% for c in charges %}
+      <tr><td>{{ c.unit }}</td><td>{{ c.role }}</td><td class="num">{{ c.coefficient }}</td><td class="num">{{ c.total }}</td></tr>
+      {% endfor %}
+      <tr class="total"><td colspan="3">Total distribuido</td><td class="num">{{ distributed }}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Datos para transferir</h2>
+  <dl>
+    {% if bank.name %}<dt>Banco</dt><dd>{{ bank.name }}</dd>{% endif %}
+    {% if bank.account %}<dt>Cuenta</dt><dd>{{ bank.account }}</dd>{% endif %}
+    <dt>Titular</dt><dd>{{ bank.holder }}</dd>
+    <dt>Concepto</dt><dd>«Apto» y el número de la unidad</dd>
+  </dl>
+{% endblock %}

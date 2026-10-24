@@ -1,0 +1,20 @@
+# Contexto de build de la imagen de producción (backend/Dockerfile): solo entran
+# backend/ y design/ (sin la referencia del handoff). La imagen de desarrollo usa
+# backend/ como contexto y su propio backend/.dockerignore.
+*
+!backend/
+!design/
+design/ref/
+design/DISENO.md
+
+**/__pycache__/
+**/*.py[cod]
+**/.DS_Store
+backend/.env
+backend/.env*
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/staticfiles/
+backend/Dockerfile*
+backend/.dockerignore

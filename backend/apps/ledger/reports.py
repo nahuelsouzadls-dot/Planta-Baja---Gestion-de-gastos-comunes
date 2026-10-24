@@ -1,3 +1,4 @@
+import calendar
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
@@ -47,9 +48,11 @@ def _periods(entries):
 
 def portfolio_totals(organization, current_month: date) -> PortfolioTotals:
     current = current_month.replace(day=1)
+    # Toda ocupación que se superpone con el mes, igual que al emitir la liquidación.
+    current_end = current.replace(day=calendar.monthrange(current.year, current.month)[1])
     occupancies = list(
         Occupancy.objects.filter(unit__building__organization=organization)
-        .filter(Q(start_date__lte=current) | Q(start_date__isnull=True))
+        .filter(Q(start_date__lte=current_end) | Q(start_date__isnull=True))
         .filter(Q(end_date__isnull=True) | Q(end_date__gte=current))
         .select_related('unit__building')
     )

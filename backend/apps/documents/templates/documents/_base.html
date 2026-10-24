@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}Liquidación{% endblock %}</title>
+<style>
+  /* Para imprimir en blanco y negro: cuerpo de 11 pt, contraste alto, sin color de relleno. */
+  @page { size: A4; margin: 18mm 16mm 20mm; @bottom-right { content: "Página " counter(page) " de " counter(pages); font: 8.5pt "DejaVu Sans", sans-serif; color: #444; } }
+  body { font: 11pt/1.45 "DejaVu Sans", sans-serif; color: #111; }
+  h1 { font-size: 17pt; margin: 0 0 2pt; letter-spacing: -.01em; }
+  h2 { font-size: 12.5pt; margin: 18pt 0 6pt; }
+  .head { display: flex; justify-content: space-between; border-bottom: 1.5pt solid #111; padding-bottom: 8pt; }
+  .org { font-weight: 700; font-size: 12pt; }
+  .muted { color: #444; }
+  .small { font-size: 9pt; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4pt; }
+  th, td { text-align: left; padding: 5pt 6pt; border-bottom: .6pt solid #999; vertical-align: top; }
+  th { font-size: 9.5pt; text-transform: uppercase; letter-spacing: .04em; border-bottom: 1.2pt solid #111; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.total td { font-weight: 700; border-top: 1.2pt solid #111; border-bottom: 0; }
+  .box { border: 1.2pt solid #111; padding: 10pt 12pt; margin-top: 14pt; }
+  .big { font-size: 20pt; font-weight: 700; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 3pt 14pt; margin: 6pt 0 0; }
+  dt { color: #444; }
+  dd { margin: 0; font-weight: 700; }
+  .foot { margin-top: 22pt; font-size: 9pt; color: #444; border-top: .6pt solid #999; padding-top: 6pt; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div>
+      <div class="org">{{ organization }}</div>
+      <div class="muted">{{ building.name }} · {{ building.address }}{% if building.neighborhood %}, {{ building.neighborhood }}{% endif %}</div>
+    </div>
+    <div class="muted small" style="text-align:right">Liquidación de {{ month_label }}<br>Vence el día {{ due_day }}</div>
+  </div>
+  {% block content %}{% endblock %}
+  <p class="foot">
+    {% if issued_at %}Emitida el {{ issued_at|date:"j/n/Y" }}{% if issued_by %} por {{ issued_by }}{% endif %}. {% endif %}
+    Documento generado el {{ generated_at|date:"j/n/Y H:i" }}. Cualquier corrección posterior se registra como un ajuste en la cuenta corriente.
+  </p>
+</body>
+</html>
