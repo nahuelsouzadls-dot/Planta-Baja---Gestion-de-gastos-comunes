@@ -10,23 +10,27 @@ Maneja dinero real de residentes: priorizá la corrección sobre la brevedad.
 
 ## Reglas no negociables
 
+El modelo de datos aprobado está en `docs/modelo-datos.md`. Si una tarea contradice ese documento, gana el documento: anotalo como pregunta en tu reporte.
+
 ### Dinero
 - Montos: `DecimalField(max_digits=12, decimal_places=2)`. Nunca `FloatField` ni `float`.
 - Redondeo con `decimal.ROUND_HALF_UP`.
-- Prorrateo: `monto_unidad = total_gasto * (coeficiente / 100)`, calculado en el backend.
-- Los coeficientes de un edificio suman exactamente `100.00`. Validarlo antes de distribuir.
+- Coeficientes: `DecimalField(max_digits=7, decimal_places=6)` como **fracción** (`0.086000` = 8,6 %). Los de un edificio suman exactamente `1`; validarlo antes de distribuir.
+- Prorrateo: `monto = total_concepto * coeficiente * dias_ocupados / dias_del_mes`, calculado en el backend.
 - La suma de lo prorrateado debe ser igual al total (asignar la diferencia de redondeo de forma explícita).
 
-### Ledger (`Movimiento`)
-- Append-only: nunca `UPDATE` ni `DELETE` sobre movimientos. Las correcciones son un nuevo `Movimiento` de tipo `Ajuste`.
-- Crédito (pago) positivo, débito (cargo) negativo.
-- El saldo se calcula con `SUM(monto)`. Nunca guardar el saldo en una columna.
-- En el Django admin, `Movimiento` es de solo lectura y no se puede borrar.
+### Ledger (`LedgerEntry`)
+- Append-only: nunca `UPDATE` ni `DELETE` sobre asientos, y lo garantiza un trigger de Postgres. Las correcciones son un asiento nuevo de tipo `adjustment` que apunta al que corrige.
+- Signo: **positivo = debe (cargo), negativo = haber (pago)**. El saldo de una ocupación es `SUM(amount)`; positivo significa que debe.
+- Nunca guardar el saldo en una columna.
+- En el Django admin, `LedgerEntry` es de solo lectura y no se puede borrar.
+- Un pago es un asiento `payment` registrado por un usuario de la administración (`created_by` obligatorio). El comprobante (`Receipt`) es solo evidencia.
 
 ### Multi-tenant
-- Todo modelo con datos de un edificio tiene FK a `Edificio`.
-- Toda query de negocio filtra por `edificio`.
-- El `edificio` sale del perfil del usuario autenticado, nunca del request body.
+- La raíz de aislamiento es `Organization` (la administradora). Todo dato de negocio cuelga de una organización, directa o indirectamente (`Building` → `organization`).
+- Toda query del panel filtra por las organizaciones del usuario (`OrgMembership`); toda query del portal, por las ocupaciones de la `Person` del usuario.
+- La organización sale del usuario autenticado, nunca del request body ni de la URL sin verificar.
+- Cada endpoint tiene un test que demuestra que un usuario de otra organización recibe 404.
 
 ### Identificadores
 - `id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)` en todos los modelos.
@@ -38,8 +42,16 @@ Maneja dinero real de residentes: priorizá la corrección sobre la brevedad.
 ### Archivos
 - Upload directo a R2 con presigned URLs; los archivos no pasan por Django.
 - Descargas con presigned URLs de TTL ≤ 15 minutos.
-- Solo `image/jpeg`, `image/png`, `application/pdf`, máximo 10 MB. Validar magic bytes en el backend.
+- Solo `image/jpeg`, `image/png`, `image/heic`, `image/webp` y `application/pdf`, máximo 10 MB. Validar magic bytes en el backend.
 - Nombre en storage = UUID, no el nombre original.
+
+### Seguridad
+- Usuario propio `accounts.User` con **email** como login (`AUTH_USER_MODEL = 'accounts.User'`); nunca usar `django.contrib.auth.models.User` directo, siempre `get_user_model()`.
+- Contraseñas con Argon2; bloqueo por intentos fallidos con `django-axes`.
+- Sesión de Django con cookies `HttpOnly`, `Secure` y `SameSite=Lax` más CSRF. No usar JWT ni guardar tokens en `localStorage`.
+- DRF con `IsAuthenticated` por defecto; ningún `AllowAny` salvo login e invitaciones.
+- Secretos solo desde variables de entorno (`.env` local, ignorado por git). `.env.example` lleva valores de ejemplo, nunca secretos reales.
+- No loguear emails, CI ni montos en texto plano.
 
 ### Tareas asíncronas (Celery)
 - PDFs de liquidación, emails masivos y exportación a Excel van en Celery.
