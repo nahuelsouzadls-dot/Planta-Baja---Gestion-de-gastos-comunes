@@ -21,6 +21,7 @@ UNSET = object()
 @transaction.atomic
 def create_person(
     organization: Organization,
+    user,
     *,
     first_name: str,
     last_name: str,
@@ -28,14 +29,16 @@ def create_person(
     phone: str = '',
     document: str = '',
 ) -> Person:
-    return Person.objects.create(
-        organization=organization,
-        first_name=first_name,
-        last_name=last_name,
-        email=email,
-        phone=phone,
-        document=document,
-    )
+    assert_member(user, organization)
+    with audit_context(user, organization=organization):
+        return Person.objects.create(
+            organization=organization,
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            document=document,
+        )
 
 
 def move_in(
@@ -47,6 +50,8 @@ def move_in(
 ) -> Occupancy:
     organization = unit.building.organization
     assert_member(user, organization)
+    if role not in Occupancy.Role.values:
+        raise ValidationError('El rol de la ocupación no es válido.')
     if person.organization_id != unit.building.organization_id:
         raise ValidationError(
             'La persona y la unidad deben pertenecer a la misma organización.'
@@ -133,6 +138,15 @@ def replace_tenant(
 
     with audit_context(user, organization=organization):
         with transaction.atomic():
+            existing = (
+                Occupancy.objects.select_for_update()
+                .filter(unit=unit, role=Occupancy.Role.TENANT, start_date=change_date)
+                .first()
+            )
+            if existing is not None:
+                raise ValidationError(
+                    'Ya existe un inquilino con esa fecha de inicio en la unidad.'
+                )
             current = (
                 Occupancy.objects.select_for_update()
                 .filter(unit=unit, role=Occupancy.Role.TENANT, start_date__lte=change_date)
@@ -348,6 +362,12 @@ def sell_unit(unit: Unit, buyer: Person, sale_date: date, user) -> Occupancy:
     )
     if seller_occupancy is None:
         raise ValidationError('La unidad no tiene propietario vigente en la fecha de venta.')
+    if seller_occupancy.person_id == buyer.id:
+        raise ValidationError('El comprador ya es el propietario vigente de la unidad.')
+    if seller_occupancy.start_date >= sale_date:
+        raise ValidationError(
+            'Ya existe una venta o alta de propietario en esa fecha para la unidad.'
+        )
     seller_balance = balance(seller_occupancy)
     if seller_balance > 0:
         raise ValidationError(
@@ -357,12 +377,19 @@ def sell_unit(unit: Unit, buyer: Person, sale_date: date, user) -> Occupancy:
     with audit_context(user, organization=organization):
         seller_occupancy.end_date = sale_date - timedelta(days=1)
         seller_occupancy.save(update_fields=['end_date', 'updated_at'])
-        occupancy = Occupancy.objects.create(
-            unit=unit,
-            person=buyer,
-            role=Occupancy.Role.OWNER,
-            start_date=sale_date,
-        )
+        try:
+            occupancy = Occupancy.objects.create(
+                unit=unit,
+                person=buyer,
+                role=Occupancy.Role.OWNER,
+                start_date=sale_date,
+            )
+        except IntegrityError as error:
+            if 'occupancy_no_overlap' not in str(error).lower():
+                raise
+            raise ValidationError(
+                'Ya existe un propietario en la unidad para esa fecha.'
+            ) from error
         record_event(
             user,
             organization,

@@ -108,8 +108,8 @@ def test_issue_settlement_records_event():
     unit = UnitFactory(building=building, number='101', coefficient='1.000000')
     owner_for(unit)
     concept = ExpenseConceptFactory(building=building, name='Limpieza')
-    settlement = save_draft(building, date(2026, 10, 1), {concept: Decimal('48300.00')})
     user = employee_for(building)
+    settlement = save_draft(building, user, date(2026, 10, 1), {concept: Decimal('48300.00')})
     before = event_count()
 
     issue_settlement(settlement, user)
@@ -407,8 +407,8 @@ def test_repeated_settlement_issue_creates_no_second_event():
     unit = UnitFactory(building=building, coefficient='1.000000')
     owner_for(unit)
     concept = ExpenseConceptFactory(building=building)
-    settlement = save_draft(building, date(2026, 10, 1), {concept: Decimal('100.00')})
     user = employee_for(building)
+    settlement = save_draft(building, user, date(2026, 10, 1), {concept: Decimal('100.00')})
     issue_settlement(settlement, user)
     before = event_count()
 
@@ -455,10 +455,10 @@ def test_business_events_never_store_sensitive_data_keys():
     )
     owner_for(issue_unit)
     concept = ExpenseConceptFactory(building=issue_building)
-    settlement = save_draft(
-        issue_building, date(2026, 10, 1), {concept: Decimal('100.00')}
-    )
     user = employee_for(issue_building)
+    settlement = save_draft(
+        issue_building, user, date(2026, 10, 1), {concept: Decimal('100.00')}
+    )
     issue_settlement(settlement, user)
 
     tenant = tenant_for(issue_unit, name='Residente', last_name='Pago')

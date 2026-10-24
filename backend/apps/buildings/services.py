@@ -1,11 +1,13 @@
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
 from apps.accounts.models import Organization
+from apps.audit.context import audit_context
+from apps.ledger.payments import assert_member
 
-from .models import Building, ExpenseConcept
+from .models import Building, ExpenseConcept, Unit
 
 
 DEFAULT_CONCEPTS = [
@@ -19,21 +21,61 @@ DEFAULT_CONCEPTS = [
 
 
 @transaction.atomic
-def create_building(organization: Organization, **datos) -> Building:
-    building = Building.objects.create(organization=organization, **datos)
-    ExpenseConcept.objects.bulk_create(
-        [
-            ExpenseConcept(
+def create_building(organization: Organization, user, **datos) -> Building:
+    assert_member(user, organization)
+    with audit_context(user, organization=organization):
+        building = Building.objects.create(organization=organization, **datos)
+        ExpenseConcept.objects.bulk_create(
+            [
+                ExpenseConcept(
+                    building=building,
+                    name=name,
+                    kind=kind,
+                    is_reserve_fund=is_reserve_fund,
+                    order=order,
+                )
+                for order, (name, kind, is_reserve_fund) in enumerate(DEFAULT_CONCEPTS, start=1)
+            ]
+        )
+        return building
+
+
+@transaction.atomic
+def add_unit(
+    building: Building,
+    user,
+    *,
+    number,
+    floor,
+    coefficient,
+    receives_paper=False,
+) -> Unit:
+    assert_member(user, building.organization)
+    if isinstance(coefficient, float):
+        raise ValidationError('El coeficiente debe ser Decimal, no float.')
+    try:
+        coefficient = Decimal(str(coefficient))
+    except (TypeError, ValueError, ArithmeticError) as error:
+        raise ValidationError('El coeficiente debe ser un Decimal válido.') from error
+    if coefficient != coefficient.quantize(Decimal('0.000001')):
+        raise ValidationError('El coeficiente no puede tener más de 6 decimales.')
+    if coefficient <= 0 or coefficient > 1:
+        raise ValidationError('El coeficiente debe estar entre 0 y 1.')
+    with audit_context(user, organization=building.organization):
+        try:
+            return Unit.objects.create(
                 building=building,
-                name=name,
-                kind=kind,
-                is_reserve_fund=is_reserve_fund,
-                order=order,
+                number=number,
+                floor=floor,
+                coefficient=coefficient,
+                receives_paper=receives_paper,
             )
-            for order, (name, kind, is_reserve_fund) in enumerate(DEFAULT_CONCEPTS, start=1)
-        ]
-    )
-    return building
+        except IntegrityError as error:
+            if 'unit_building_number_unique' not in str(error).lower():
+                raise
+            raise ValidationError(
+                f'La unidad {number} ya existe en el edificio.'
+            ) from error
 
 
 def coefficient_sum(building: Building) -> Decimal:

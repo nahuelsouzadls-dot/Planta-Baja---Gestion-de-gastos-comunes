@@ -138,8 +138,7 @@ def test_golden_minas_accounts_match_front():
         pytest.skip(str(error))
     golden = next(building for building in data['buildings'] if building['id'] == 'minas')
     employee = UserFactory()
-    building = _golden_building(golden)
-    OrgMembershipFactory(user=employee, organization=building.organization)
+    building = _golden_building(golden, employee)
     for person in building.organization.people.all():
         resident = UserFactory()
         person.user = resident
@@ -147,6 +146,7 @@ def test_golden_minas_accounts_match_front():
     for expense in golden['expenses']:
         settlement = save_draft(
             building,
+            employee,
             date.fromisoformat(f"{expense['month']}-01"),
             _golden_items(building, expense),
             details=_golden_details(building, expense),

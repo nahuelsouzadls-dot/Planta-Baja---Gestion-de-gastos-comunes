@@ -7,6 +7,7 @@ from django.urls import reverse
 from apps.audit.context import audit_context
 from apps.audit.events import record_event
 from apps.audit.models import AuditLog, RowChange
+from apps.accounts.models import OrgMembership
 from apps.buildings.models import Building
 from apps.core.money import format_money
 from apps.ledger.services import record_opening
@@ -164,6 +165,8 @@ def test_person_insert_is_audited():
 
 def test_delete_draft_audits_items_and_settlement():
     building = BuildingFactory()
+    user = UserFactory()
+    OrgMembership.objects.create(user=user, organization=building.organization)
     settlement = SettlementFactory(building=building)
     first_concept = ExpenseConceptFactory(building=building)
     second_concept = ExpenseConceptFactory(building=building)
@@ -178,7 +181,7 @@ def test_delete_draft_audits_items_and_settlement():
         amount='200.00',
     )
 
-    delete_draft(settlement)
+    delete_draft(settlement, user)
 
     changes = RowChange.objects.filter(operation=RowChange.Operation.DELETE)
     assert changes.count() == 3

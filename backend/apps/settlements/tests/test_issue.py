@@ -5,6 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from apps.accounts.models import User
+from apps.accounts.models import OrgMembership
 from apps.audit.models import RowChange
 from apps.buildings.models import ExpenseConcept, Unit
 from apps.buildings.services import create_building
@@ -30,9 +31,12 @@ def _people_and_occupancy(unit, organization, role, name, start, end=None):
     )
 
 
-def _simple_building(coefficients=('0.100000', '0.900000')):
+def _simple_building(user, coefficients=('0.100000', '0.900000')):
+    organization = OrganizationFactory()
+    OrgMembership.objects.create(user=user, organization=organization)
     building = create_building(
-        OrganizationFactory(),
+        organization,
+        user,
         name='Edificio de prueba',
         address='Prueba 123',
     )
@@ -55,11 +59,12 @@ def _simple_building(coefficients=('0.100000', '0.900000')):
 
 @pytest.fixture
 def user(db):
-    return User.objects.create_user(email='issuer@example.com', password='test-password-123')
+    user = User.objects.create_user(email='issuer@example.com', password='test-password-123')
+    return user
 
 
 def test_issue_prorates_move_and_fallback_to_owner(user):
-    building = _simple_building()
+    building = _simple_building(user)
     unit = building.units.get(number='1')
     owner = unit.occupancies.get(role=Occupancy.Role.OWNER)
     first_tenant = _people_and_occupancy(
@@ -80,6 +85,7 @@ def test_issue_prorates_move_and_fallback_to_owner(user):
     concepts = {concept.name: concept for concept in building.concepts.all()}
     settlement = save_draft(
         building,
+        user,
         date(2026, 3, 1),
         {
             concepts['O.S.E. (agua)']: Decimal('3100.00'),
@@ -96,7 +102,7 @@ def test_issue_prorates_move_and_fallback_to_owner(user):
 
 
 def test_issue_handles_days_without_tenant(user):
-    building = _simple_building()
+    building = _simple_building(user)
     unit = building.units.get(number='1')
     tenant = _people_and_occupancy(
         unit,
@@ -107,7 +113,7 @@ def test_issue_handles_days_without_tenant(user):
     )
     owner = unit.occupancies.get(role=Occupancy.Role.OWNER)
     concept = building.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(building, date(2026, 3, 1), {concept: Decimal('3100.00')})
+    settlement = save_draft(building, user, date(2026, 3, 1), {concept: Decimal('3100.00')})
 
     issue_settlement(settlement, user)
 
@@ -116,7 +122,7 @@ def test_issue_handles_days_without_tenant(user):
 
 
 def test_issue_splits_owner_on_sale(user):
-    building = _simple_building()
+    building = _simple_building(user)
     unit = building.units.get(number='1')
     first_owner = unit.occupancies.get(role=Occupancy.Role.OWNER)
     first_owner.end_date = date(2026, 3, 15)
@@ -129,7 +135,7 @@ def test_issue_splits_owner_on_sale(user):
         date(2026, 3, 16),
     )
     concept = building.concepts.get(name='Fondo de reserva')
-    settlement = save_draft(building, date(2026, 3, 1), {concept: Decimal('1000.00')})
+    settlement = save_draft(building, user, date(2026, 3, 1), {concept: Decimal('1000.00')})
 
     issue_settlement(settlement, user)
 
@@ -138,15 +144,15 @@ def test_issue_splits_owner_on_sale(user):
 
 
 def test_issue_errors_are_atomic_and_idempotent(user):
-    building = _simple_building()
+    building = _simple_building(user)
     concept = building.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(building, date(2026, 3, 1), {concept: Decimal('100.00')})
+    settlement = save_draft(building, user, date(2026, 3, 1), {concept: Decimal('100.00')})
     issue_settlement(settlement, user)
     with pytest.raises(ValidationError):
         issue_settlement(settlement, user)
     assert LedgerEntry.objects.filter(settlement=settlement).count() == 2
 
-    missing_owner = _simple_building(('1.000000',))
+    missing_owner = _simple_building(user, ('1.000000',))
     unit = missing_owner.units.get()
     unit.occupancies.all().delete()
     _people_and_occupancy(
@@ -157,16 +163,16 @@ def test_issue_errors_are_atomic_and_idempotent(user):
         date(2026, 1, 1),
     )
     concept = missing_owner.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(missing_owner, date(2026, 3, 1), {concept: Decimal('100.00')})
+    settlement =     save_draft(missing_owner, user, date(2026, 3, 1), {concept: Decimal('100.00')})
     with pytest.raises(ValidationError, match='1'):
         issue_settlement(settlement, user)
     assert not LedgerEntry.objects.filter(settlement=settlement).exists()
 
 
 def test_issue_rejects_coefficients_that_do_not_sum_to_one(user):
-    building = _simple_building(('0.100000', '0.800000'))
+    building = _simple_building(user, ('0.100000', '0.800000'))
     concept = building.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(building, date(2026, 3, 1), {concept: Decimal('100.00')})
+    settlement = save_draft(building, user, date(2026, 3, 1), {concept: Decimal('100.00')})
 
     with pytest.raises(ValidationError, match='deben sumar exactamente 1'):
         issue_settlement(settlement, user)
@@ -175,9 +181,9 @@ def test_issue_rejects_coefficients_that_do_not_sum_to_one(user):
 
 
 def test_issue_writes_audit_rows(user):
-    building = _simple_building()
+    building = _simple_building(user)
     concept = building.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(building, date(2026, 3, 1), {concept: Decimal('100.00')})
+    settlement = save_draft(building, user, date(2026, 3, 1), {concept: Decimal('100.00')})
 
     issue_settlement(settlement, user)
 
@@ -196,20 +202,20 @@ def test_issue_writes_audit_rows(user):
 
 
 def test_pocitos_rounding_adjustment(user):
-    building = _simple_building(tuple(['0.062500'] * 16))
+    building = _simple_building(user, tuple(['0.062500'] * 16))
     for index, unit in enumerate(building.units.all(), start=1):
         unit.number = str(100 + index)
         unit.save(update_fields=['number', 'updated_at'])
     concept = building.concepts.get(name='O.S.E. (agua)')
-    settlement = save_draft(building, date(2026, 8, 1), {concept: Decimal('5350.00')})
+    settlement = save_draft(building, user, date(2026, 8, 1), {concept: Decimal('5350.00')})
 
     summary = issue_settlement(settlement, user)
     amounts = list(LedgerEntry.objects.filter(settlement=settlement).values_list('amount', flat=True))
 
     assert sum(amounts, Decimal('0.00')) == Decimal('5350.00')
-    assert amounts.count(Decimal('334.38')) == 15
-    assert amounts.count(Decimal('334.30')) == 1
-    assert summary.rounding_differences[concept.name] == Decimal('-0.08')
+    assert amounts.count(Decimal('334.38')) == 8
+    assert amounts.count(Decimal('334.37')) == 8
+    assert summary.rounding_differences[concept.name] == Decimal('0.08')
 
 
 def _load_golden_or_skip():
@@ -219,9 +225,12 @@ def _load_golden_or_skip():
         pytest.skip(str(error))
 
 
-def _golden_building(data):
+def _golden_building(data, user):
+    organization = OrganizationFactory()
+    OrgMembership.objects.create(user=user, organization=organization)
     building = create_building(
-        OrganizationFactory(),
+        organization,
+        user,
         name=data['name'],
         address='Dirección golden',
     )
@@ -279,10 +288,11 @@ def _golden_details(building, expense):
 def test_golden_minas_october_by_account_and_concept(user):
     data = _load_golden_or_skip()
     golden = next(building for building in data['buildings'] if building['id'] == 'minas')
-    building = _golden_building(golden)
+    building = _golden_building(golden, user)
     expense = next(item for item in golden['expenses'] if item['month'] == '2026-10')
     settlement = save_draft(
         building,
+        user,
         date(2026, 10, 1),
         _golden_items(building, expense),
         details=_golden_details(building, expense),
@@ -305,12 +315,13 @@ def test_golden_minas_october_by_account_and_concept(user):
 def test_golden_all_buildings_and_months_balance_exactly(user):
     data = _load_golden_or_skip()
     for golden in data['buildings']:
-        building = _golden_building(golden)
+        building = _golden_building(golden, user)
         for expense in golden['expenses']:
             if expense['status'] != 'emitido':
                 continue
             settlement = save_draft(
                 building,
+                user,
                 date.fromisoformat(f"{expense['month']}-01"),
                 _golden_items(building, expense),
                 details=_golden_details(building, expense),

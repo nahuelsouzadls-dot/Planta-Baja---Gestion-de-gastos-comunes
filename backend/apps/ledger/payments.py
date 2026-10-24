@@ -9,6 +9,7 @@ from apps.accounts.models import OrgMembership
 from apps.audit.context import audit_context
 from apps.audit.events import record_event
 from apps.core.money import format_money, to_money
+from apps.ledger.services import balance
 
 from .models import LedgerEntry, Receipt, ReceiptAllocation
 
@@ -21,6 +22,16 @@ def assert_member(user, organization):
         user=user, organization=organization
     ).exists():
         raise PermissionDenied('El empleado no pertenece a esta organización.')
+
+
+def assert_is_person(user, person):
+    if (
+        user is None
+        or not getattr(user, 'is_authenticated', False)
+        or not getattr(user, 'pk', None)
+        or person.user_id != user.pk
+    ):
+        raise PermissionDenied('La persona no está autorizada para esta operación.')
 
 
 def _occupancy_organization(occupancy):
@@ -46,12 +57,12 @@ def submit_receipt(
     allocations,
     note='',
 ):
-    if uploaded_by is None or (
-        getattr(person, 'user_id', None) != uploaded_by.id
-        and not OrgMembership.objects.filter(
-            user=uploaded_by, organization=person.organization
-        ).exists()
-    ):
+    is_employee = uploaded_by is not None and OrgMembership.objects.filter(
+        user=uploaded_by, organization=person.organization
+    ).exists()
+    if not is_employee:
+        assert_is_person(uploaded_by, person)
+    if uploaded_by is None:
         raise PermissionDenied('No está autorizado a subir este comprobante.')
     declared_amount = to_money(declared_amount)
     if declared_amount <= 0:
@@ -71,6 +82,18 @@ def submit_receipt(
             or occupancy.unit.building.organization_id != person.organization_id
         ):
             raise ValidationError('Todas las ocupaciones deben pertenecer a la persona.')
+        if not is_employee:
+            current = (
+                occupancy.start_date <= timezone.localdate()
+                and (
+                    occupancy.end_date is None
+                    or occupancy.end_date >= timezone.localdate()
+                )
+            )
+            if not current and balance(occupancy) <= 0:
+                raise PermissionDenied(
+                    'Solo puede pagar ocupaciones vigentes o con saldo pendiente.'
+                )
         amount = to_money(amount)
         if amount <= 0:
             raise ValidationError('Cada imputación debe ser mayor que cero.')
@@ -111,12 +134,7 @@ def approve_receipt(receipt, user, allocations=None):
     original_allocations = list(
         locked.allocations.select_related('occupancy__unit__building__organization')
     )
-    organizations = {
-        _occupancy_organization(allocation.occupancy).id for allocation in original_allocations
-    }
-    if not organizations or len(organizations) != 1:
-        raise ValidationError('El comprobante no tiene ocupaciones válidas.')
-    organization = _occupancy_organization(original_allocations[0].occupancy)
+    organization = locked.person.organization
     assert_member(user, organization)
     if locked.status != Receipt.Status.PENDING:
         raise ValidationError('El comprobante ya fue revisado.')
@@ -141,6 +159,7 @@ def approve_receipt(receipt, user, allocations=None):
             raise ValidationError('Debe indicar una aclaración cuando reparte el pago.')
         if sum((amount for _, amount in final_allocations), Decimal('0.00')) != locked.declared_amount:
             raise ValidationError('La suma de las imputaciones debe coincidir con el monto declarado.')
+    _validate_receipt_allocations(locked, final_allocations, organization)
 
     with audit_context(user, organization=organization):
         if allocations is not None:
@@ -192,6 +211,16 @@ def reject_receipt(receipt, user, reason):
         .get(pk=receipt.pk)
     )
     assert_member(user, locked.person.organization)
+    _validate_receipt_allocations(
+        locked,
+        [
+            (allocation.occupancy, allocation.amount)
+            for allocation in locked.allocations.select_related(
+                'occupancy__unit__building__organization'
+            )
+        ],
+        locked.person.organization,
+    )
     if locked.status != Receipt.Status.PENDING:
         raise ValidationError('El comprobante ya fue revisado.')
     if not reason or not reason.strip():
@@ -224,6 +253,19 @@ def reject_receipt(receipt, user, reason):
             unit=first_allocation.occupancy.unit.number if first_allocation is not None else None,
         )
     return locked
+
+
+def _validate_receipt_allocations(receipt, allocations, organization):
+    if not allocations:
+        raise ValidationError('El comprobante no tiene ocupaciones válidas.')
+    if any(
+        occupancy.person_id != receipt.person_id
+        or occupancy.unit.building.organization_id != organization.id
+        for occupancy, _ in allocations
+    ):
+        raise ValidationError('Todas las ocupaciones deben pertenecer a la persona y organización del comprobante.')
+    if sum((amount for _, amount in allocations), Decimal('0.00')) != receipt.declared_amount:
+        raise ValidationError('La suma de las imputaciones debe coincidir con el monto declarado.')
 
 
 @transaction.atomic

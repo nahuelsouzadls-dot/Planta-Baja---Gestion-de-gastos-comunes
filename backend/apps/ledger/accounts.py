@@ -35,10 +35,20 @@ def periods(occupancy) -> list[Period]:
             else:
                 credit_pool -= entry.amount
         elif entry.kind == LedgerEntry.Kind.ADJUSTMENT:
-            if entry.amount > 0:
-                month = _month(entry.date)
-                charged_by_month[month] = charged_by_month.get(month, Decimal('0.00')) + entry.amount
-            else:
+            target = entry.adjusts
+            if target is not None and target.kind in {
+                LedgerEntry.Kind.CHARGE,
+                LedgerEntry.Kind.OPENING,
+                LedgerEntry.Kind.SURCHARGE,
+            } and target.amount > 0:
+                if target.kind == LedgerEntry.Kind.CHARGE:
+                    month = _month(target.settlement.month)
+                else:
+                    month = _month(target.date)
+                charged_by_month[month] = (
+                    charged_by_month.get(month, Decimal('0.00')) + entry.amount
+                )
+            elif target is not None:
                 credit_pool -= entry.amount
         elif entry.amount < 0:
             credit_pool -= entry.amount
@@ -69,13 +79,13 @@ def account_status(occupancy, current_month: date) -> str:
         return 'revision'
     if any(period.month < _month(current_month) and period.outstanding > 0 for period in periods(occupancy)):
         return 'moroso'
+    if sum((period.outstanding for period in periods(occupancy)), Decimal('0.00')) > 0:
+        return 'pendiente'
     if not occupancy.unit.building.settlements.filter(
         month=_month(current_month),
         status='issued',
     ).exists():
         return 'sin-cargar'
-    if sum((period.outstanding for period in periods(occupancy)), Decimal('0.00')) > 0:
-        return 'pendiente'
     return 'pagado'
 
 

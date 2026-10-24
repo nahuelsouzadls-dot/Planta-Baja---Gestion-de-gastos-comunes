@@ -6,21 +6,43 @@ from django.core.exceptions import ValidationError
 from django.db import DatabaseError, IntegrityError, connection, transaction
 from django.urls import reverse
 
-from apps.accounts.models import User
+from apps.accounts.models import OrgMembership, User
 from apps.buildings.models import ExpenseConcept
 from apps.buildings.services import create_building
 from apps.settlements.models import Settlement, SettlementItem
-from apps.settlements.services import delete_draft, save_draft, settlement_total
+from apps.settlements.services import (
+    delete_draft as service_delete_draft,
+    save_draft as service_save_draft,
+    settlement_total,
+)
 from tests.factories import OrganizationFactory
 
 
 @pytest.fixture
-def building(db):
-    return create_building(
-        OrganizationFactory(),
+def user(db):
+    return User.objects.create_user(email='settlements@example.com', password='test-password-123')
+
+
+@pytest.fixture
+def building(db, user):
+    organization = OrganizationFactory()
+    OrgMembership.objects.create(user=user, organization=organization)
+    building = create_building(
+        organization,
+        user,
         name='Edificio Minas',
         address='Minas 1234',
     )
+    building._test_user = user
+    return building
+
+
+def save_draft(building, month, items, **kwargs):
+    return service_save_draft(building, building._test_user, month, items, **kwargs)
+
+
+def delete_draft(settlement):
+    return service_delete_draft(settlement, settlement.building._test_user)
 
 
 @pytest.fixture
@@ -88,8 +110,10 @@ def test_save_draft_validates_amounts_and_details(building, concepts):
         save_draft(building, date(2027, 1, 1), {concepts['Limpieza']: Decimal('0')})
 
 
-def test_save_draft_rejects_concept_from_other_building(building):
-    other = create_building(OrganizationFactory(), name='Otro', address='Otra 1')
+def test_save_draft_rejects_concept_from_other_building(building, user):
+    organization = OrganizationFactory()
+    OrgMembership.objects.create(user=user, organization=organization)
+    other = create_building(organization, user, name='Otro', address='Otra 1')
     concept = other.concepts.first()
 
     with pytest.raises(ValidationError):
