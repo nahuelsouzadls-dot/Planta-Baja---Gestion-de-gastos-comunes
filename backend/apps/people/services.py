@@ -31,7 +31,7 @@ def create_person(
 ) -> Person:
     assert_member(user, organization)
     with audit_context(user, organization=organization):
-        return Person.objects.create(
+        person = Person.objects.create(
             organization=organization,
             first_name=first_name,
             last_name=last_name,
@@ -39,6 +39,15 @@ def create_person(
             phone=phone,
             document=document,
         )
+        record_event(
+            user,
+            organization,
+            'person.create',
+            person,
+            f'Dio de alta a {person}',
+            person_id=str(person.pk),
+        )
+        return person
 
 
 def move_in(
@@ -262,8 +271,10 @@ def update_person(person: Person, user, **fields) -> Person:
     if unknown:
         raise ValidationError('Solo se pueden editar datos personales autorizados.')
     if 'email' in fields:
+        if not isinstance(fields['email'], str):
+            raise ValidationError('El email no es válido.')
         fields['email'] = fields['email'].strip().lower()
-        if person.user_id is not None and fields['email'] != person.email:
+        if person.user_id is not None and fields['email'] != (person.email or '').strip().lower():
             raise ValidationError(
                 'Esta persona ya tiene cuenta: el email de acceso se cambia reenviando la invitación'
             )
@@ -271,10 +282,24 @@ def update_person(person: Person, user, **fields) -> Person:
     with audit_context(user, organization=organization):
         with transaction.atomic():
             person = Person.objects.select_for_update().get(pk=person.pk)
+            previous_email = (person.email or '').strip().lower()
+            if 'email' in fields and person.user_id is not None and fields['email'] != previous_email:
+                raise ValidationError(
+                    'Esta persona ya tiene cuenta: el email de acceso se cambia reenviando la invitación'
+                )
             changed_fields = list(fields)
             for field, value in fields.items():
                 setattr(person, field, value)
             person.save(update_fields=list(fields) + ['updated_at'])
+            if 'email' in fields and fields['email'] != previous_email:
+                from django.utils import timezone
+                from apps.accounts.models import Invitation
+
+                Invitation.objects.filter(
+                    person=person,
+                    used_at__isnull=True,
+                    revoked_at__isnull=True,
+                ).update(revoked_at=timezone.now())
             record_event(
                 user,
                 organization,

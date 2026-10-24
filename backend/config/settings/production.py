@@ -31,3 +31,17 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'same-origin'
 X_FRAME_OPTIONS = 'DENY'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+TRUSTED_PROXY_COUNT = env.int('TRUSTED_PROXY_COUNT', default=1)
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,  # noqa: F405
+    'NUM_PROXIES': TRUSTED_PROXY_COUNT,
+}
+REDIS_URL = env('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+    }
+}
+

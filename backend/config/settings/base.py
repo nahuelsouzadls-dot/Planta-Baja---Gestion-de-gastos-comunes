@@ -30,6 +30,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'rest_framework',
+    'drf_spectacular',
     'axes',
 ]
 
@@ -129,12 +130,20 @@ AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]
 AXES_USERNAME_FORM_FIELD = 'email'
 AXES_USERNAME_CALLABLE = 'apps.accounts.axes.get_username'
+AXES_CLIENT_IP_CALLABLE = 'apps.core.net.client_ip'
+TRUSTED_PROXY_COUNT = env.int('TRUSTED_PROXY_COUNT', default=0)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    }
+}
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_AGE = 60 * 60 * 8
 
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
     ],
@@ -143,14 +152,23 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
+    'NUM_PROXIES': TRUSTED_PROXY_COUNT,
     'DEFAULT_THROTTLE_CLASSES': [
-        'rest_framework.throttling.ScopedRateThrottle',
+        'apps.core.net.ClientIPScopedRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
         'login': '10/min',
         'invitation_accept': '10/hour',
         'password_reset': '5/hour',
+        'password_reset_confirm': '5/hour',
     },
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Administración GC API',
+    'DESCRIPTION': 'API del panel y portal de Administración GC.',
+    'VERSION': '1.0.0',
+    'SERVE_PERMISSIONS': ['apps.api.permissions.IsEmployee'],
 }
 
 FRONTEND_BASE_URL = env('FRONTEND_BASE_URL', default='')

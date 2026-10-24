@@ -2,6 +2,8 @@ from contextlib import contextmanager
 
 from django.db import connection, transaction
 
+from apps.core.net import client_ip
+
 
 @contextmanager
 def audit_context(actor=None, organization=None, ip=None, path=None):
@@ -63,7 +65,7 @@ class AuditContextMiddleware:
             actor = request.user if request.user.is_authenticated else None
             with audit_context(
                 actor=actor,
-                ip=request.META.get('REMOTE_ADDR', ''),
+                ip=client_ip(request),
                 path=request.path,
             ):
                 return self.get_response(request)

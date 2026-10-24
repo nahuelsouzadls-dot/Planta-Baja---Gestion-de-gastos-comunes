@@ -26,8 +26,12 @@ PASSWORD = 'Correct horse battery staple 123'
 
 @pytest.fixture(autouse=True)
 def locmem_email_backend():
+    from django.core.cache import cache
+
+    cache.clear()
     with override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend'):
         yield
+    cache.clear()
 
 
 def csrf_client():
@@ -332,3 +336,456 @@ def test_login_throttle_rejects_eleventh_request_from_same_ip():
         for index in range(11)
     ]
     assert responses[-1].status_code == 429
+
+
+@pytest.mark.django_db
+def test_sec3_1_resident_invitation_revoked_on_email_change_and_rejects_stale_email():
+    from django.core.exceptions import ValidationError
+    from apps.accounts.invitations import accept_invitation, invite_resident
+    from apps.people.services import update_person
+
+    org = OrganizationFactory(name='Confort S.A.')
+    admin = create_user('sec3-admin1@confort.com')
+    OrgMembershipFactory(user=admin, organization=org)
+
+    person = PersonFactory(
+        organization=org,
+        first_name='Lucía',
+        last_name='Gómez',
+        email='equivocado@example.com',
+    )
+    inv_old, token_old = invite_resident(person, admin)
+
+    person = update_person(person, admin, email='lucia.real@example.com')
+    inv_old.refresh_from_db()
+    assert inv_old.revoked_at is not None
+
+    inv_second, token_second = invite_resident(person, admin)
+    # Si el email de la persona cambia en la base sin pasar por update_person,
+    # accept_invitation igual debe rechazar el token porque invitation.email != person.email:
+    Person.objects.filter(pk=person.pk).update(email='lucia.final@example.com')
+    person.refresh_from_db()
+    with pytest.raises(ValidationError, match='El link no es válido o venció'):
+        accept_invitation(token_second, PASSWORD)
+
+    inv_new, token_new = invite_resident(person, admin)
+    inv_second.refresh_from_db()
+    assert inv_second.revoked_at is not None
+
+    with pytest.raises(ValidationError, match='El link no es válido o venció'):
+        accept_invitation(token_old, PASSWORD)
+
+    accepted_user = accept_invitation(token_new, PASSWORD)
+    person.refresh_from_db()
+    assert accepted_user.email == 'lucia.final@example.com'
+    assert accepted_user.first_name == 'Lucía'
+    assert accepted_user.last_name == 'Gómez'
+    assert person.user_id == accepted_user.pk
+
+
+@pytest.mark.django_db
+@override_settings(REST_FRAMEWORK={
+    'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.SessionAuthentication'],
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'DEFAULT_THROTTLE_CLASSES': ['rest_framework.throttling.ScopedRateThrottle'],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': '10/min',
+        'invitation_accept': '10/hour',
+        'password_reset': '5/hour',
+    },
+})
+def test_sec3_2_client_ip_trusted_proxies_prevents_throttle_bypass_and_axes_cross_blocking(rf):
+    from django.core.cache import cache
+    from apps.audit.models import RowChange
+    from apps.core.net import client_ip
+
+    cache.clear()
+    req_direct = rf.get('/', REMOTE_ADDR='10.0.0.1', HTTP_X_FORWARDED_FOR='203.0.113.5')
+    with override_settings(TRUSTED_PROXY_COUNT=0):
+        assert client_ip(req_direct) == '10.0.0.1'
+
+    req_spoofed = rf.get(
+        '/',
+        REMOTE_ADDR='10.0.0.1',
+        HTTP_X_FORWARDED_FOR='203.0.113.9, 198.51.100.77',
+    )
+    with override_settings(TRUSTED_PROXY_COUNT=1):
+        assert client_ip(req_spoofed) == '198.51.100.77'
+
+    with override_settings(TRUSTED_PROXY_COUNT=2):
+        req_short = rf.get('/', REMOTE_ADDR='10.0.0.1', HTTP_X_FORWARDED_FOR='198.51.100.77')
+        assert client_ip(req_short) == '10.0.0.1'
+
+    client = csrf_client()
+    for i in range(5):
+        res = client.post(
+            '/api/v1/auth/password-reset',
+            {'email': f'user{i}@example.com'},
+            format='json',
+            REMOTE_ADDR='10.0.0.1',
+            HTTP_X_FORWARDED_FOR=f'203.0.113.{i}, 198.51.100.77',
+        )
+        assert res.status_code == 204
+
+    sixth = client.post(
+        '/api/v1/auth/password-reset',
+        {'email': 'user5@example.com'},
+        format='json',
+        REMOTE_ADDR='10.0.0.1',
+        HTTP_X_FORWARDED_FOR='203.0.113.99, 198.51.100.77',
+    )
+    assert sixth.status_code == 429
+
+    cache.clear()
+    victim = create_user('victim-sec3@example.com')
+    with override_settings(TRUSTED_PROXY_COUNT=1):
+        # Un atacante detrás del proxy (REMOTE_ADDR='10.0.0.2') con IP real 198.51.100.50
+        # falsifica la parte izquierda de X-Forwarded-For pero sigue siendo identificado como 198.51.100.50:
+        for i in range(4):
+            res = client.post(
+                '/api/v1/auth/login',
+                {'email': victim.email, 'password': 'wrong-password'},
+                format='json',
+                REMOTE_ADDR='10.0.0.2',
+                HTTP_X_FORWARDED_FOR=f'198.18.0.{i}, 198.51.100.50',
+            )
+            assert res.status_code == 400
+
+        fifth_fail = client.post(
+            '/api/v1/auth/login',
+            {'email': victim.email, 'password': 'wrong-password'},
+            format='json',
+            REMOTE_ADDR='10.0.0.2',
+            HTTP_X_FORWARDED_FOR='198.18.0.99, 198.51.100.50',
+        )
+        assert fifth_fail.status_code == 429
+
+        # Otro cliente legítimo detrás del mismo proxy (REMOTE_ADDR='10.0.0.2') pero con IP real 198.51.100.200
+        # NO queda bloqueado por axes y AuditContextMiddleware registra su IP real:
+        legit_client = csrf_client()
+        legit_res = legit_client.post(
+            '/api/v1/auth/login',
+            {'email': victim.email, 'password': PASSWORD},
+            format='json',
+            REMOTE_ADDR='10.0.0.2',
+            HTTP_X_FORWARDED_FOR='198.51.100.200',
+        )
+        assert legit_res.status_code == 200
+        login_change = RowChange.objects.filter(
+            table_name='accounts_user',
+            row_id=victim.pk,
+            operation=RowChange.Operation.UPDATE,
+        ).latest('created_at')
+        assert login_change.request_ip == '198.51.100.200'
+
+
+@pytest.mark.django_db
+def test_sec3_3_invitation_accept_enforces_axes_rejects_inactive_user_and_validates_similarity():
+    from django.core.exceptions import ValidationError
+    from apps.accounts.invitations import accept_invitation, invite_employee
+
+    org = OrganizationFactory(name='Org Sec3')
+    admin = create_user('admin-sec3-3@org.com')
+    OrgMembershipFactory(user=admin, organization=org)
+
+    inactive_user = create_user('inactive-sec3@example.com', is_active=False)
+    _, token_inactive = invite_employee(
+        org, admin, email=inactive_user.email, first_name='In', last_name='Activo'
+    )
+    client = csrf_client()
+    # Un usuario inactivo no puede aceptar invitación ni iniciar sesión aunque envíe la contraseña correcta:
+    res_inactive = client.post(
+        '/api/v1/invitations/accept',
+        {'token': token_inactive, 'password': PASSWORD},
+        format='json',
+        REMOTE_ADDR='10.99.0.1',
+    )
+    assert res_inactive.status_code == 400
+    assert not OrgMembership.objects.filter(user=inactive_user, organization=org).exists()
+
+    # Para un usuario activo existente, axes cuenta los fallos y bloquea al 5to intento:
+    active_existing = create_user('existing-sec3@example.com')
+    _, token_existing = invite_employee(
+        org, admin, email=active_existing.email, first_name='Ex', last_name='Isting'
+    )
+    for i in range(4):
+        res = client.post(
+            '/api/v1/invitations/accept',
+            {'token': token_existing, 'password': f'WrongPassword-{i}-12345'},
+            format='json',
+            REMOTE_ADDR='10.99.0.2',
+        )
+        assert res.status_code == 400
+
+    fifth = client.post(
+        '/api/v1/invitations/accept',
+        {'token': token_existing, 'password': 'WrongPassword-4-12345'},
+        format='json',
+        REMOTE_ADDR='10.99.0.2',
+    )
+    assert fifth.status_code == 429
+
+    # UserAttributeSimilarityValidator rechaza contraseñas similares al email/nombre del invitado:
+    _, token_new = invite_employee(
+        org, admin, email='similar-user@example.com', first_name='Similar', last_name='User'
+    )
+    with pytest.raises(ValidationError):
+        accept_invitation(token_new, 'similar-user@example.com')
+
+    # Un token inválido con contraseña corta devuelve el mensaje genérico de invitación inválida:
+    bad_token_weak = client.post(
+        '/api/v1/invitations/accept',
+        {'token': 'invalid-token-value', 'password': 'short'},
+        format='json',
+        REMOTE_ADDR='10.99.0.3',
+    )
+    assert bad_token_weak.status_code == 400
+    assert bad_token_weak.json()['detail'] == 'El link no es válido o venció'
+
+
+@pytest.mark.django_db
+def test_sec3_5_session_key_rotates_on_every_auth_and_audit_actor_is_accurate():
+    from apps.accounts.invitations import invite_employee
+    from apps.audit.models import RowChange
+
+    org = OrganizationFactory(name='Org Audit Sec3')
+    user_a = create_user('user_a_sec3@example.com')
+    OrgMembershipFactory(user=user_a, organization=org)
+
+    client = csrf_client()
+    res1 = client.post(
+        '/api/v1/auth/login',
+        {'email': user_a.email, 'password': PASSWORD},
+        format='json',
+    )
+    assert res1.status_code == 200
+    session_1 = client.cookies['sessionid'].value
+
+    login_change = RowChange.objects.filter(
+        table_name='accounts_user',
+        row_id=user_a.pk,
+        operation=RowChange.Operation.UPDATE,
+    ).latest('created_at')
+    assert login_change.actor == user_a
+
+    # Re-login con sesión ya activa del mismo usuario rota el sessionid:
+    client.get('/api/v1/auth/csrf')
+    client.credentials(HTTP_X_CSRFTOKEN=client.cookies['csrftoken'].value)
+    res2 = client.post(
+        '/api/v1/auth/login',
+        {'email': user_a.email, 'password': PASSWORD},
+        format='json',
+    )
+    assert res2.status_code == 200
+    session_2 = client.cookies['sessionid'].value
+    assert session_2 != session_1
+
+    # Aceptar invitación para el mismo usuario con sesión abierta también rota el sessionid:
+    org_2 = OrganizationFactory(name='Org 2 Sec3')
+    admin_2 = create_user('admin2_sec3@example.com')
+    OrgMembershipFactory(user=admin_2, organization=org_2)
+    _, token_a = invite_employee(
+        org_2, admin_2, email=user_a.email, first_name='User', last_name='A'
+    )
+    client.get('/api/v1/auth/csrf')
+    client.credentials(HTTP_X_CSRFTOKEN=client.cookies['csrftoken'].value)
+    res_accept_same = client.post(
+        '/api/v1/invitations/accept',
+        {'token': token_a, 'password': PASSWORD},
+        format='json',
+    )
+    assert res_accept_same.status_code == 200
+    session_3 = client.cookies['sessionid'].value
+    assert session_3 != session_2
+
+    # Si en el mismo navegador con sesión de user_a un usuario nuevo user_b acepta invitación,
+    # el INSERT en accounts_user queda con actor=user_b y organization_id=org.pk (no user_a):
+    _, token_b = invite_employee(
+        org, user_a, email='user_b_sec3@example.com', first_name='User', last_name='B'
+    )
+    client.get('/api/v1/auth/csrf')
+    client.credentials(HTTP_X_CSRFTOKEN=client.cookies['csrftoken'].value)
+    res_accept_b = client.post(
+        '/api/v1/invitations/accept',
+        {'token': token_b, 'password': PASSWORD},
+        format='json',
+    )
+    assert res_accept_b.status_code == 200
+    user_b = User.objects.get(email='user_b_sec3@example.com')
+    insert_b = RowChange.objects.get(
+        table_name='accounts_user',
+        row_id=user_b.pk,
+        operation=RowChange.Operation.INSERT,
+    )
+    assert insert_b.actor == user_b
+    assert insert_b.organization_id == org.pk
+
+
+@pytest.mark.django_db
+def test_sec3_6_password_reset_rejects_inactive_user_invalidates_other_sessions_and_uses_on_commit_helper(monkeypatch):
+    from django.contrib.auth.tokens import PasswordResetTokenGenerator
+    from django.contrib.sessions.models import Session
+    from django.core.exceptions import ValidationError
+    from django.utils.encoding import force_bytes
+    from django.utils.http import urlsafe_base64_encode
+    from apps.accounts import invitations as invitations_module
+    from apps.accounts.invitations import confirm_password_reset
+    from apps.audit.models import RowChange
+
+    active_user = create_user('active-reset-sec3@example.com')
+    inactive_user = create_user('inactive-reset-sec3@example.com', is_active=False)
+
+    # 1) Usuario inactivo no puede cambiar contraseña aunque tenga un token:
+    inactive_token = PasswordResetTokenGenerator().make_token(inactive_user)
+    inactive_uid = urlsafe_base64_encode(force_bytes(inactive_user.pk))
+    with pytest.raises(ValidationError, match='El link no es válido o venció'):
+        confirm_password_reset(inactive_uid, inactive_token, 'NewValidPassword123!')
+    inactive_user.refresh_from_db()
+    assert not inactive_user.check_password('NewValidPassword123!')
+
+    # 2) uid no-UUID devuelve mensaje genérico y no filtra ValidationError de UUIDField:
+    client = csrf_client()
+    bad_uid = urlsafe_base64_encode(b'123')
+    res_bad_uid = client.post(
+        '/api/v1/auth/password-reset/confirm',
+        {'uid': bad_uid, 'token': 'any-token', 'password': 'NewValidPassword123!'},
+        format='json',
+    )
+    assert res_bad_uid.status_code == 400
+    assert res_bad_uid.json()['detail'] == 'El link no es válido o venció'
+    assert 'UUID' not in res_bad_uid.json()['detail']
+
+    # 3) request_password_reset usa send_password_reset_email en on_commit:
+    assert hasattr(invitations_module, 'send_password_reset_email')
+    calls = []
+    monkeypatch.setattr(
+        invitations_module,
+        'send_password_reset_email',
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+    with TestCase.captureOnCommitCallbacks(execute=True):
+        client.post(
+            '/api/v1/auth/password-reset',
+            {'email': inactive_user.email},
+            format='json',
+        )
+    assert calls == []
+    with TestCase.captureOnCommitCallbacks(execute=True):
+        client.post(
+            '/api/v1/auth/password-reset',
+            {'email': active_user.email},
+            format='json',
+        )
+    assert len(calls) == 1
+
+    # 4) Al cambiar la contraseña se invalidan las demás sesiones del usuario y queda actor=active_user:
+    other_device = csrf_client()
+    assert login(other_device, active_user.email, PASSWORD, ip='10.60.0.1').status_code == 200
+    other_session_key = other_device.cookies['sessionid'].value
+    assert Session.objects.filter(session_key=other_session_key).exists()
+    active_user.refresh_from_db()
+
+    active_token = PasswordResetTokenGenerator().make_token(active_user)
+    active_uid = urlsafe_base64_encode(force_bytes(active_user.pk))
+    res_confirm = client.post(
+        '/api/v1/auth/password-reset/confirm',
+        {'uid': active_uid, 'token': active_token, 'password': 'NewValidPassword123!'},
+        format='json',
+    )
+    assert res_confirm.status_code == 204
+    assert not Session.objects.filter(session_key=other_session_key).exists()
+    assert other_device.get('/api/v1/auth/me').status_code == 403
+
+    pw_change = RowChange.objects.filter(
+        table_name='accounts_user',
+        row_id=active_user.pk,
+        operation=RowChange.Operation.UPDATE,
+    ).latest('created_at')
+    assert pw_change.actor == active_user
+
+
+@pytest.mark.django_db
+def test_sec3_7_malformed_inputs_never_500_and_status_codes_aligned():
+    from apps.api.testing import api_client_for
+
+    org_a = OrganizationFactory(name='Org A Sec3')
+    org_b = OrganizationFactory(name='Org B Sec3')
+    emp_a = create_user('emp_a_sec3@example.com')
+    OrgMembershipFactory(user=emp_a, organization=org_a)
+
+    resident_user = create_user('res_sec3@example.com')
+    building_a = BuildingFactory(organization=org_a)
+    unit_a = UnitFactory(building=building_a)
+    resident_person = PersonFactory(organization=org_a, user=resident_user)
+    OccupancyFactory(unit=unit_a, person=resident_person)
+
+    client_emp = api_client_for(emp_a)
+    client_res = api_client_for(resident_user)
+    anon = csrf_client()
+
+    # 1) Residente recibe 403 en endpoints de invitación de empleados y residentes:
+    assert client_res.post(
+        '/api/v1/invitations/employees',
+        {'organization_id': str(org_a.pk), 'email': 'x@example.com', 'first_name': 'A', 'last_name': 'B'},
+        format='json',
+    ).status_code == 403
+    assert client_res.post(
+        '/api/v1/invitations/residents',
+        {'person_id': str(resident_person.pk)},
+        format='json',
+    ).status_code == 403
+
+    # 2) UUID inválido en organization_id o person_id devuelve 400 (nunca 500):
+    res_bad_org_uuid = client_emp.post(
+        '/api/v1/invitations/employees',
+        {'organization_id': 'not-a-uuid', 'email': 'x@example.com', 'first_name': 'A', 'last_name': 'B'},
+        format='json',
+    )
+    assert res_bad_org_uuid.status_code == 400
+
+    res_bad_person_uuid = client_emp.post(
+        '/api/v1/invitations/residents',
+        {'person_id': 'not-a-uuid'},
+        format='json',
+    )
+    assert res_bad_person_uuid.status_code == 400
+
+    # 3) Tipos JSON mal formados (null, int, lista) devuelven 400 (nunca 500):
+    assert anon.post('/api/v1/auth/login', {'email': emp_a.email, 'password': 123}, format='json').status_code == 400
+    assert anon.post('/api/v1/auth/login', {'email': None, 'password': PASSWORD}, format='json').status_code == 400
+    assert anon.post('/api/v1/auth/login', ['not-a-dict'], format='json').status_code == 400
+    assert anon.post('/api/v1/invitations/accept', {'token': None, 'password': PASSWORD}, format='json').status_code == 400
+    assert anon.post('/api/v1/invitations/accept', {'token': 'tok', 'password': 123}, format='json').status_code == 400
+    assert anon.post('/api/v1/auth/password-reset', {'email': 123}, format='json').status_code == 400
+    assert anon.post(
+        '/api/v1/auth/password-reset/confirm',
+        {'uid': 123, 'token': 'x', 'password': PASSWORD},
+        format='json',
+    ).status_code == 400
+    assert client_emp.post(
+        '/api/v1/invitations/employees',
+        {'organization_id': str(org_a.pk), 'email': None, 'first_name': 'A', 'last_name': 'B'},
+        format='json',
+    ).status_code == 400
+    assert client_emp.post(
+        '/api/v1/invitations/employees',
+        {'organization_id': str(org_a.pk), 'email': 'ok@example.com', 'first_name': None, 'last_name': 'B'},
+        format='json',
+    ).status_code == 400
+
+    # 4) Organización ajena devuelve 404 y organization_id="" devuelve 400:
+    cross_res = client_emp.post(
+        '/api/v1/invitations/employees',
+        {'organization_id': str(org_b.pk), 'email': 'cross@example.com', 'first_name': 'A', 'last_name': 'B'},
+        format='json',
+    )
+    assert cross_res.status_code == 404
+
+    empty_org_res = client_emp.post(
+        '/api/v1/invitations/employees',
+        {'organization_id': '', 'email': 'empty-org@example.com', 'first_name': 'A', 'last_name': 'B'},
+        format='json',
+    )
+    assert empty_org_res.status_code == 400
+    assert not Invitation.objects.filter(email='empty-org@example.com').exists()
+

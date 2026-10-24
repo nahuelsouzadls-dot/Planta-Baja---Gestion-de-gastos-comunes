@@ -1,8 +1,10 @@
 from datetime import date
 from decimal import Decimal
 
+from django.core.exceptions import ValidationError
 from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -56,4 +58,8 @@ def resident_buildings(user, on_date=None):
 
 
 def get_in_scope_or_404(queryset, pk):
-    return get_object_or_404(queryset, pk=pk)
+    try:
+        return get_object_or_404(queryset, pk=pk)
+    except (ValidationError, ValueError, TypeError) as exc:
+        raise Http404 from exc
+

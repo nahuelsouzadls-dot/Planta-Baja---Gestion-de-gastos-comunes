@@ -18,8 +18,12 @@ class IsResident(BasePermission):
     message = 'Se requiere una ocupación accesible.'
 
     def has_permission(self, request, view):
-        return bool(
-            request.user
-            and request.user.is_authenticated
-            and resident_occupancies(request.user).exists()
-        )
+        if not (request.user and request.user.is_authenticated):
+            return False
+        if resident_occupancies(request.user).exists():
+            return True
+        if getattr(view, 'kwargs', None):
+            from apps.people.models import Occupancy
+
+            return Occupancy.objects.filter(person__user=request.user).exists()
+        return False

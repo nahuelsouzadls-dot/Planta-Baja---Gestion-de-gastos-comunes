@@ -1,18 +1,187 @@
 from django.urls import path
 
+from apps.api.v1.panel import (
+    AdjustmentView,
+    ApproveReceiptView,
+    BuildingAccountsView,
+    BuildingClaimsView,
+    BuildingNoticesView,
+    BuildingSettlementsView,
+    BuildingSummaryView,
+    BuildingUnitsView,
+    ClaimDetailView,
+    ClaimReplyView,
+    IssueSettlementView,
+    ManualPaymentView,
+    MoveInView,
+    MoveOutView,
+    OccupancyDetailView,
+    OpeningView,
+    OrganizationBuildingsView,
+    OrganizationPeopleView,
+    OrganizationTasksView,
+    PersonDetailView,
+    PortfolioView,
+    ReceiptDetailView,
+    RejectReceiptView,
+    ReplaceTenantView,
+    SellUnitView,
+    SettlementDraftView,
+    ToggleTaskView,
+)
+from apps.api.v1.portal import (
+    PortalAccountView,
+    PortalClaimDetailView,
+    PortalClaimReplyView,
+    PortalMonthsView,
+    PortalMovementsView,
+    PortalNoticesView,
+    PortalOccupancyClaimsView,
+    PortalReceiptsView,
+    PortalSettlementView,
+)
 from apps.api.v1.scoping_views import (
     BuildingDetailView,
-    OrganizationBuildingListView,
     OrganizationListView,
     ResidentOccupancyListView,
 )
 
 
 urlpatterns = [
+    path(
+        'organizations/<uuid:organization_id>/portfolio',
+        PortfolioView.as_view(),
+        name='portfolio',
+    ),
+    path(
+        'organizations/<uuid:organization_id>/tasks',
+        OrganizationTasksView.as_view(),
+        name='organization-tasks',
+    ),
+    path(
+        'tasks/<uuid:task_id>/toggle',
+        ToggleTaskView.as_view(),
+        name='task-toggle',
+    ),
+    path(
+        'organizations/<uuid:organization_id>/people',
+        OrganizationPeopleView.as_view(),
+        name='organization-people',
+    ),
+    path(
+        'people/<uuid:person_id>',
+        PersonDetailView.as_view(),
+        name='person-detail',
+    ),
+    path(
+        'buildings/<uuid:building_id>/units',
+        BuildingUnitsView.as_view(),
+        name='building-units',
+    ),
+    path(
+        'units/<uuid:unit_id>/move-in',
+        MoveInView.as_view(),
+        name='unit-move-in',
+    ),
+    path(
+        'units/<uuid:unit_id>/replace-tenant',
+        ReplaceTenantView.as_view(),
+        name='unit-replace-tenant',
+    ),
+    path(
+        'units/<uuid:unit_id>/sell',
+        SellUnitView.as_view(),
+        name='unit-sell',
+    ),
+    path(
+        'occupancies/<uuid:occupancy_id>/move-out',
+        MoveOutView.as_view(),
+        name='occupancy-move-out',
+    ),
+    path(
+        'occupancies/<uuid:occupancy_id>/payments',
+        ManualPaymentView.as_view(),
+        name='occupancy-payments',
+    ),
+    path(
+        'occupancies/<uuid:occupancy_id>/adjustments',
+        AdjustmentView.as_view(),
+        name='occupancy-adjustments',
+    ),
+    path(
+        'occupancies/<uuid:occupancy_id>/opening',
+        OpeningView.as_view(),
+        name='occupancy-opening',
+    ),
+    path(
+        'buildings/<uuid:building_id>/accounts',
+        BuildingAccountsView.as_view(),
+        name='building-accounts',
+    ),
+    path(
+        'buildings/<uuid:building_id>/summary',
+        BuildingSummaryView.as_view(),
+        name='building-summary',
+    ),
+    path(
+        'buildings/<uuid:building_id>/settlements',
+        BuildingSettlementsView.as_view(),
+        name='building-settlements',
+    ),
+    path(
+        'buildings/<uuid:building_id>/settlements/<str:month>',
+        SettlementDraftView.as_view(),
+        name='building-settlement-draft',
+    ),
+    path(
+        'buildings/<uuid:building_id>/settlements/<str:month>/issue',
+        IssueSettlementView.as_view(),
+        name='building-settlement-issue',
+    ),
+    path(
+        'buildings/<uuid:building_id>/notices',
+        BuildingNoticesView.as_view(),
+        name='building-notices',
+    ),
+    path(
+        'buildings/<uuid:building_id>/claims',
+        BuildingClaimsView.as_view(),
+        name='building-claims',
+    ),
+    path(
+        'occupancies/<uuid:occupancy_id>',
+        OccupancyDetailView.as_view(),
+        name='occupancy-detail',
+    ),
+    path(
+        'receipts/<uuid:receipt_id>',
+        ReceiptDetailView.as_view(),
+        name='receipt-detail',
+    ),
+    path(
+        'receipts/<uuid:receipt_id>/approve',
+        ApproveReceiptView.as_view(),
+        name='receipt-approve',
+    ),
+    path(
+        'receipts/<uuid:receipt_id>/reject',
+        RejectReceiptView.as_view(),
+        name='receipt-reject',
+    ),
+    path(
+        'claims/<uuid:claim_id>',
+        ClaimDetailView.as_view(),
+        name='claim-detail',
+    ),
+    path(
+        'claims/<uuid:claim_id>/replies',
+        ClaimReplyView.as_view(),
+        name='claim-replies',
+    ),
     path('organizations', OrganizationListView.as_view(), name='organization-list'),
     path(
         'organizations/<uuid:organization_id>/buildings',
-        OrganizationBuildingListView.as_view(),
+        OrganizationBuildingsView.as_view(),
         name='organization-building-list',
     ),
     path(
@@ -24,5 +193,50 @@ urlpatterns = [
         'portal/occupancies',
         ResidentOccupancyListView.as_view(),
         name='resident-occupancy-list',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/account',
+        PortalAccountView.as_view(),
+        name='portal-account',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/months',
+        PortalMonthsView.as_view(),
+        name='portal-months',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/settlements/<str:month>',
+        PortalSettlementView.as_view(),
+        name='portal-settlement',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/movements',
+        PortalMovementsView.as_view(),
+        name='portal-movements',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/receipts',
+        PortalReceiptsView.as_view(),
+        name='portal-receipts',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/notices',
+        PortalNoticesView.as_view(),
+        name='portal-notices',
+    ),
+    path(
+        'portal/occupancies/<uuid:occupancy_id>/claims',
+        PortalOccupancyClaimsView.as_view(),
+        name='portal-occupancy-claims',
+    ),
+    path(
+        'portal/claims/<uuid:claim_id>',
+        PortalClaimDetailView.as_view(),
+        name='portal-claim-detail',
+    ),
+    path(
+        'portal/claims/<uuid:claim_id>/replies',
+        PortalClaimReplyView.as_view(),
+        name='portal-claim-replies',
     ),
 ]

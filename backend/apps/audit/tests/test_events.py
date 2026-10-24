@@ -481,3 +481,263 @@ def test_business_events_never_store_sensitive_data_keys():
 
     for event in AuditLog.objects.all():
         _assert_no_sensitive_keys(event.data)
+
+
+def test_create_building_records_event():
+    from apps.buildings.services import create_building
+    from tests.factories import OrganizationFactory
+
+    organization = OrganizationFactory(name='Org Edificio')
+    user = UserFactory()
+    OrgMembershipFactory(user=user, organization=organization)
+    before = event_count()
+
+    building = create_building(
+        organization, user, name='Edificio Parque', address='Av. Italia 2500'
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'building.create'
+    assert event.actor_id == user.id
+    assert event.organization_id == organization.id
+    assert event.target_id == building.pk
+    assert 'Edificio Parque' in event.summary
+
+
+def test_add_unit_records_event():
+    from apps.buildings.services import add_unit
+
+    building = BuildingFactory(name='Edificio Rambla')
+    user = employee_for(building)
+    before = event_count()
+
+    unit = add_unit(
+        building,
+        user,
+        number='502',
+        floor=5,
+        coefficient=Decimal('0.125000'),
+        receives_paper=True,
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'unit.create'
+    assert event.actor_id == user.id
+    assert event.organization_id == building.organization_id
+    assert event.target_id == unit.pk
+    assert '502' in event.summary
+    assert 'Edificio Rambla' in event.summary
+
+
+def test_create_person_records_event():
+    from apps.people.services import create_person
+
+    building = BuildingFactory()
+    user = employee_for(building)
+    before = event_count()
+
+    person = create_person(
+        building.organization,
+        user,
+        first_name='Valeria',
+        last_name='Suárez',
+        email='valeria@example.com',
+        phone='099555444',
+        document='4.999.888-7',
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'person.create'
+    assert event.actor_id == user.id
+    assert event.organization_id == building.organization_id
+    assert event.target_id == person.pk
+    assert 'Valeria Suárez' in event.summary
+    _assert_no_sensitive_keys(event.data)
+
+
+def test_save_draft_records_event():
+    building = BuildingFactory(name='Edificio Borrador')
+    concept = ExpenseConceptFactory(building=building, name='Limpieza')
+    user = employee_for(building)
+    before = event_count()
+
+    settlement = save_draft(
+        building, user, date(2026, 11, 1), {concept: Decimal('18500.00')}
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'settlement.save_draft'
+    assert event.actor_id == user.id
+    assert event.organization_id == building.organization_id
+    assert event.target_id == settlement.pk
+    assert 'Edificio Borrador' in event.summary
+
+
+def test_delete_draft_records_event():
+    from apps.settlements.services import delete_draft
+
+    building = BuildingFactory(name='Edificio Borrado')
+    concept = ExpenseConceptFactory(building=building, name='Limpieza')
+    user = employee_for(building)
+    settlement = save_draft(
+        building, user, date(2026, 11, 1), {concept: Decimal('12000.00')}
+    )
+    settlement_id = settlement.pk
+    before = event_count()
+
+    delete_draft(settlement, user)
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'settlement.delete_draft'
+    assert event.actor_id == user.id
+    assert event.organization_id == building.organization_id
+    assert event.target_id == settlement_id
+    assert 'Edificio Borrado' in event.summary
+
+
+def test_reply_as_admin_records_event():
+    from apps.communications.services import reply_as_admin
+
+    claim = ClaimFactory(title='Filtración en terraza')
+    user = employee_for(claim.building)
+    before = event_count()
+
+    message = reply_as_admin(claim, user, 'Enviamos sanitario mañana a las 9 hs.')
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'claim.reply'
+    assert event.actor_id == user.id
+    assert event.organization_id == claim.building.organization_id
+    assert event.target_id == message.pk
+    assert 'Filtración en terraza' in event.summary
+
+
+def test_create_task_records_event():
+    from apps.communications.services import create_task
+
+    building = BuildingFactory(name='Edificio Tareas')
+    user = employee_for(building)
+    before = event_count()
+
+    task = create_task(
+        building.organization,
+        building,
+        user,
+        'Controlar luces de emergencia',
+        due_date=date(2026, 11, 20),
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'task.create'
+    assert event.actor_id == user.id
+    assert event.organization_id == building.organization_id
+    assert event.target_id == task.pk
+    assert 'Controlar luces de emergencia' in event.summary
+
+
+def test_toggle_task_records_event():
+    from apps.communications.services import create_task, toggle_task
+
+    building = BuildingFactory(name='Edificio Toggle')
+    user = employee_for(building)
+    task = create_task(building.organization, building, user, 'Revisar ascensor')
+    before = event_count()
+
+    updated = toggle_task(task, user)
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'task.toggle'
+    assert event.actor_id == user.id
+    assert event.organization_id == building.organization_id
+    assert event.target_id == updated.pk
+    assert 'Revisar ascensor' in event.summary
+    assert 'hecha' in event.summary
+
+
+def test_open_claim_records_event():
+    from apps.communications.services import open_claim
+
+    unit = UnitFactory(number='101')
+    resident_user = UserFactory()
+    person = PersonFactory(
+        organization=unit.building.organization,
+        first_name='Juan',
+        last_name='Pérez',
+        user=resident_user,
+    )
+    Occupancy.objects.create(
+        unit=unit,
+        person=person,
+        role=Occupancy.Role.OWNER,
+        start_date=date(2026, 1, 1),
+    )
+    before = event_count()
+
+    claim = open_claim(
+        person,
+        unit,
+        Claim.Kind.REPORT,
+        'Portero eléctrico sin sonido',
+        'No se escucha desde el 101.',
+        resident_user,
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'claim.open'
+    assert event.actor_id == resident_user.id
+    assert event.organization_id == unit.building.organization_id
+    assert event.target_id == claim.pk
+    assert 'Portero eléctrico sin sonido' in event.summary
+
+
+def test_reply_as_resident_records_event():
+    from apps.communications.services import reply_as_resident
+
+    unit = UnitFactory(number='101')
+    resident_user = UserFactory()
+    person = PersonFactory(
+        organization=unit.building.organization,
+        first_name='Juan',
+        last_name='Pérez',
+        user=resident_user,
+    )
+    Occupancy.objects.create(
+        unit=unit,
+        person=person,
+        role=Occupancy.Role.OWNER,
+        start_date=date(2026, 1, 1),
+    )
+    claim = ClaimFactory(
+        building=unit.building,
+        unit=unit,
+        author=person,
+        title='Portero eléctrico sin sonido',
+    )
+    before = event_count()
+
+    message = reply_as_resident(
+        claim,
+        person,
+        resident_user,
+        'Tampoco funciona el botón de apertura.',
+    )
+
+    assert AuditLog.objects.count() == before + 1
+    event = latest_event()
+    assert event.action == 'claim.reply'
+    assert event.actor_id == resident_user.id
+    assert event.organization_id == unit.building.organization_id
+    assert event.target_id == message.pk
+    assert event.data['claim_id'] == str(claim.pk)
+    assert 'Portero eléctrico sin sonido' in event.summary
+
+
