@@ -33,16 +33,18 @@ administracion-gc/
 
 ## Correr el backend en local
 
+Requisito: Docker (Docker Desktop, u OrbStack/Colima en macOS).
+
 ```bash
-cp backend/.env.example backend/.env
-python -c "from django.core.management.utils import get_random_secret_key as g; print(g())"
-docker compose up -d
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py createsuperuser
-docker compose exec web pytest
+cp backend/.env.example backend/.env   # y completar SECRET_KEY y MINIO_ROOT_* (ver docs/docker.md)
+make up
+make migrate
+make seed DEMO_PASSWORD=una_clave_de_al_menos_10_caracteres
+make test
 ```
 
-El servidor queda en `http://localhost:8000`.
+El servidor queda en `http://localhost:8000` (panel en `/panel`, portal en `/portal`).
+Detalle de servicios, puertos y cómo trabajar desde varias máquinas: [`docs/docker.md`](docs/docker.md).
 
 ### Prototipo de diseño
 
