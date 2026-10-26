@@ -55,6 +55,34 @@ Todos los puertos de desarrollo se publican únicamente en `127.0.0.1` (no queda
    # equivalente a: docker compose down -v
    ```
 
+## Trabajar desde varias máquinas
+
+El repo es lo único que se comparte entre máquinas. Cada máquina tiene su propio entorno local, que **no** viaja por git:
+
+| Qué | Dónde vive | Qué hacer en cada máquina |
+|---|---|---|
+| `backend/.env` | Solo local (está en `.gitignore`) | Crearlo una vez desde `.env.example` con su propio `SECRET_KEY` y `MINIO_ROOT_PASSWORD`. No hace falta que coincidan entre máquinas. |
+| Base de datos y archivos de MinIO | Volúmenes de Docker (`postgres_data`, `minio_data`) | Cada máquina tiene sus propios datos. Se regeneran con `make seed`. |
+| `DEMO_PASSWORD` | Lo que se pase a `make seed` | Usar la misma en todas las máquinas para no confundirse al ingresar. |
+
+Para generar los secretos de `.env`:
+
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+```
+
+**Al empezar a trabajar en una máquina:**
+
+```bash
+git status            # debe estar limpio; si no, commitear o descartar antes
+git pull --ff-only
+make up && make migrate
+```
+
+**Al terminar:** commitear y hacer `git push` antes de cambiar de máquina, para que la otra no diverja.
+
+**Si un pull trae migraciones reescritas** (no solo nuevas, como pasó con el reset del backend en B0), la base local deja de ser compatible: `make reset-db && make up && make migrate && make seed DEMO_PASSWORD=...`.
+
 ## Diferencia entre la imagen de desarrollo y la de producción
 
 | Aspecto | Desarrollo (`backend/Dockerfile.dev`) | Producción (`backend/Dockerfile`) |

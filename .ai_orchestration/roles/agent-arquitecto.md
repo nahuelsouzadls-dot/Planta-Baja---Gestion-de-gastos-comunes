@@ -26,12 +26,73 @@ Al iniciar, ejecutá estos pasos en orden:
    Bash("find . -name '*.py' | grep -v __pycache__ | head -30")
    ```
 
-3. **Preguntale a Nahuel:**
+3. **Verificá que esta máquina esté al día** (Nahuel trabaja desde varias máquinas; ver [Trabajar desde varias máquinas](#trabajar-desde-varias-máquinas)):
+   ```
+   Bash("git status -sb && git fetch && git status -sb | head -1")
+   Bash("ls backend/.env; which docker")
+   ```
+   Si hay cambios sin commitear, commits locales sin pushear o la rama está atrás de `origin/main`, avisale antes de seguir. Si falta `backend/.env` o Docker, es una máquina nueva: seguí la checklist de máquina nueva.
+
+4. **Preguntale a Nahuel:**
    - ¿Qué querés trabajar hoy?
    - ¿Hay algo que quedó sin terminar de la sesión anterior?
    - ¿Hay alguna duda o decisión pendiente que querés resolver primero?
 
 No arranques a implementar nada hasta tener las respuestas.
+
+---
+
+## Trabajar desde varias máquinas
+
+Nahuel abre el proyecto en más de una máquina. Lo único compartido es el repo de GitHub; cada máquina tiene su propio entorno local. Detalle técnico de servicios y puertos en `docs/docker.md`.
+
+### Qué es local de cada máquina (no viaja por git)
+
+| Qué | Dónde vive | Notas |
+|---|---|---|
+| `backend/.env` | Solo local (en `.gitignore`) | Cada máquina tiene sus propios `SECRET_KEY` y `MINIO_ROOT_PASSWORD`; no hace falta que coincidan. |
+| Base de datos y archivos de MinIO | Volúmenes de Docker (`postgres_data`, `minio_data`) | Cada máquina tiene sus datos; se regeneran con `make seed`. |
+| `DEMO_PASSWORD` | Lo que se pasa a `make seed` | Usar la misma en todas las máquinas para no confundirse al ingresar. |
+| `git config pull.ff only` | `.git/config` local | Configurarlo en cada máquina: si las ramas divergen, el pull falla en vez de mezclar en silencio. |
+
+### Checklist de máquina nueva
+
+1. Instalar Docker. En macOS con Apple Silicon: OrbStack (`brew install --cask orbstack`) o Docker Desktop.
+2. Clonar el repo (o, si ya estaba clonado, asegurarse de que `git status` esté limpio y hacer `git pull`).
+3. `git config pull.ff only`
+4. Crear `backend/.env` desde `backend/.env.example` y reemplazar `SECRET_KEY`, `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD`. Para generar secretos:
+   ```bash
+   python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+   ```
+   (Crear el `.env` es configuración local, no código: Claude puede hacerlo directamente.)
+5. Levantar todo:
+   ```bash
+   make up && make migrate && make seed DEMO_PASSWORD=<la de siempre>
+   ```
+6. Verificar: `http://localhost:8000/panel` y `/portal` responden; `make test` pasa.
+
+Puertos que tienen que estar libres: 8000 (web), 5434 (Postgres), 6379 (Redis), 1025/8025 (Mailpit), 9000/9001 (MinIO).
+
+### Al empezar a trabajar en una máquina
+
+```bash
+git status            # debe estar limpio; si no, commitear o descartar antes
+git pull --ff-only
+make up && make migrate
+```
+
+### Al terminar de trabajar
+
+Commitear y hacer `git push` **antes de cambiar de máquina**. Si se deja trabajo sin pushear, la otra máquina diverge y el próximo pull choca (pasó el 2026-10-26: había cambios locales de `design/` sobre un front que ya se había reescrito en el remoto, y se descartaron).
+
+### Si un pull rompe el entorno local
+
+- **Trae migraciones reescritas** (no solo nuevas, como el reset del backend en B0): la base local deja de ser compatible.
+  ```bash
+  make reset-db && make up && make migrate && make seed DEMO_PASSWORD=...
+  ```
+- **Cambia `backend/.env.example`** (variables nuevas): copiar las variables nuevas al `backend/.env` de cada máquina.
+- **Cambia `docker-compose.yml`** (servicios o puertos nuevos): `make down && make up`, y revisar que los puertos nuevos estén libres.
 
 ---
 
