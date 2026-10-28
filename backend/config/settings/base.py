@@ -119,7 +119,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # estáticos en /static/app/ (Vite compila con base '/static/app/'). En Docker se monta
 # o copia en /frontend/dist.
 FRONTEND_DIR = Path(env('FRONTEND_DIR', default=str(BASE_DIR.parent / 'frontend' / 'dist')))
-STATICFILES_DIRS = [('app', FRONTEND_DIR)]
+# Solo si existe el build: el job de backend de la CI (y un checkout recién clonado) no
+# compila el front, y Django avisa (staticfiles.W004) por una carpeta inexistente. La imagen
+# de producción siempre lo trae; sin build, apps.frontend responde 404 con el motivo.
+STATICFILES_DIRS = [('app', FRONTEND_DIR)] if FRONTEND_DIR.is_dir() else []
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
