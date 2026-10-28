@@ -5,7 +5,7 @@ Cada archivo documenta una decisión: el contexto, qué se decidió, qué se des
 | # | Decisión | Estado |
 |---|---|---|
 | 0001 | [Stack: Django + PostgreSQL + Celery + R2 en Railway](0001-stack-django-postgres.md) | Aceptada |
-| 0002 | [El front es estático (JS puro) y consume la API](0002-front-estatico-js-puro.md) | Aceptada |
+| 0002 | [El front es estático (JS puro) y consume la API](0002-front-estatico-js-puro.md) | Reemplazada por 0018 |
 | 0003 | [Aislamiento multi-tenant por organización](0003-multi-tenant-por-organizacion.md) | Aceptada |
 | 0004 | [Modelo de usuario propio con login por email](0004-usuario-propio-con-email.md) | Aceptada |
 | 0005 | [Sesiones de Django con CSRF, sin JWT](0005-sesiones-y-csrf.md) | Aceptada |
@@ -21,3 +21,4 @@ Cada archivo documenta una decisión: el contexto, qué se decidió, qué se des
 | 0015 | [Registro de cambios en la base: quién editó qué, con antes y después](0015-registro-de-cambios-en-la-base.md) | Aceptada |
 | 0016 | [Cuentas nominativas y log consultable de quién hizo cada cosa](0016-cuentas-nominativas-y-firma-visible.md) | Aceptada |
 | 0017 | [Redondeo del prorrateo por el método del mayor resto](0017-redondeo-por-mayor-resto.md) | Aceptada |
+| 0018 | [El front pasa a React + shadcn/ui, compilado y servido por Django](0018-front-react-shadcn.md) | Aceptada |

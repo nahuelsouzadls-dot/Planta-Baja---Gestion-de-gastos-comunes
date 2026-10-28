@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "landing-page-design": {
+      "source": "elayadesign/ai-design-skills",
+      "sourceType": "github",
+      "skillPath": "skills/landing-page-design/SKILL.md",
+      "computedHash": "8a5b47edc97a646b183d781186014ace4252eada17ab174302f89e366eb3a968"
+    }
+  }
+}

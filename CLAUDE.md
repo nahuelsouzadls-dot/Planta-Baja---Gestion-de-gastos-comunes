@@ -6,7 +6,8 @@ Este archivo da contexto a Claude Code sobre el proyecto. Léelo completo antes 
 
 ## Flujo de trabajo: Copilot codea, Claude guía
 
-- **Claude no escribe código.** Nada en `backend/` (modelos, vistas, templates, tests, migraciones) ni en `design/` (los mockups HTML/CSS también los hace Copilot).
+- **Claude no escribe código.** Nada en `backend/` (modelos, vistas, templates, tests, migraciones) ni en `frontend/` (la app React también la hace Copilot).
+- **Excepción (2026-10-27):** la migración del front a React (ADR-0018) la hizo Claude a pedido explícito de Nahuel.
 - **Claude se reserva al diseño:** arquitectura, modelo de datos, flujos, UX y especificaciones de pantallas (wireframes en texto), más las guías y prompts para Copilot y la revisión del código resultante.
 - **Nahuel implementa con GitHub Copilot.** Las reglas del proyecto que Copilot carga automáticamente están en `.github/copilot-instructions.md`; mantenelo sincronizado con las decisiones de este archivo.
 - Claude sí puede editar documentación (`*.md`, `.ai_orchestration/`, `.github/copilot-instructions.md`).
@@ -115,7 +116,7 @@ administracion-gc/
 ├── agents.md           ← system prompt auditor técnico
 ├── .github/copilot-instructions.md ← reglas que Copilot carga automáticamente
 ├── backend/            ← por crear (Django o Fastify según decisión de stack)
-├── frontend/           ← por crear (Next.js, si se elige Opción B)
+├── frontend/           ← app React + Vite + shadcn/ui (ADR-0018); Django sirve su build
 └── docs/               ← diagramas adicionales, ADRs
 ```
 
@@ -125,8 +126,8 @@ administracion-gc/
 
 - **Stack:** Python 3.12 + Django 5.x + PostgreSQL 16 + Celery + Redis + Cloudflare R2 ✅
 - **Deploy:** Railway ✅
-- **Front:** cerrado en `design/` (admin, portal y logins; CSS de los prototipos de `design/ref/`). Reglas del cliente en `design/DISENO.md`. ✅
-- **Front ↔ backend:** Django sirve el front de `design/` como estático y el JS consume `/api/v1/` (ADR-0002). ✅
+- **Front:** React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui en `frontend/` (ADR-0018, reemplaza al ADR-0002). Panel, portal y pantallas de acceso. Mantiene la dirección visual aprobada por el cliente en `design/DISENO.md` (tokens en `frontend/src/index.css`). ✅
+- **Front ↔ backend:** Django sirve el `index.html` del build en cada pantalla (con el control de acceso por rol) y el resto como estáticos en `/static/app/`; el front consume `/api/v1/` desde el mismo origen. Desarrollo: `make front-dev` (Vite en :5173 con proxy a Django). ✅
 - **Modelo de datos del backend:** aprobado en `docs/modelo-datos.md`; arquitectura, UML y ADR en `docs/`. Se implementa en microtareas B0–B9. ✅
 
 ## Lo que NO está decidido aún

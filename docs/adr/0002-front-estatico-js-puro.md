@@ -1,6 +1,6 @@
 # ADR-0002: El front es estático (JS puro) y consume la API
 
-- **Estado:** Aceptada (Nahuel, 2026-10-24)
+- **Estado:** Reemplazada por [ADR-0018](0018-front-react-shadcn.md) (2026-10-27). Antes: aceptada (Nahuel, 2026-10-24)
 - **Fecha:** 2026-10-23
 
 ## Contexto

@@ -1,4 +1,9 @@
-"""Sirve las pantallas de `design/` (ADR-0002) y decide a dónde va cada sesión."""
+"""Sirve la app React de `frontend/` (ADR-0018) y decide a dónde va cada sesión.
+
+Todas las pantallas son la misma página (`index.html` del build de Vite); el ruteo fino
+lo hace el front. Acá se mantiene el control de acceso: quien no corresponde a una
+pantalla va a su inicio o al login antes de bajar la app.
+"""
 from django.conf import settings
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
@@ -28,27 +33,28 @@ def home_for(user):
     return None
 
 
-def _page(filename):
-    path = settings.FRONTEND_DIR / filename
+def _app():
+    path = settings.FRONTEND_DIR / 'index.html'
     try:
         content = path.read_text(encoding='utf-8')
     except FileNotFoundError as exc:
-        raise Http404 from exc
+        # Sin build del front (npm run build en frontend/).
+        raise Http404('Falta compilar el front: cd frontend && npm run build') from exc
     return HttpResponse(content, content_type='text/html; charset=utf-8')
 
 
-def screen(filename, *, allowed=None, login_url=None):
+def screen(*, allowed=None, login_url=None):
     """Vista de una pantalla. `allowed(user)` decide quién la ve; el resto va a su inicio o al login."""
 
     @require_safe
     @never_cache
     @ensure_csrf_cookie
-    def view(request):
+    def view(request, rest=''):
         if allowed is not None and not allowed(request.user):
             if not request.user.is_authenticated:
                 return redirect(login_url)
             return redirect(home_for(request.user) or login_url)
-        return _page(filename)
+        return _app()
 
     return view
 
@@ -59,9 +65,6 @@ def root(request):
     return redirect(home_for(request.user) or PORTAL_LOGIN)
 
 
-panel = screen('admin.html', allowed=is_employee, login_url=PANEL_LOGIN)
-portal = screen('portal-residente.html', allowed=is_resident, login_url=PORTAL_LOGIN)
-login_resident = screen('gc-login-residente.html')
-login_admin = screen('gc-login-admin.html')
-accept_invitation = screen('gc-aceptar-invitacion.html')
-password = screen('gc-contrasena.html')
+panel = screen(allowed=is_employee, login_url=PANEL_LOGIN)
+portal = screen(allowed=is_resident, login_url=PORTAL_LOGIN)
+public = screen()

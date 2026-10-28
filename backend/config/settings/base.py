@@ -114,10 +114,12 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# El front (ADR-0002) vive en design/: las pantallas las sirve apps.frontend y
-# design/assets va como estáticos en /static/assets/. En Docker se monta o copia en /design.
-FRONTEND_DIR = Path(env('FRONTEND_DIR', default=str(BASE_DIR.parent / 'design')))
-STATICFILES_DIRS = [('assets', FRONTEND_DIR / 'assets')]
+# El front (ADR-0018) es la app React de frontend/, compilada con Vite en frontend/dist.
+# apps.frontend sirve su index.html en cada pantalla y el resto del build va como
+# estáticos en /static/app/ (Vite compila con base '/static/app/'). En Docker se monta
+# o copia en /frontend/dist.
+FRONTEND_DIR = Path(env('FRONTEND_DIR', default=str(BASE_DIR.parent / 'frontend' / 'dist')))
+STATICFILES_DIRS = [('app', FRONTEND_DIR)]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

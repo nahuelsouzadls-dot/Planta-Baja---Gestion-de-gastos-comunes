@@ -1,0 +1,1004 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Planta Baja · Gestión de edificios en Uruguay</title>
+<meta name="description" content="Liquidaciones por coeficiente, cobros y comprobantes en un solo lugar. Para administradores de edificios de propiedad horizontal en Uruguay. Pedí una demo con tus edificios reales.">
+<meta name="theme-color" content="#F4F1EC">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_UY">
+<meta property="og:title" content="Planta Baja · Gestión de edificios sin caos">
+<meta property="og:description" content="Liquidaciones, cobros y comprobantes en un solo lugar. Los residentes suben el comprobante desde el celular; vos validás contra el banco.">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D3B5C'/%3E%3Cpath d='M6 9h7v5h6v5h7v4H6z' fill='%2353B2EC'/%3E%3Crect x='19' y='19' width='7' height='4' fill='%23F5B800'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* ── PALETA: CELESTE #53B2EC + ÁMBAR ──
+   acc = marca (rellenos, barras, íconos) · acc-d = hover · acc-t = texto azul legible sobre claro
+   acc-dd = superficies profundas · acc-l = fondos suaves */
+:root{
+  --bg:#F4F1EC;--bg2:#E8E4DC;--bg3:#DDD8CE;
+  --ink:#0B0D1A;--ink2:#0F2A3F;
+  --ink-60:rgba(11,13,26,.62);--ink-50:rgba(11,13,26,.50);--ink-30:rgba(11,13,26,.30);
+  --acc:#53B2EC;--acc-d:#2E95D6;--acc-t:#166AA3;--acc-dd:#0D3B5C;--acc-l:#E5F4FD;
+  --lift:#F5B800;--lift-d:#C89200;
+  --ok:#065F46;--ok-l:#D1FAE5;--rev:#92400E;--rev-l:#FEF3C7;--bad:#991B1B;--bad-l:#FEE2E2;
+  --white:#FFFFFF;--border:rgba(11,13,26,.10);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --gutter:max(48px,env(safe-area-inset-left,0px));
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+h1,h2,h3{text-wrap:balance}
+p,li{text-wrap:pretty}
+button{font-family:inherit}
+a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:2px solid var(--acc-t);outline-offset:3px;border-radius:6px}
+.s-acc :focus-visible,footer :focus-visible{outline-color:var(--lift)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.skip{position:fixed;left:16px;top:-60px;z-index:1000;background:var(--acc-dd);color:#fff;font-weight:700;font-size:14px;padding:8px 12px;border-radius:8px;text-decoration:none;transition:transform .3s var(--ease)}
+.skip:focus{transform:translateY(76px)}
+
+/* ── NAV ── */
+.nav{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 var(--gutter);height:64px;transition:background .3s var(--ease),box-shadow .3s var(--ease)}
+.nav.scrolled{background:rgba(244,241,236,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--border)}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-wordmark{font-size:20px;font-weight:800;letter-spacing:-.6px;color:var(--ink)}
+.nav-wordmark em{color:var(--acc-d);font-style:normal}.ft-wm em{color:var(--acc);font-style:normal}
+.nav-sub{font-size:12px;font-weight:600;color:var(--ink-50);margin-top:1px}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-link{font-size:14px;font-weight:600;color:var(--ink-60);text-decoration:none;transition:color .3s var(--ease);position:relative}
+.nav-link:hover,.nav-link[aria-current="true"]{color:var(--acc-t)}
+.nav-link[aria-current="true"]::after{content:'';position:absolute;left:0;right:0;bottom:-6px;height:2px;border-radius:2px;background:var(--lift)}
+.nav-cta{font-size:14px;font-weight:700;background:var(--acc);color:var(--ink);border:none;border-radius:24px;padding:8px 16px;cursor:pointer;text-decoration:none;transition:background .3s var(--ease),transform .3s var(--ease)}
+.nav-cta:hover{background:var(--acc-d);transform:translateY(-1px)}
+.nav-cta:active{transform:scale(.98)}
+.nav-toggle{display:none;width:40px;height:40px;border:1.5px solid var(--border);border-radius:12px;background:transparent;cursor:pointer;position:relative;z-index:320}
+.nav-toggle span{position:absolute;left:11px;right:11px;height:2px;border-radius:2px;background:var(--ink);transition:transform .5s var(--ease),opacity .3s var(--ease)}
+.nav-toggle span:nth-child(1){top:14px}.nav-toggle span:nth-child(2){top:19px}.nav-toggle span:nth-child(3){top:24px}
+.nav-open .nav-toggle span:nth-child(1){transform:translateY(5px) rotate(45deg)}
+.nav-open .nav-toggle span:nth-child(2){opacity:0}
+.nav-open .nav-toggle span:nth-child(3){transform:translateY(-5px) rotate(-45deg)}
+.mmenu{position:fixed;inset:0;z-index:310;background:rgba(244,241,236,.96);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);padding:96px 24px 48px;display:flex;flex-direction:column;gap:8px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.nav-open .mmenu{opacity:1;pointer-events:auto}
+.mmenu a{font-size:30px;font-weight:800;letter-spacing:-1px;color:var(--ink);text-decoration:none;padding:8px 0;opacity:0;transform:translateY(24px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.mmenu a.mm-cta{margin-top:24px;font-size:16px;letter-spacing:0;background:var(--acc-dd);color:#fff;border-radius:28px;padding:12px 24px;text-align:center}
+.nav-open .mmenu a{opacity:1;transform:none}
+@media(max-width:800px){.nav{padding:0 24px}.nav-links{display:none}.nav-toggle{display:block}}
+
+/* ── ASCENSOR DOT MATRIX ── */
+.elevator{position:fixed;right:max(20px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:250;display:flex;flex-direction:column;align-items:center;border:1.5px solid var(--ink-30);border-radius:10px;padding:12px 8px 8px;background:var(--bg);box-shadow:0 0 0 1px var(--border);width:52px}
+.dm-label{font-size:6px;font-weight:700;letter-spacing:.13em;color:var(--ink-50);margin-bottom:8px}
+.dm-visor{position:relative;background:rgba(11,13,26,.05);border-radius:4px;padding:4px;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;width:36px;margin-bottom:12px}
+#dmSvg{display:block}
+.dm-sep{width:100%;height:1px;background:var(--border);margin-bottom:8px}
+.dm-btns{display:flex;flex-direction:column;gap:8px;align-items:center}
+.dm-btn{width:32px;height:24px;border-radius:4px;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .3s var(--ease),background .3s var(--ease),transform .3s var(--ease);padding:0}
+.dm-btn:hover{border-color:var(--ink-30)}
+.dm-btn:active{transform:scale(.94)}
+.dm-btn.active{border-color:var(--lift);background:rgba(245,184,0,.08)}
+@media(max-width:1100px){.elevator{display:none}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:calc(64px + 48px) var(--gutter) 80px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;right:0;width:6px;height:100%;background:var(--lift);opacity:.6}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center}
+.hero-pre{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--acc-t);background:var(--acc-l);border-radius:20px;padding:4px 12px;margin-bottom:24px}
+.hero-h1{font-size:clamp(48px,6.4vw,96px);font-weight:800;line-height:.95;letter-spacing:-3px;color:var(--ink);margin-bottom:24px;max-width:680px}
+.hero-h1 .ht{display:inline-block;background:var(--acc);color:var(--ink);padding:2px 12px 4px;border-radius:6px;letter-spacing:-2px;position:relative;margin-top:8px}
+.hero-h1 .ht::after{content:'';position:absolute;bottom:-4px;left:12px;right:12px;height:4px;background:var(--lift);border-radius:2px}
+.hero-body{font-size:18px;line-height:28px;color:var(--ink-60);max-width:44ch;margin-bottom:32px;font-weight:500}
+.hero-body b{color:var(--acc-t);font-weight:700}
+.hero-body strong{color:var(--lift-d);font-weight:700}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hero-proof{margin-top:32px;display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;font-weight:600;color:var(--ink-60)}
+.hero-proof span{display:inline-flex;align-items:center;gap:8px}
+.hero-proof span::before{content:'';width:8px;height:8px;border-radius:2px;background:var(--lift)}
+.btn-p,.btn-dark{font-size:16px;font-weight:700;background:var(--acc);color:var(--ink);border:none;border-radius:28px;padding:12px 24px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background .3s var(--ease),transform .3s var(--ease),box-shadow .3s var(--ease)}
+.btn-p:hover{background:var(--acc-d);transform:translateY(-2px);box-shadow:0 8px 24px rgba(83,178,236,.35)}
+.btn-p:active,.btn-dark:active,.btn-o:active{transform:scale(.98)}
+.btn-o{font-size:16px;font-weight:600;color:var(--ink-60);border:1.5px solid var(--bg3);border-radius:28px;padding:12px 24px;text-decoration:none;transition:border-color .3s var(--ease),color .3s var(--ease),transform .3s var(--ease)}
+.btn-o:hover{border-color:var(--acc);color:var(--acc-t)}
+.hero-stair{display:flex;align-items:center;justify-content:center}
+.stair-step{opacity:0;transform:translateX(-12px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+.stair-step.vis{opacity:1;transform:none}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-stair{display:none}.hero{padding:calc(64px + 48px) 24px 64px}}
+
+/* ── SECCIONES ── */
+.s-pad{padding:96px var(--gutter)}
+.s-bg2{background:var(--bg2)}.s-acc{background:var(--acc-dd)}.s-bg{background:var(--bg)}
+@media(max-width:700px){.s-pad{padding:64px 24px}}
+.sh{font-size:clamp(30px,3.6vw,48px);font-weight:800;letter-spacing:-1.6px;line-height:1.05;color:var(--ink)}
+.sh .a{color:var(--acc-t)}.sh .l{color:var(--lift)}
+.sh-w{color:var(--white)}
+.sdeck{font-size:16px;line-height:24px;color:var(--ink-60);font-weight:500}
+.sdeck b{color:var(--acc-t);font-weight:700}
+.sdeck strong{color:var(--lift-d);font-weight:700}
+.pre{font-size:12px;font-weight:700;color:var(--acc-t);margin-bottom:12px;letter-spacing:.04em;text-transform:uppercase}
+.pre-w{color:rgba(255,255,255,.55)}
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.reveal.vis{opacity:1;transform:none}
+
+/* pain */
+.pain-top{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-bottom:48px}
+.pain-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.pc{background:var(--bg);border:1px solid var(--border);padding:32px;opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease),border-color .3s var(--ease),box-shadow .3s var(--ease)}
+.pc.vis{opacity:1;transform:none}
+.pc:nth-child(2){transition-delay:.08s}.pc:nth-child(3){transition-delay:.16s}.pc:nth-child(4){transition-delay:.24s}
+.pc:hover{border-color:var(--acc);box-shadow:0 4px 24px rgba(83,178,236,.10)}
+.pc:hover .pc-ico{background:var(--acc);transform:scale(1.08)}
+.pc-ico{width:40px;height:40px;background:var(--acc-dd);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;transition:background .3s var(--ease),transform .3s var(--ease)}
+.pc-ico svg{width:18px;height:18px}
+.pc-t{font-size:16px;font-weight:800;color:var(--ink);margin-bottom:8px;line-height:1.25;transition:color .3s var(--ease)}
+.pc-b{font-size:14px;color:var(--ink-60);line-height:20px;font-weight:500}
+.pc-b b{color:var(--ink)}
+.pc:hover .pc-t{color:var(--acc-t)}
+@media(max-width:900px){.pain-top{grid-template-columns:1fr;gap:16px}.pain-grid{grid-template-columns:1fr}}
+
+/* flow */
+.flow-row{display:grid;grid-template-columns:repeat(5,1fr);position:relative;gap:16px}
+.flow-track{position:absolute;top:19px;left:20px;right:20px;height:1px;background:rgba(255,255,255,.12)}
+.flow-progress{position:absolute;inset:0;background:var(--lift);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--ease)}
+.fs-n{width:40px;height:40px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);background:var(--acc-dd);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;margin-bottom:16px;position:relative;z-index:1;transition:background .3s var(--ease),border-color .3s var(--ease),color .3s var(--ease)}
+.fs.lit .fs-n{background:var(--lift);border-color:var(--lift);color:var(--ink)}
+.fs-t{font-size:16px;font-weight:800;color:#fff;margin-bottom:8px;line-height:1.25;transition:color .3s var(--ease)}
+.fs.lit .fs-t{color:var(--lift)}
+.fs-b{font-size:14px;color:rgba(255,255,255,.6);line-height:20px;font-weight:500}
+.fs-b em{color:var(--lift);font-weight:700;font-style:normal}
+@media(max-width:900px){.flow-row{grid-template-columns:1fr 1fr;gap:32px 16px}.flow-track{display:none}}
+@media(max-width:540px){.flow-row{grid-template-columns:1fr}}
+
+/* tagline reveal */
+.tagline{padding:128px var(--gutter);background:var(--bg)}
+.tagline p{font-size:clamp(36px,5vw,60px);line-height:1.05;font-weight:800;letter-spacing:-1.8px;max-width:880px;text-wrap:balance}
+.tagline .w{color:var(--ink);opacity:.28;transition:opacity .5s var(--ease)}
+.tagline .w.on{opacity:1}
+.tagline .w.hl.on{color:var(--acc-d)}
+@media(max-width:700px){.tagline{padding:96px 24px}}
+
+/* demo */
+.demo-split{display:grid;grid-template-columns:1.25fr 1fr;gap:32px;align-items:start;margin-top:48px}
+.demo-col-label{font-size:12px;font-weight:700;color:var(--ink-50);margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.demo-reset{margin-top:24px;font-size:14px;font-weight:600;color:var(--ink-60);background:none;border:none;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.demo-reset:hover{color:var(--acc-t)}
+@media(max-width:900px){.demo-split{grid-template-columns:1fr}}
+.admin-demo{background:#fff;border:1px solid #D9D4CC;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(11,13,26,.08)}
+.demo-bar{background:#F0EDE6;padding:8px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #D9D4CC}
+.db-dot{width:8px;height:8px;border-radius:50%}
+.demo-url{font-size:12px;color:#77716A;margin-left:8px}
+.demo-tabs{display:flex;border-bottom:1px solid #E8E3DC;background:#FAFAF7;overflow-x:auto}
+.dt{font-size:12px;font-weight:700;padding:12px 16px;cursor:pointer;color:#6B7280;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;position:relative;transition:color .3s var(--ease),border-color .3s var(--ease),background .3s var(--ease)}
+.dt:hover{color:var(--acc-d);background:rgba(83,178,236,.04)}
+.dt[aria-selected="true"]{color:var(--acc-t);border-bottom-color:var(--acc)}
+.dt .ping{position:absolute;top:8px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--lift);display:none}
+.dt.has-new .ping{display:block;animation:ping 1.4s var(--ease) infinite}
+@keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.4);opacity:.5}}
+.demo-panel{padding:16px;min-height:280px}
+.dp[hidden]{display:none}
+.mm-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:#F7F6F2;border-radius:8px;padding:12px}
+.kpi-v{font-size:18px;font-weight:800;color:#0C0E12;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
+.kpi-v.ok{color:#0a6640}.kpi-v.bad{color:var(--bad)}
+.kpi-l{font-size:12px;color:#6B7280;margin-top:2px}
+.mm-tbl{border:1px solid #E8EBF0;border-radius:8px;overflow:hidden;font-size:12px}
+.tr{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #F0F2F5;width:100%;background:none;border-left:none;border-right:none;border-top:none;text-align:left;font-size:12px;color:inherit;transition:background .3s var(--ease)}
+.tr:last-child{border-bottom:none}
+button.tr{cursor:pointer}
+button.tr:hover{background:#EEF7FD}
+.tr.hd{background:#F7F8FA;font-size:12px;color:#6B7280;font-weight:700}
+.tname{flex:1;font-weight:700;color:#0C0E12}.tr.hd .tname{color:#6B7280}
+.tname.link{color:var(--acc-t)}
+.tunit{width:32px;color:#6B7280}.tamt{width:64px;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.tst{width:84px;display:flex;justify-content:flex-end}
+.tbadge{font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;white-space:nowrap}
+.tb-ok{background:var(--ok-l);color:var(--ok)}.tb-rev{background:var(--rev-l);color:var(--rev)}
+.tb-pen{background:var(--acc-l);color:var(--acc-t)}.tb-mor{background:var(--bad-l);color:var(--bad)}
+.hint{font-size:12px;color:var(--acc-t);margin-top:12px;font-weight:700}
+.det-head{font-size:14px;font-weight:800;color:#0C0E12;margin-bottom:8px}
+.det-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F0F2F5;font-size:12px}
+.det-row:last-of-type{border:none}
+.det-row.tot{font-weight:800}.det-row.tot .det-k{color:#0C0E12;font-weight:800}
+.det-k{color:#6B7280;font-weight:500}.det-v{font-weight:700;color:#0C0E12;font-variant-numeric:tabular-nums}
+.det-tag{font-size:12px;font-weight:700;background:var(--acc-l);color:var(--acc-t);border-radius:6px;padding:2px 8px;margin-top:8px;display:inline-block}
+.row-btns{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.cpb-card{background:#F7F6F2;border-radius:8px;padding:16px}
+.cpb-head{font-size:14px;font-weight:800;color:#0C0E12;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cpb-meta{font-size:12px;color:#6B7280;margin-bottom:8px}
+.cpb-file{background:#E8E3DC;border-radius:6px;padding:12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#4B5563;font-weight:600;word-break:break-all}
+.cpb-file img{width:48px;height:48px;object-fit:cover;border-radius:4px;flex-shrink:0}
+.cpb-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.cpb-btn{font-size:12px;font-weight:700;border:none;border-radius:6px;padding:8px 12px;cursor:pointer;transition:background .3s var(--ease),transform .3s var(--ease),opacity .3s var(--ease)}
+.cpb-btn:active{transform:scale(.98)}
+.cpb-btn:disabled{opacity:.45;cursor:default;transform:none}
+.cpb-ok{background:var(--ok);color:#fff}.cpb-ok:hover:not(:disabled){background:#04432F}
+.cpb-no{background:var(--bad-l);color:var(--bad)}.cpb-no:hover:not(:disabled){background:#FCCACA}
+.cpb-prim{background:var(--acc);color:var(--ink)}.cpb-prim:hover{background:var(--acc-d)}
+.cpb-sec{background:#F0EDE6;color:var(--ink)}.cpb-sec:hover{background:#E6E1D8}
+.cpb-result{margin-top:12px;font-size:12px;font-weight:700;border-radius:8px;padding:8px 12px}
+.cpb-result.ok{background:var(--ok-l);color:var(--ok)}.cpb-result.no{background:var(--bad-l);color:var(--bad)}
+.empty{border:1.5px dashed #D9D4CC;border-radius:8px;padding:24px 16px;text-align:center}
+.empty-t{font-size:14px;font-weight:800;color:#0C0E12;margin-bottom:4px}
+.empty-b{font-size:12px;color:#6B7280;line-height:16px}
+.reject-reason{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.reject-reason label{font-size:12px;font-weight:700;color:#4B5563}
+.reject-reason select{font:inherit;font-size:12px;padding:8px;border-radius:6px;border:1px solid #D9D4CC;background:#fff}
+
+/* celular */
+.mobile-wrap{display:flex;flex-direction:column;align-items:center}
+.mobile-frame{width:248px;background:#fff;border-radius:32px;border:2px solid #D9D4CC;box-shadow:0 12px 40px rgba(11,13,26,.1);overflow:hidden}
+.mf-notch{width:72px;height:16px;background:#D9D4CC;border-radius:0 0 8px 8px;margin:0 auto}
+.mf-screen{padding:16px 12px 8px;min-height:340px}
+.mf-header{font-size:12px;font-weight:800;color:#0C0E12;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.mf-brand-color{color:var(--acc-t)}.mf-unit-s{font-size:12px;font-weight:600;color:#6B7280}
+.mf-card{background:var(--acc-dd);border-radius:12px;padding:16px;margin-bottom:12px;transition:background .5s var(--ease)}
+.mf-card.paid{background:var(--ok)}
+.mf-c-label{font-size:12px;font-weight:700;color:rgba(255,255,255,.6);margin-bottom:4px}
+.mf-c-amt{font-size:24px;font-weight:800;color:#fff;letter-spacing:-.8px;font-variant-numeric:tabular-nums}
+.mf-c-period{font-size:12px;color:rgba(255,255,255,.55);margin-top:2px}
+.mf-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;border-bottom:1px solid #F0F2F5}
+.mf-row:last-of-type{border:none}.mf-dk{color:#6B7280;font-weight:500}.mf-dv{font-weight:700;color:#0C0E12;font-variant-numeric:tabular-nums}
+.mf-btn{width:100%;font-size:12px;font-weight:700;border:none;border-radius:8px;padding:12px;cursor:pointer;margin-top:12px;background:var(--acc);color:var(--ink);transition:background .3s var(--ease),transform .3s var(--ease)}
+.mf-btn:hover{background:var(--acc-d)}.mf-btn:active{transform:scale(.98)}
+.mf-btn:disabled{background:#C8CDD8;color:#6B7280;cursor:default;transform:none}
+.mf-btn.ghost{background:#EEEBE5;color:var(--ink)}.mf-btn.ghost:hover{background:#E3DFD7}
+.mf-upload{display:block;border:1.5px dashed #C8CDD8;border-radius:8px;padding:16px 12px;text-align:center;font-size:12px;color:#6B7280;cursor:pointer;transition:background .3s var(--ease),border-color .3s var(--ease)}
+.mf-upload:hover,.mf-upload.drag{border-color:var(--acc)}
+.mf-upload.active{background:var(--acc-l);border-color:var(--acc)}
+.mf-upload input{position:absolute;opacity:0;width:1px;height:1px}
+.mf-upload:focus-within{outline:2px solid var(--acc-t);outline-offset:2px}
+.mf-file-name{font-size:12px;font-weight:700;color:var(--acc-t);margin-top:4px;word-break:break-all}
+.mf-err{font-size:12px;color:var(--bad);font-weight:600;margin-top:8px}
+.mf-note{font-size:12px;color:#6B7280;margin-bottom:12px;line-height:16px}
+.mf-status{border-radius:12px;padding:16px;text-align:center;margin-bottom:12px}
+.mf-status.rev{background:var(--rev-l);color:var(--rev)}.mf-status.ok{background:var(--ok-l);color:var(--ok)}.mf-status.no{background:var(--bad-l);color:var(--bad)}
+.mf-status-t{font-size:14px;font-weight:800}
+.mf-status-b{font-size:12px;margin-top:4px;line-height:16px}
+.res-steps{display:flex;justify-content:center;gap:8px;padding:8px 0 12px}
+.rs-dot{width:6px;height:6px;border-radius:50%;background:#E0DDD7;transition:background .3s var(--ease)}
+.rs-dot.on{background:var(--acc)}
+.mobile-label{text-align:center;font-size:12px;font-weight:600;color:var(--ink-50);margin-top:12px}
+
+/* planes */
+.planes-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.plan{background:var(--bg);border:1.5px solid var(--border);border-radius:16px;padding:40px;transition:border-color .3s var(--ease),box-shadow .3s var(--ease),transform .5s var(--ease)}
+.plan:hover{border-color:var(--acc);box-shadow:0 8px 32px rgba(83,178,236,.12);transform:translateY(-4px)}
+.plan.hi{border-color:var(--acc);background:#fff;box-shadow:0 4px 20px rgba(83,178,236,.12)}
+.plan-tag{font-size:12px;font-weight:800;color:var(--acc-t);margin-bottom:12px;letter-spacing:.06em;text-transform:uppercase}
+.plan-name{font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.6px;line-height:28px;margin-bottom:12px}
+.plan-desc{font-size:14px;color:var(--ink-60);line-height:20px;margin-bottom:24px;font-weight:500}
+.plan-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.plan-list li{font-size:14px;line-height:20px;color:var(--ink);display:flex;align-items:flex-start;gap:8px;font-weight:500}
+.pl-dash{color:var(--acc-t);font-weight:800;flex-shrink:0}
+.plan-soon{margin-top:24px;font-size:12px;font-weight:700;color:var(--ink-50)}
+@media(max-width:900px){.planes-grid{grid-template-columns:1fr}.plan{padding:32px 24px}}
+
+/* faq */
+.faq-wrap{display:grid;grid-template-columns:.8fr 1.2fr;gap:64px;align-items:start}
+.faq-list{display:flex;flex-direction:column;gap:8px}
+.faq-item{background:var(--bg);border:1px solid var(--border);border-radius:12px;transition:border-color .3s var(--ease)}
+.faq-item[open]{border-color:var(--acc)}
+.faq-item summary{list-style:none;cursor:pointer;padding:16px 24px;font-size:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:16px;border-radius:12px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'';flex-shrink:0;width:12px;height:12px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);transform:translateY(-3px) rotate(45deg);transition:transform .5s var(--ease)}
+.faq-item[open] summary::after{transform:translateY(3px) rotate(-135deg)}
+.faq-item p{padding:0 24px 24px;font-size:14px;line-height:20px;color:var(--ink-60);font-weight:500}
+@media(max-width:900px){.faq-wrap{grid-template-columns:1fr;gap:32px}}
+
+/* CTA + formulario */
+.s-cta{background:var(--lift);padding:96px var(--gutter);display:grid;grid-template-columns:1fr minmax(320px,440px);align-items:center;gap:48px}
+.cta-pre{font-size:12px;font-weight:800;color:rgba(11,13,26,.5);margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.cta-h{font-size:clamp(36px,5vw,60px);font-weight:800;color:var(--ink);letter-spacing:-2.2px;line-height:1;margin-bottom:16px}
+.cta-body{font-size:16px;color:rgba(11,13,26,.65);line-height:24px;max-width:40ch;font-weight:500}
+.cta-body b{color:var(--ink);font-weight:800}
+.cta-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px;list-style:none}
+.chip{font-size:12px;font-weight:700;color:var(--ink);background:rgba(11,13,26,.08);border-radius:20px;padding:4px 12px}
+.lead{background:var(--bg);border-radius:16px;padding:32px;box-shadow:0 12px 40px rgba(11,13,26,.12);display:flex;flex-direction:column;gap:16px}
+.lead h3{font-size:20px;font-weight:800;letter-spacing:-.4px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:12px;font-weight:700;color:var(--ink-60)}
+.fld label span{font-weight:500;color:var(--ink-50)}
+.fld input,.fld select,.fld textarea{font:inherit;font-size:16px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--bg3);background:#fff;color:var(--ink);transition:border-color .3s var(--ease)}
+.fld textarea{resize:vertical;min-height:80px}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--acc)}
+.fld.err input,.fld.err select{border-color:var(--bad)}
+.fld-err{font-size:12px;color:var(--bad);font-weight:600;min-height:0}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn-dark{background:var(--ink);justify-content:center;width:100%}
+.btn-dark:hover{background:var(--acc-dd);transform:translateY(-2px);box-shadow:0 10px 28px rgba(13,59,92,.35)}
+.btn-dark:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none}
+.lead-note{font-size:12px;color:var(--ink-50);text-align:center;font-weight:600}
+.lead-note a{color:inherit}
+.lead-done{text-align:center;padding:24px 0}
+.lead-done .mf-status-t{font-size:20px;color:var(--ok);margin-bottom:8px}
+.lead-done p{font-size:14px;color:var(--ink-60);line-height:20px}
+.lead-error{font-size:12px;color:var(--bad);font-weight:600;background:var(--bad-l);border-radius:8px;padding:8px 12px}
+@media(max-width:900px){.s-cta{grid-template-columns:1fr;padding:64px 24px}.lead{padding:24px}}
+@media(max-width:420px){.fld-row{grid-template-columns:1fr}}
+
+/* legal */
+.legal-cols{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.lb{font-size:12px;color:var(--ink-60);line-height:20px;font-weight:500}
+.lb b{color:var(--acc-d);font-weight:700}
+.lb p+p{margin-top:12px}
+.legal-h{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:24px}
+.legal-pre{font-size:12px;font-weight:700;color:var(--ink-50);margin-bottom:8px}
+@media(max-width:700px){.legal-cols{grid-template-columns:1fr;gap:16px}}
+
+/* footer */
+footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+.ft-piso{font-size:12px;font-weight:700;color:var(--lift);letter-spacing:.15em;margin-bottom:32px;display:flex;align-items:center;gap:12px}
+.ft-piso::before,.ft-piso::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
+.ft-main{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:32px}
+.ft-wm{font-size:20px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:-.5px;margin-bottom:4px}
+.ft-tagline{font-size:12px;color:rgba(255,255,255,.5);font-weight:500}
+.ft-links{display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.ft-link{font-size:12px;color:rgba(255,255,255,.55);text-decoration:none;font-weight:600;transition:color .3s var(--ease)}
+.ft-link:hover{color:#fff}
+.ft-copy{font-size:12px;color:rgba(255,255,255,.4);font-weight:500}
+@media(max-width:700px){footer{padding:48px 24px}}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
+  .stair-step,.pc,.reveal,.mmenu a{opacity:1!important;transform:none!important}
+  .tagline .w{opacity:1}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Saltar al contenido</a>
+
+<!-- NAV -->
+<header class="nav" id="nav">
+  <a class="nav-brand" href="#hero" aria-label="Planta Baja, inicio">
+    <svg width="28" height="26" viewBox="0 0 230 220" aria-hidden="true">
+      <polygon points="43,61 67,73 67,86 43,73" fill="rgba(11,13,26,.25)"/>
+      <polygon points="67,73 91,61 91,73 67,86" fill="rgba(11,13,26,.14)"/>
+      <polygon points="43,61 67,48 91,61 67,73" fill="rgba(11,13,26,.42)"/>
+      <polygon points="67,83 91,95 91,108 67,95" fill="rgba(11,13,26,.30)"/>
+      <polygon points="91,95 115,83 115,95 91,108" fill="rgba(11,13,26,.18)"/>
+      <polygon points="67,83 91,70 115,83 91,95" fill="rgba(11,13,26,.50)"/>
+      <polygon points="91,105 115,117 115,130 91,117" fill="rgba(11,13,26,.36)"/>
+      <polygon points="115,117 139,105 139,117 115,130" fill="rgba(11,13,26,.22)"/>
+      <polygon points="91,105 115,92 139,105 115,117" fill="rgba(11,13,26,.58)"/>
+      <polygon points="115,127 139,139 139,152 115,139" fill="rgba(11,13,26,.44)"/>
+      <polygon points="139,139 163,127 163,139 139,152" fill="rgba(11,13,26,.28)"/>
+      <polygon points="115,127 139,114 163,127 139,139" fill="rgba(11,13,26,.70)"/>
+      <polygon points="139,149 163,161 163,174 139,161" fill="#2E95D6"/>
+      <polygon points="163,161 187,149 187,161 163,174" fill="#1B6FA6"/>
+      <polygon points="139,149 163,136 187,149 163,161" fill="#53B2EC"/>
+    </svg>
+    <div>
+      <div class="nav-wordmark"><em>P</em>lanta <em>B</em>aja</div>
+      <div class="nav-sub">Gestión de edificios</div>
+    </div>
+  </a>
+  <nav class="nav-links" aria-label="Principal">
+    <a class="nav-link" href="#pain">El problema</a>
+    <a class="nav-link" href="#flow">Cómo funciona</a>
+    <a class="nav-link" href="#app">Demo</a>
+    <a class="nav-link" href="#planes">Planes</a>
+    <a class="nav-link" href="#faq">Preguntas</a>
+    <a class="nav-cta" href="#cta">Pedir una demo</a>
+  </nav>
+  <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="mmenu"><span></span><span></span><span></span></button>
+  <nav class="mmenu" id="mmenu" aria-label="Menú móvil" inert>
+    <a href="#pain">El problema</a>
+    <a href="#flow">Cómo funciona</a>
+    <a href="#app">Demo</a>
+    <a href="#planes">Planes</a>
+    <a href="#faq">Preguntas</a>
+    <a class="mm-cta" href="#cta">Pedir una demo</a>
+  </nav>
+</header>
+
+<!-- ASCENSOR: indica la sección actual como un piso -->
+<aside class="elevator" aria-label="Indicador de sección">
+  <div class="dm-label" aria-hidden="true">PISO</div>
+  <div class="dm-visor"><svg id="dmSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Piso 8"></svg></div>
+  <div class="dm-sep"></div>
+  <div class="dm-btns">
+    <button class="dm-btn" id="dmBtnUp" aria-label="Sección anterior"><svg id="dmBtnUpSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg></button>
+    <button class="dm-btn active" id="dmBtnDown" aria-label="Sección siguiente"><svg id="dmBtnDownSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg></button>
+  </div>
+</aside>
+
+<main id="main" tabindex="-1">
+
+<!-- HERO -->
+<section id="hero" class="hero" aria-labelledby="hero-h">
+  <div class="hero-grid">
+    <div>
+      <p class="hero-pre">Para administradores de edificios · Uruguay</p>
+      <h1 class="hero-h1" id="hero-h">Gestión<br>de edificios<br><span class="ht">sin caos.</span></h1>
+      <p class="hero-body"><b>Liquidaciones, cobros y comunicaciones</b> en un solo lugar. Los residentes ven su saldo y suben el comprobante <strong>desde el celular</strong>. Vos lo <b>validás</b> contra el banco y seguís.</p>
+      <div class="hero-btns">
+        <a class="btn-p" href="#cta">Pedir una demo</a>
+        <a class="btn-o" href="#app">Probar el demo</a>
+      </div>
+      <div class="hero-proof" aria-label="Lo que incluye">
+        <span>Prorrateo por coeficiente</span>
+        <span>PDF y Excel siempre</span>
+        <span>Un mes gratis</span>
+      </div>
+    </div>
+    <div class="hero-stair" aria-hidden="true">
+      <svg width="320" height="280" viewBox="0 0 320 280">
+        <ellipse cx="160" cy="262" rx="120" ry="8" fill="rgba(83,178,236,.08)"/>
+        <g class="stair-step" data-i="0">
+          <rect x="20" y="60" width="56" height="12" fill="#53B2EC" rx="1"/>
+          <rect x="76" y="72" width="8" height="52" fill="#2E95D6"/>
+          <rect x="20" y="112" width="64" height="4" fill="rgba(83,178,236,.15)"/>
+        </g>
+        <g class="stair-step" data-i="1">
+          <rect x="76" y="112" width="56" height="12" fill="#53B2EC" rx="1"/>
+          <rect x="132" y="124" width="8" height="52" fill="#2E95D6"/>
+          <rect x="76" y="164" width="64" height="4" fill="rgba(83,178,236,.15)"/>
+        </g>
+        <g class="stair-step" data-i="2">
+          <rect x="132" y="164" width="56" height="12" fill="#53B2EC" rx="1"/>
+          <rect x="188" y="176" width="8" height="52" fill="#2E95D6"/>
+          <rect x="132" y="216" width="64" height="4" fill="rgba(83,178,236,.15)"/>
+        </g>
+        <g class="stair-step" data-i="3">
+          <rect x="188" y="216" width="56" height="12" fill="#F5B800" rx="1"/>
+          <rect x="244" y="228" width="8" height="28" fill="#C89200"/>
+          <rect x="188" y="244" width="64" height="4" fill="rgba(245,184,0,.25)"/>
+        </g>
+        <line x1="20" y1="256" x2="300" y2="256" stroke="rgba(83,178,236,.15)" stroke-width="2" stroke-dasharray="6 4"/>
+        <text x="256" y="252" font-size="9" font-weight="800" fill="rgba(83,178,236,.4)" font-family="'Plus Jakarta Sans',sans-serif">PB</text>
+        <g class="stair-step" data-i="4" transform="translate(206,190)">
+          <circle cx="0" cy="-8" r="5" fill="#F5B800"/>
+          <line x1="0" y1="-3" x2="0" y2="10" stroke="#F5B800" stroke-width="2" stroke-linecap="round"/>
+          <line x1="0" y1="3" x2="-5" y2="10" stroke="#F5B800" stroke-width="2" stroke-linecap="round"/>
+          <line x1="0" y1="3" x2="5" y2="10" stroke="#F5B800" stroke-width="2" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- EL PROBLEMA -->
+<section id="pain" class="s-pad s-bg2" aria-labelledby="pain-h">
+  <div class="pain-top">
+    <h2 class="sh" id="pain-h">Lo que pasa cuando <span class="a">no hay sistema</span>.</h2>
+    <p class="sdeck">No es que los administradores trabajen mal. Es que operan con <b>herramientas que no fueron pensadas</b> para esto. Cuatro problemas que se repiten <strong>todos los meses</strong>.</p>
+  </div>
+  <div class="pain-grid">
+    <article class="pc"><div class="pc-ico" aria-hidden="true"><svg viewBox="0 0 18 18" fill="none"><path d="M3 3h12v2H3V3zm0 5h8v2H3V8zm0 5h6v2H3v-2z" fill="white" opacity=".85"/></svg></div><h3 class="pc-t">El Excel con tres versiones</h3><p class="pc-b">¿Cuál es el bueno? Cada mes hay que <b>reconstruir la liquidación desde cero</b>.</p></article>
+    <article class="pc"><div class="pc-ico" aria-hidden="true"><svg viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="11" rx="2" stroke="white" stroke-width="1.4" opacity=".85"/><path d="M2 8h14" stroke="white" stroke-width="1.4" opacity=".85"/></svg></div><h3 class="pc-t">El comprobante que nadie encuentra</h3><p class="pc-b">Buscás entre cuarenta correos y mensajes de WhatsApp. Otra llamada, <b>otra hora perdida</b>.</p></article>
+    <article class="pc"><div class="pc-ico" aria-hidden="true"><svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="white" stroke-width="1.4" opacity=".85"/><path d="M9 5.5v4l2.5 1.5" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity=".85"/></svg></div><h3 class="pc-t">El reclamo que quedó abierto</h3><p class="pc-b">Sin registro, el reclamo <b>vive para siempre</b> y no tenés prueba de lo que resolviste.</p></article>
+    <article class="pc"><div class="pc-ico" aria-hidden="true"><svg viewBox="0 0 18 18" fill="none"><path d="M2 4.5h14M2 9h10M2 13.5h7" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity=".85"/></svg></div><h3 class="pc-t">Ninguna vista entre edificios</h3><p class="pc-b">Con varios edificios, <b>no sabés cuál está en mora</b> sin abrir otra planilla.</p></article>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section id="flow" class="s-pad s-acc" aria-labelledby="flow-h">
+  <p class="pre pre-w">Del gasto al cobro</p>
+  <h2 class="sh sh-w" id="flow-h" style="max-width:20ch;margin-bottom:48px">Cada paso, <span class="l">en orden</span>.</h2>
+  <ol class="flow-row" id="flowRow" style="list-style:none">
+    <li class="flow-track" aria-hidden="true"><div class="flow-progress" id="flowProgress"></div></li>
+    <li class="fs"><div class="fs-n">1</div><h3 class="fs-t">Cargás los gastos del mes</h3><p class="fs-b">UTE, OSE, limpieza, honorarios. Se reparten por <em>coeficiente</em> entre las unidades.</p></li>
+    <li class="fs"><div class="fs-n">2</div><h3 class="fs-t">Se emite la liquidación</h3><p class="fs-b"><em>PDF por unidad</em>. Inquilino y propietario ven lo que le toca a cada uno.</p></li>
+    <li class="fs"><div class="fs-n">3</div><h3 class="fs-t">El residente sube el comprobante</h3><p class="fs-b">Desde el celular, en dos toques. <em>Te llega el aviso.</em></p></li>
+    <li class="fs"><div class="fs-n">4</div><h3 class="fs-t">Lo validás contra el banco</h3><p class="fs-b">Aprobás o rechazás con un motivo. <em>Todo queda registrado.</em></p></li>
+    <li class="fs"><div class="fs-n">5</div><h3 class="fs-t">Se actualiza la cuenta corriente</h3><p class="fs-b">El pago aprobado entra al <em>historial de la unidad</em> y nunca se borra.</p></li>
+  </ol>
+</section>
+
+<!-- TAGLINE -->
+<section class="tagline" id="lema" aria-label="En resumen">
+  <p id="taglineText">Que el cierre de mes deje de ser una semana de llamadas y pase a ser una tarde de validar comprobantes.</p>
+</section>
+
+<!-- DEMO -->
+<section id="app" class="s-pad s-bg2" aria-labelledby="app-h">
+  <p class="pre">Demo interactivo</p>
+  <h2 class="sh" id="app-h" style="margin-bottom:12px">Así se ve un mes con Planta Baja.</h2>
+  <p class="sdeck" style="max-width:56ch">Del lado derecho sos <b>López, de la unidad 102</b>: subí un comprobante (cualquier imagen o PDF, no sale de tu navegador). Del lado izquierdo sos <b>el administrador</b>: te llega y lo validás.</p>
+  <div class="demo-split">
+    <div>
+      <div class="demo-col-label" id="adminLbl">Panel del administrador</div>
+      <div class="admin-demo" role="region" aria-labelledby="adminLbl">
+        <div class="demo-bar" aria-hidden="true"><div class="db-dot" style="background:#FF5F57"></div><div class="db-dot" style="background:#FFBD2E"></div><div class="db-dot" style="background:#28CA41"></div><span class="demo-url">app.plantabaja.uy · Edificio Rambla 2418 · Oct 2026</span></div>
+        <div class="demo-tabs" role="tablist" aria-label="Secciones del panel">
+          <button class="dt" role="tab" id="t-cobros" aria-controls="tab-cobros" aria-selected="true" data-tab="cobros">Cobros</button>
+          <button class="dt" role="tab" id="t-detalle" aria-controls="tab-detalle" aria-selected="false" tabindex="-1" data-tab="detalle">Unidad 102</button>
+          <button class="dt" role="tab" id="t-comprobante" aria-controls="tab-comprobante" aria-selected="false" tabindex="-1" data-tab="comprobante">Comprobantes <span class="ping" aria-hidden="true"></span></button>
+        </div>
+        <div class="demo-panel">
+          <div class="dp" id="tab-cobros" role="tabpanel" aria-labelledby="t-cobros">
+            <div class="mm-kpis">
+              <div class="kpi"><div class="kpi-v" id="kpiCobrado">$ 0</div><div class="kpi-l">Cobrado de $ 118.437</div></div>
+              <div class="kpi"><div class="kpi-v ok" id="kpiAlDia">16</div><div class="kpi-l">Unidades al día</div></div>
+              <div class="kpi"><div class="kpi-v bad">3</div><div class="kpi-l">En mora</div></div>
+            </div>
+            <div class="mm-tbl" role="table" aria-label="Cobros de octubre">
+              <div class="tr hd" role="row"><span class="tname" role="columnheader">Responsable</span><span class="tunit" role="columnheader">Un.</span><span class="tamt" role="columnheader">Monto</span><span class="tst" role="columnheader">Estado</span></div>
+              <div class="tr" role="row"><span class="tname" role="cell">García, Mariela</span><span class="tunit" role="cell">101</span><span class="tamt" role="cell">$ 5.412</span><span class="tst" role="cell"><span class="tbadge tb-ok">Al día</span></span></div>
+              <button class="tr" role="row" id="rowLopez" data-go="detalle"><span class="tname link" role="cell">López, Joaquín →</span><span class="tunit" role="cell">102</span><span class="tamt" role="cell">$ 5.870</span><span class="tst" role="cell"><span class="tbadge tb-pen" id="lopezBadge">Pendiente</span></span></button>
+              <div class="tr" role="row"><span class="tname" role="cell">Martínez, Ana Laura</span><span class="tunit" role="cell">201</span><span class="tamt" role="cell">$ 6.130</span><span class="tst" role="cell"><span class="tbadge tb-pen">Pendiente</span></span></div>
+              <div class="tr" role="row"><span class="tname" role="cell">Rodríguez, Carlos</span><span class="tunit" role="cell">202</span><span class="tamt" role="cell">$ 6.130</span><span class="tst" role="cell"><span class="tbadge tb-mor">En mora</span></span></div>
+            </div>
+            <p class="hint" id="cobrosHint">Tocá a López para ver la liquidación de la unidad.</p>
+          </div>
+          <div class="dp" id="tab-detalle" role="tabpanel" aria-labelledby="t-detalle" hidden>
+            <div class="det-head">Liquidación octubre 2026 · Unidad 102 (coef. 4,957 %)</div>
+            <div class="det-row"><span class="det-k">Gastos comunes</span><span class="det-v">$ 3.215</span></div>
+            <div class="det-row"><span class="det-k">UTE (áreas comunes)</span><span class="det-v">$ 412</span></div>
+            <div class="det-row"><span class="det-k">OSE</span><span class="det-v">$ 287</span></div>
+            <div class="det-row"><span class="det-k">Honorarios de administración</span><span class="det-v">$ 1.108</span></div>
+            <div class="det-row"><span class="det-k">Fondo de reserva</span><span class="det-v">$ 848</span></div>
+            <div class="det-row tot"><span class="det-k">Total</span><span class="det-v">$ 5.870</span></div>
+            <span class="det-tag">Reparto por coeficiente · PDF listo</span>
+            <div class="row-btns">
+              <button class="cpb-btn cpb-prim" data-go="comprobante">Ver comprobantes →</button>
+              <button class="cpb-btn cpb-sec" data-go="cobros">← Volver a cobros</button>
+            </div>
+          </div>
+          <div class="dp" id="tab-comprobante" role="tabpanel" aria-labelledby="t-comprobante" hidden>
+            <div id="cpbEmpty" class="empty">
+              <div class="empty-t">No hay comprobantes para revisar</div>
+              <div class="empty-b">Cuando un residente suba uno, aparece acá. Probalo desde el celular de la derecha.</div>
+            </div>
+            <div id="cpbCard" class="cpb-card" hidden>
+              <div class="cpb-head"><span>López, Joaquín · Unidad 102</span><span class="tbadge tb-rev" id="cpbBadge">En revisión</span></div>
+              <div class="cpb-meta" id="cpbMeta"></div>
+              <div class="cpb-file" id="cpbFile"></div>
+              <div class="cpb-actions" id="cpbActions">
+                <button class="cpb-btn cpb-ok" id="btnApprove">✓ Aprobar $ 5.870</button>
+                <button class="cpb-btn cpb-no" id="btnReject">Rechazar</button>
+              </div>
+              <div class="reject-reason" id="rejectBox" hidden>
+                <label for="rejectReason">Motivo del rechazo (lo ve el residente)</label>
+                <select id="rejectReason">
+                  <option>El monto no coincide con la transferencia</option>
+                  <option>No encuentro la transferencia en el banco</option>
+                  <option>El comprobante no se lee bien</option>
+                </select>
+                <div class="cpb-actions" style="margin-top:0">
+                  <button class="cpb-btn cpb-no" id="btnRejectConfirm">Confirmar rechazo</button>
+                  <button class="cpb-btn cpb-sec" id="btnRejectCancel">Cancelar</button>
+                </div>
+              </div>
+              <div class="cpb-result" id="cpbResult" role="status" hidden></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="demo-reset" id="demoReset">Reiniciar el demo</button>
+    </div>
+
+    <div class="mobile-wrap">
+      <div class="demo-col-label" id="resLbl">Portal del residente</div>
+      <div class="mobile-frame" role="region" aria-labelledby="resLbl">
+        <div class="mf-notch" aria-hidden="true"></div>
+        <div class="mf-screen" aria-live="polite">
+          <div id="rs0">
+            <div class="mf-header"><span class="mf-brand-color">Planta Baja</span><span class="mf-unit-s">Unidad 102</span></div>
+            <div class="mf-card" id="resCard"><div class="mf-c-label" id="resCardLbl">A pagar</div><div class="mf-c-amt" id="resCardAmt">$ 5.870</div><div class="mf-c-period" id="resCardPer">Octubre 2026 · vence el 10/11</div></div>
+            <div id="resBreakdown">
+              <div class="mf-row"><span class="mf-dk">Gastos comunes</span><span class="mf-dv">$ 3.215</span></div>
+              <div class="mf-row"><span class="mf-dk">UTE y OSE</span><span class="mf-dv">$ 699</span></div>
+              <div class="mf-row"><span class="mf-dk">Honorarios</span><span class="mf-dv">$ 1.108</span></div>
+              <div class="mf-row"><span class="mf-dk">Fondo de reserva</span><span class="mf-dv">$ 848</span></div>
+            </div>
+            <div id="resStatus" class="mf-status" hidden><div class="mf-status-t" id="resStatusT"></div><div class="mf-status-b" id="resStatusB"></div></div>
+            <button class="mf-btn" id="resUploadBtn">Subir comprobante de pago</button>
+          </div>
+          <div id="rs1" hidden>
+            <div class="mf-header"><span class="mf-brand-color">Comprobante</span><span class="mf-unit-s">Octubre 2026</span></div>
+            <p class="mf-note">Adjuntá la captura o el PDF de la transferencia por $ 5.870.</p>
+            <label class="mf-upload" id="dropZone">
+              <input type="file" id="fileInput" accept="image/*,application/pdf">
+              <div style="font-size:18px;margin-bottom:4px" aria-hidden="true">📎</div>
+              <div id="dropText">Tocá para elegir el archivo</div>
+              <div class="mf-file-name" id="fileName" hidden></div>
+            </label>
+            <div class="mf-err" id="fileErr" role="alert" hidden></div>
+            <button class="mf-btn" id="resSendBtn" disabled>Enviar comprobante</button>
+            <button class="mf-btn ghost" id="resBackBtn">Cancelar</button>
+          </div>
+          <div id="rs2" hidden>
+            <div class="mf-header"><span class="mf-brand-color">Planta Baja</span><span class="mf-unit-s">Unidad 102</span></div>
+            <div class="mf-status rev"><div class="mf-status-t">Comprobante recibido</div><div class="mf-status-b">La administración lo revisa contra el banco. Te avisamos cuando esté validado.</div></div>
+            <div class="mf-row"><span class="mf-dk">Estado</span><span class="tbadge tb-rev">En revisión</span></div>
+            <div class="mf-row"><span class="mf-dk">Enviado</span><span class="mf-dv" id="resSentAt"></span></div>
+            <button class="mf-btn ghost" id="resHomeBtn">← Volver a mi cuenta</button>
+          </div>
+        </div>
+        <div class="res-steps" aria-hidden="true"><div class="rs-dot on" id="rsd0"></div><div class="rs-dot" id="rsd1"></div><div class="rs-dot" id="rsd2"></div></div>
+      </div>
+      <div class="mobile-label">Lo que ve el residente en su celular</div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANES -->
+<section id="planes" class="s-pad s-bg" aria-labelledby="planes-h">
+  <p class="pre">Dos modelos</p>
+  <h2 class="sh" id="planes-h" style="margin-bottom:48px;max-width:22ch">Elegís <span class="a">cómo</span> manejar los cobros.</h2>
+  <div class="planes-grid">
+    <article class="plan reveal">
+      <p class="plan-tag">Plan Gestión</p>
+      <h3 class="plan-name">Control y registro.<br>Los cobros, como siempre.</h3>
+      <p class="plan-desc">Usás Planta Baja para liquidar, registrar y ver el estado de cada edificio. Los pagos los seguís recibiendo por transferencia a tu cuenta.</p>
+      <ul class="plan-list">
+        <li><span class="pl-dash" aria-hidden="true">—</span>Liquidaciones en PDF con reparto por coeficiente</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Cuentas separadas para inquilino y propietario</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Al día, pendientes y en mora, actualizado al validar</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Validación de comprobantes contra tu banco</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Portal del residente, también en el celular</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Avisos y reclamos con registro</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Varios edificios en un mismo panel</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Exportación a Excel y PDF, siempre</li>
+      </ul>
+    </article>
+    <article class="plan hi reveal">
+      <p class="plan-tag">Plan Pagos · Próximamente</p>
+      <h3 class="plan-name">Cobros integrados<br>en la plataforma.</h3>
+      <p class="plan-desc">Todo lo del Plan Gestión, más pago en línea para que los residentes paguen desde el celular, sin cruzar transferencias a mano.</p>
+      <ul class="plan-list">
+        <li><span class="pl-dash" aria-hidden="true">—</span>Todo lo del Plan Gestión</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Pago en línea para residentes</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Acreditación automática en la cuenta corriente</li>
+      </ul>
+      <p class="plan-soon">En desarrollo. Si te interesa, contanos en el formulario.</p>
+    </article>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="s-pad s-bg2" aria-labelledby="faq-h">
+  <div class="faq-wrap">
+    <div>
+      <p class="pre">Preguntas frecuentes</p>
+      <h2 class="sh" id="faq-h">Lo que nos preguntan <span class="a">antes de probar</span>.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item"><summary>Tengo residentes mayores que no usan el celular. ¿Qué pasa con ellos?</summary><p>Siguen igual que hoy. Cada liquidación sale en PDF para imprimir y dejar por debajo de la puerta, y el pago se puede registrar desde el panel sin que el residente suba nada. El portal es una opción, no una obligación.</p></details>
+      <details class="faq-item"><summary>¿Cómo se validan los pagos?</summary><p>Como ahora, pero ordenado. El residente sube el comprobante, vos lo cruzás con el movimiento en tu cuenta bancaria y lo aprobás o rechazás con un motivo. Hasta que no lo aprobás, no cuenta como pago.</p></details>
+      <details class="faq-item"><summary>Tengo todo en Excel. ¿Hay que pasar el historial?</summary><p>No. Elegimos una fecha de corte y cargamos el saldo de cada unidad a ese día. Desde ahí, todo se registra en la plataforma. Los Excel viejos los seguís teniendo vos.</p></details>
+      <details class="faq-item"><summary>¿Separa lo que paga el inquilino y lo que paga el propietario?</summary><p>Sí. El inquilino ve y paga los gastos comunes ordinarios; el propietario, el fondo de reserva y las cuotas extraordinarias. Si la unidad no está alquilada, el propietario ve todo.</p></details>
+      <details class="faq-item"><summary>¿Cómo calcula el reparto?</summary><p>Por el coeficiente de copropiedad de cada unidad, según el reglamento del edificio y la Ley 10.751. Cargás el gasto una vez y el sistema lo reparte. Si alguien se muda a mitad de mes, se prorratea por días.</p></details>
+      <details class="faq-item"><summary>¿Qué pasa con mis datos si dejo de usarlo?</summary><p>Son tuyos. Los podés exportar a Excel y PDF en cualquier momento, y si te das de baja te entregamos una copia completa.</p></details>
+      <details class="faq-item"><summary>¿Cuánto cuesta?</summary><p>Es una suscripción mensual fija por administración, sin costo por residente. El precio depende de cuántos edificios manejás; te lo pasamos en la demo. El primer mes es gratis.</p></details>
+      <details class="faq-item"><summary>¿Sirve si manejo varios edificios?</summary><p>Sí. Ves todos en un panel, con lo cobrado y lo pendiente de cada uno, y cada edificio tiene sus datos separados.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="s-cta" aria-labelledby="cta-h">
+  <div>
+    <p class="cta-pre">Para las primeras administraciones</p>
+    <h2 class="cta-h" id="cta-h">Un mes gratis.<br>Con tus edificios reales.</h2>
+    <p class="cta-body">Probás con <b>tu cartera real</b>. Si no cambió la forma en que trabajás, te vas con <b>todos tus datos</b>.</p>
+    <ul class="cta-chips"><li class="chip">Carga inicial incluida</li><li class="chip">Capacitación del equipo</li><li class="chip">Acompañamiento en el primer cierre</li><li class="chip">Datos siempre tuyos</li></ul>
+  </div>
+  <!-- data-endpoint: URL a la que se hace POST (JSON). Vacío = abre el correo con los datos cargados. -->
+  <form class="lead" id="leadForm" novalidate data-endpoint="" data-mailto="hola@plantabaja.uy">
+    <div id="leadFields">
+      <h3 style="margin-bottom:16px">Pedí tu demo</h3>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="fld"><label for="fNombre">Nombre y apellido</label><input id="fNombre" name="nombre" autocomplete="name" required><div class="fld-err" hidden></div></div>
+        <div class="fld"><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" autocomplete="email" inputmode="email" required><div class="fld-err" hidden></div></div>
+        <div class="fld-row">
+          <div class="fld"><label for="fTel">Teléfono <span>(opcional)</span></label><input id="fTel" name="telefono" type="tel" autocomplete="tel" inputmode="tel" placeholder="09X XXX XXX"><div class="fld-err" hidden></div></div>
+          <div class="fld"><label for="fEdif">Edificios que administrás</label><select id="fEdif" name="edificios" required><option value="">Elegí</option><option>1</option><option>2 a 5</option><option>6 a 15</option><option>Más de 15</option></select><div class="fld-err" hidden></div></div>
+        </div>
+        <div class="fld"><label for="fMsg">¿Algo que debamos saber? <span>(opcional)</span></label><textarea id="fMsg" name="mensaje" rows="3"></textarea></div>
+        <div class="lead-error" id="leadError" role="alert" hidden></div>
+        <button class="btn-dark" type="submit" id="leadSubmit">Pedir mi demo</button>
+        <p class="lead-note">Te respondemos en un día hábil. O escribinos a <a href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a></p>
+      </div>
+    </div>
+    <div class="lead-done" id="leadDone" role="status" hidden tabindex="-1">
+      <div class="mf-status-t">Pedido recibido</div>
+      <p id="leadDoneText"></p>
+    </div>
+  </form>
+</section>
+
+<!-- LEGAL -->
+<section id="legal" class="s-pad s-bg2" aria-labelledby="legal-h">
+  <p class="legal-pre">Información legal · Borrador</p>
+  <h2 class="legal-h" id="legal-h">Privacidad, datos y cookies</h2>
+  <div class="legal-cols">
+    <div class="lb"><p><b>Protección de datos personales.</b> Planta Baja trata los datos personales solo para prestar el servicio, conforme a la Ley N.° 18.331 de Protección de Datos Personales y Acción de Habeas Data (Uruguay).</p><p><b>Titularidad de los datos.</b> Los datos de cada edificio son del administrador. Se pueden exportar en cualquier momento y, en caso de baja, el administrador recibe una copia completa.</p></div>
+    <div class="lb"><p><b>Cookies.</b> Solo usamos cookies estrictamente necesarias para el funcionamiento del servicio (inicio de sesión). No hay cookies de seguimiento publicitario.</p><p><b>Seguridad.</b> La información viaja cifrada por HTTPS y los accesos están separados por rol. Este texto es un borrador y no constituye una política legalmente vinculante.</p></div>
+  </div>
+</section>
+
+</main>
+
+<!-- FOOTER: PLANTA BAJA -->
+<footer id="footer">
+  <div class="ft-piso" aria-hidden="true">PLANTA BAJA</div>
+  <div class="ft-main">
+    <div><div class="ft-wm"><em>P</em>lanta <em>B</em>aja</div><div class="ft-tagline">Gestión de edificios · Uruguay</div></div>
+    <nav class="ft-links" aria-label="Pie de página"><a class="ft-link" href="#legal">Privacidad y cookies</a><a class="ft-link" href="#faq">Preguntas frecuentes</a><a class="ft-link" href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a><a class="ft-link" href="#hero">Volver arriba ↑</a></nav>
+  </div>
+  <div class="ft-copy">© 2026 Planta Baja. Todos los derechos reservados.</div>
+</footer>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ── Nav: fondo al scrollear (con rAF), menú móvil y sección actual ── */
+const nav=$('nav');
+let navTick=false;
+addEventListener('scroll',()=>{if(navTick)return;navTick=true;requestAnimationFrame(()=>{nav.classList.toggle('scrolled',scrollY>30);navTick=false})},{passive:true});
+
+const toggle=$('navToggle'),mmenu=$('mmenu');
+function setMenu(open){
+  document.body.classList.toggle('nav-open',open);
+  toggle.setAttribute('aria-expanded',open);
+  toggle.setAttribute('aria-label',open?'Cerrar menú':'Abrir menú');
+  mmenu.inert=!open;
+  document.body.style.overflow=open?'hidden':'';
+  mmenu.querySelectorAll('a').forEach((a,i)=>a.style.transitionDelay=open?Math.min(i*60,400)+'ms':'0ms');
+  if(open)mmenu.querySelector('a').focus();
+}
+toggle.addEventListener('click',()=>setMenu(!document.body.classList.contains('nav-open')));
+mmenu.addEventListener('click',e=>{if(e.target.closest('a'))setMenu(false)});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('nav-open')){setMenu(false);toggle.focus()}});
+matchMedia('(min-width:801px)').addEventListener('change',e=>{if(e.matches)setMenu(false)});
+
+const navLinks=[...document.querySelectorAll('.nav-link')];
+const navObs=new IntersectionObserver(entries=>{entries.forEach(e=>{
+  if(!e.isIntersecting)return;
+  navLinks.forEach(a=>{if(a.getAttribute('href')==='#'+e.target.id)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')});
+})},{rootMargin:'-45% 0px -50% 0px'});
+["hero","pain","flow","lema","app","planes","faq","cta","legal"].forEach(id=>navObs.observe($(id)));
+
+/* ── Reveals (una sola vez) ── */
+function revealOnce(nodes,cls,opts,delay){
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;setTimeout(()=>el.classList.add(cls),delay?delay(el):0);obs.unobserve(el)})},opts||{threshold:.15});
+  nodes.forEach(n=>obs.observe(n));
+}
+revealOnce(document.querySelectorAll('.stair-step'),'vis',{threshold:.1},el=>+el.dataset.i*180);
+revealOnce(document.querySelectorAll('.pc'),'vis');
+revealOnce(document.querySelectorAll('.reveal'),'vis');
+
+/* ── Cómo funciona: se iluminan los pasos en orden ── */
+const flowSteps=document.querySelectorAll('.fs'),flowProgress=$('flowProgress');
+function lightStep(i){
+  if(i>=flowSteps.length)return;
+  flowSteps[i].classList.add('lit');
+  flowProgress.style.transform='scaleX('+(i/(flowSteps.length-1))+')';
+  setTimeout(()=>lightStep(i+1),reduceMotion?0:420);
+}
+new IntersectionObserver((entries,obs)=>{entries.forEach(e=>{if(e.isIntersecting){obs.disconnect();setTimeout(()=>lightStep(0),200)}})},{threshold:.25}).observe($('flowRow'));
+
+/* ── Tagline: cada palabra se enciende al cruzar la línea de lectura ── */
+const tagline=$('taglineText');
+const HL=new Set(['tarde','validar','comprobantes.']);
+tagline.innerHTML=tagline.textContent.trim().split(/\s+/).map(w=>`<span class="w${HL.has(w)?' hl':''}">${w}</span>`).join(' ');
+const words=[...tagline.querySelectorAll('.w')];
+let tagTick=false;
+function updateTagline(){
+  const line=innerHeight*.62;
+  words.forEach(w=>w.classList.toggle('on',w.getBoundingClientRect().top<line));
+  tagTick=false;
+}
+if(reduceMotion){words.forEach(w=>w.classList.add('on'))}
+else{
+  let tagVisible=false;
+  new IntersectionObserver(es=>{tagVisible=es[0].isIntersecting;if(tagVisible)updateTagline()}).observe(tagline);
+  addEventListener('scroll',()=>{if(!tagVisible||tagTick)return;tagTick=true;requestAnimationFrame(updateTagline)},{passive:true});
+}
+
+/* ── DEMO: estado compartido entre el panel y el portal ── */
+const fmt=n=>'$ '+n.toLocaleString('es-UY');
+const LOPEZ_TOTAL=5870, COBRADO_BASE=86915, AL_DIA_BASE=16;
+const state={status:'none',file:null,fileUrl:null,sentAt:null,reason:''};
+
+/* tabs del panel (con teclado ← →) */
+const tabs=[...document.querySelectorAll('.dt')];
+function switchTab(id,focus){
+  tabs.forEach(t=>{const on=t.dataset.tab===id;t.setAttribute('aria-selected',on);t.tabIndex=on?0:-1;$('tab-'+t.dataset.tab).hidden=!on;if(on&&focus)t.focus()});
+  if(id==='comprobante')$('t-comprobante').classList.remove('has-new');
+}
+tabs.forEach((t,i)=>{
+  t.addEventListener('click',()=>switchTab(t.dataset.tab));
+  t.addEventListener('keydown',e=>{const d=e.key==='ArrowRight'?1:e.key==='ArrowLeft'?-1:0;if(d){e.preventDefault();switchTab(tabs[(i+d+tabs.length)%tabs.length].dataset.tab,true)}});
+});
+document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.go)));
+
+/* portal: pantallas */
+function showRS(n){[0,1,2].forEach(i=>{$('rs'+i).hidden=i!==n;$('rsd'+i).classList.toggle('on',i===n)})}
+
+function render(){
+  const s=state.status;
+  /* panel: cobros */
+  const badge=$('lopezBadge');
+  const map={none:['tb-pen','Pendiente'],review:['tb-rev','En revisión'],approved:['tb-ok','Al día'],rejected:['tb-mor','Rechazado']};
+  badge.className='tbadge '+map[s][0];badge.textContent=map[s][1];
+  $('kpiCobrado').textContent=fmt(COBRADO_BASE+(s==='approved'?LOPEZ_TOTAL:0));
+  $('kpiAlDia').textContent=AL_DIA_BASE+(s==='approved'?1:0);
+  $('cobrosHint').textContent=s==='review'?'López subió un comprobante. Revisalo en Comprobantes.':s==='approved'?'Pago aprobado: la cuenta de López quedó en cero.':'Tocá a López para ver la liquidación de la unidad.';
+  /* panel: comprobante */
+  $('cpbEmpty').hidden=s!=='none';
+  $('cpbCard').hidden=s==='none';
+  if(s!=='none'){
+    $('cpbMeta').textContent='Subido el '+state.sentAt.toLocaleDateString('es-UY',{day:'numeric',month:'short'})+' a las '+state.sentAt.toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'})+' · Transferencia por '+fmt(LOPEZ_TOTAL);
+    const f=$('cpbFile');f.textContent='';
+    if(state.fileUrl&&state.file.type.startsWith('image/')){const img=new Image();img.src=state.fileUrl;img.alt='Vista previa del comprobante';f.appendChild(img)}
+    else{const ic=document.createElement('span');ic.textContent='📄';ic.setAttribute('aria-hidden','true');f.appendChild(ic)}
+    f.appendChild(document.createTextNode(state.file.name));
+    const cb=$('cpbBadge');cb.className='tbadge '+(s==='review'?'tb-rev':s==='approved'?'tb-ok':'tb-mor');cb.textContent=s==='review'?'En revisión':s==='approved'?'Aprobado':'Rechazado';
+    $('btnApprove').disabled=$('btnReject').disabled=s!=='review';
+    const r=$('cpbResult');
+    r.hidden=s==='review';
+    if(s==='approved'){r.className='cpb-result ok';r.textContent='Pago aprobado. Se registró en la cuenta corriente de la unidad 102 y se avisó a López.'}
+    if(s==='rejected'){r.className='cpb-result no';r.textContent='Comprobante rechazado: '+state.reason.toLowerCase()+'. Se avisó a López para que suba otro.'}
+  }
+  /* portal: inicio */
+  const card=$('resCard'),st=$('resStatus');
+  card.classList.toggle('paid',s==='approved');
+  $('resCardLbl').textContent=s==='approved'?'Saldo':'A pagar';
+  $('resCardAmt').textContent=s==='approved'?'$ 0':fmt(LOPEZ_TOTAL);
+  $('resCardPer').textContent=s==='approved'?'Octubre 2026 · pagado':'Octubre 2026 · vence el 10/11';
+  st.hidden=s==='none';
+  if(s==='review'){st.className='mf-status rev';$('resStatusT').textContent='Comprobante en revisión';$('resStatusB').textContent='La administración lo está validando.'}
+  if(s==='approved'){st.className='mf-status ok';$('resStatusT').textContent='Pago validado';$('resStatusB').textContent='Gracias. Tu pago de octubre ya figura en tu cuenta.'}
+  if(s==='rejected'){st.className='mf-status no';$('resStatusT').textContent='Comprobante rechazado';$('resStatusB').textContent=state.reason+'. Subí otro comprobante.'}
+  const ub=$('resUploadBtn');
+  ub.hidden=s==='review'||s==='approved';
+  ub.textContent=s==='rejected'?'Subir otro comprobante':'Subir comprobante de pago';
+  if(s==='review')$('resSentAt').textContent=state.sentAt.toLocaleDateString('es-UY',{day:'numeric',month:'short'})+' · '+state.sentAt.toLocaleTimeString('es-UY',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* portal: subir archivo (real, solo en el navegador) */
+const MAX_MB=10;
+let picked=null;
+const fileInput=$('fileInput'),dropZone=$('dropZone');
+function pickFile(f){
+  $('fileErr').hidden=true;
+  if(!f)return;
+  const okType=f.type.startsWith('image/')||f.type==='application/pdf';
+  if(!okType){showFileErr('Ese tipo de archivo no sirve. Subí una imagen o un PDF.');return}
+  if(f.size>MAX_MB*1024*1024){showFileErr('El archivo pesa más de '+MAX_MB+' MB. Probá con una captura de pantalla.');return}
+  picked=f;
+  dropZone.classList.add('active');
+  $('dropText').textContent='Archivo elegido';
+  const fn=$('fileName');fn.textContent=f.name;fn.hidden=false;
+  $('resSendBtn').disabled=false;
+}
+function showFileErr(msg){picked=null;const e=$('fileErr');e.textContent=msg;e.hidden=false;$('resSendBtn').disabled=true;dropZone.classList.remove('active')}
+function resetPicker(){picked=null;fileInput.value='';dropZone.classList.remove('active');$('dropText').textContent='Tocá para elegir el archivo';$('fileName').hidden=true;$('fileErr').hidden=true;$('resSendBtn').disabled=true}
+fileInput.addEventListener('change',()=>pickFile(fileInput.files[0]));
+['dragenter','dragover'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add('drag')}));
+['dragleave','drop'].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove('drag')}));
+dropZone.addEventListener('drop',e=>pickFile(e.dataTransfer.files[0]));
+
+$('resUploadBtn').addEventListener('click',()=>{resetPicker();showRS(1)});
+$('resBackBtn').addEventListener('click',()=>showRS(0));
+$('resSendBtn').addEventListener('click',()=>{
+  if(!picked)return;
+  if(state.fileUrl)URL.revokeObjectURL(state.fileUrl);
+  state.file=picked;state.fileUrl=URL.createObjectURL(picked);state.sentAt=new Date();state.status='review';
+  render();showRS(2);
+  if($('tab-comprobante').hidden)$('t-comprobante').classList.add('has-new');
+});
+$('resHomeBtn').addEventListener('click',()=>showRS(0));
+
+/* panel: aprobar / rechazar */
+$('btnApprove').addEventListener('click',()=>{state.status='approved';render();showRS(0)});
+$('btnReject').addEventListener('click',()=>{$('rejectBox').hidden=false;$('btnApprove').disabled=$('btnReject').disabled=true;$('rejectReason').focus()});
+$('btnRejectCancel').addEventListener('click',()=>{$('rejectBox').hidden=true;render()});
+$('btnRejectConfirm').addEventListener('click',()=>{state.reason=$('rejectReason').value;state.status='rejected';$('rejectBox').hidden=true;render();showRS(0)});
+
+$('demoReset').addEventListener('click',()=>{
+  if(state.fileUrl)URL.revokeObjectURL(state.fileUrl);
+  Object.assign(state,{status:'none',file:null,fileUrl:null,sentAt:null,reason:''});
+  $('rejectBox').hidden=true;$('t-comprobante').classList.remove('has-new');
+  resetPicker();render();showRS(0);switchTab('cobros');
+});
+render();
+
+/* ── Formulario de demo ── */
+const form=$('leadForm');
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+function setErr(input,msg){const f=input.closest('.fld'),e=f.querySelector('.fld-err');f.classList.toggle('err',!!msg);e.textContent=msg||'';e.hidden=!msg;input.setAttribute('aria-invalid',!!msg);if(msg){e.id=e.id||input.id+'-err';input.setAttribute('aria-describedby',e.id)}else input.removeAttribute('aria-describedby')}
+function validate(input){
+  const v=input.value.trim();let msg='';
+  if(input.id==='fNombre'&&v.length<2)msg='Escribí tu nombre.';
+  if(input.id==='fEmail')msg=!v?'Escribí tu email.':!EMAIL_RE.test(v)?'Revisá el email: le falta algo (por ejemplo, nombre@dominio.com).':'';
+  if(input.id==='fTel'&&v&&v.replace(/\D/g,'').length<8)msg='El teléfono parece incompleto.';
+  if(input.id==='fEdif'&&!v)msg='Elegí cuántos edificios administrás.';
+  setErr(input,msg);return !msg;
+}
+const fields=['fNombre','fEmail','fTel','fEdif'].map($);
+fields.forEach(i=>{i.addEventListener('blur',()=>{if(i.value||i.getAttribute('aria-invalid')==='true')validate(i)});i.addEventListener('input',()=>{if(i.getAttribute('aria-invalid')==='true')validate(i)})});
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  $('leadError').hidden=true;
+  const bad=fields.filter(i=>!validate(i));
+  if(bad.length){bad[0].focus();return}
+  const data=Object.fromEntries(new FormData(form));
+  const endpoint=form.dataset.endpoint;
+  const btn=$('leadSubmit');
+  if(endpoint){
+    btn.disabled=true;btn.textContent='Enviando…';
+    try{
+      const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      if(!r.ok)throw new Error(r.status);
+      done('Gracias, '+data.nombre.split(' ')[0]+'. Te escribimos a '+data.email+' en un día hábil para coordinar la demo.');
+    }catch(err){
+      const le=$('leadError');le.textContent='No pudimos enviar el pedido. Probá de nuevo en un rato o escribinos a '+form.dataset.mailto+'.';le.hidden=false;
+      btn.disabled=false;btn.textContent='Pedir mi demo';
+    }
+  }else{
+    const body=`Nombre: ${data.nombre}\nEmail: ${data.email}\nTeléfono: ${data.telefono||'-'}\nEdificios: ${data.edificios}\n\n${data.mensaje||''}`;
+    location.href='mailto:'+form.dataset.mailto+'?subject='+encodeURIComponent('Pedido de demo · '+data.nombre)+'&body='+encodeURIComponent(body);
+    done('Se abrió tu programa de correo con el pedido cargado. Mandalo y te respondemos en un día hábil.');
+  }
+});
+function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=text;const d=$('leadDone');d.hidden=false;d.focus()}
+
+/* ── Ascensor: cada sección es un piso, del 8 a planta baja ── */
+const secciones=['hero','pain','flow','app','planes','faq','cta','legal','footer'];
+const pisos=['8','7','6','5','4','3','2','1','PB'];
+const GLYPHS={
+  '0':[31,17,17,17,17,17,31],'1':[4,12,4,4,4,4,14],'2':[31,1,1,31,16,16,31],'3':[31,1,1,31,1,1,31],
+  '4':[17,17,17,31,1,1,1],'5':[31,16,16,31,1,1,31],'6':[31,16,16,31,17,17,31],'7':[31,1,2,4,8,8,8],
+  '8':[31,17,17,31,17,17,31],'9':[31,17,17,31,1,1,31],'P':[30,17,17,30,16,16,16],'B':[30,17,17,30,17,17,30],
+  'ARR_D':[0,0,17,10,4,0,0],'ARR_U':[0,0,4,10,17,0,0]
+};
+const LIFT='#F5B800',LIFT_DIM='rgba(245,184,0,0.07)';
+function dots(bits,x0,y0,D,G){
+  const S=D*2+G;let out='';
+  for(let r=0;r<7;r++)for(let c=0;c<5;c++){
+    const on=(bits[r]>>(4-c))&1;
+    out+=`<circle cx="${x0+c*S+D}" cy="${y0+r*S+D}" r="${D}" fill="${on?LIFT:LIFT_DIM}"${on?' filter="url(#glow)"':''}/>`;
+  }
+  return out;
+}
+const svg=$('dmSvg');
+const DOT=3,GAP=1.4,STEP=DOT*2+GAP,CW=5*STEP-GAP,CH=7*STEP-GAP,CG=5;
+function renderDisplay(piso,dir){
+  const chars=piso==='PB'?['P','B']:[piso];
+  const w=2*CW+CG,h=CH*2+GAP*2;
+  svg.setAttribute('width',w);svg.setAttribute('height',h);svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  svg.setAttribute('aria-label',piso==='PB'?'Planta baja':'Piso '+piso);
+  let body='<defs><filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  if(chars.length===1)body+=dots(GLYPHS[chars[0]],CW*.5+CG*.5,0,DOT,GAP);
+  else{body+=dots(GLYPHS.P,0,0,DOT,GAP);body+=dots(GLYPHS.B,CW+CG,0,DOT,GAP)}
+  body+=dots(GLYPHS[dir==='up'?'ARR_U':'ARR_D'],CW*.5+CG*.5,CH+GAP*2,DOT,GAP);
+  svg.innerHTML=body;
+}
+function renderBtn(el,key){
+  const D=2,G=1,S=D*2+G,W=5*S-G,H=7*S-G;
+  el.setAttribute('width',W);el.setAttribute('height',H);el.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  el.innerHTML=dots(GLYPHS[key],0,0,D,G).replace(/ filter="url\(#glow\)"/g,'');
+}
+renderBtn($('dmBtnUpSvg'),'ARR_U');renderBtn($('dmBtnDownSvg'),'ARR_D');
+let lastIdx=0;
+renderDisplay(pisos[0],'down');
+function setFloor(id){
+  const idx=secciones.indexOf(id);if(idx<0||idx===lastIdx)return;
+  const dir=idx>lastIdx?'down':'up';
+  $('dmBtnDown').classList.toggle('active',dir==='down'&&idx<secciones.length-1);
+  $('dmBtnUp').classList.toggle('active',dir==='up'&&idx>0);
+  lastIdx=idx;renderDisplay(pisos[idx],dir);
+}
+function go(d){const n=Math.max(0,Math.min(secciones.length-1,lastIdx+d));$(secciones[n]).scrollIntoView({behavior:reduceMotion?'auto':'smooth'})}
+$('dmBtnUp').addEventListener('click',()=>go(-1));
+$('dmBtnDown').addEventListener('click',()=>go(1));
+const floorObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)setFloor(e.target.id)}),{rootMargin:'-38% 0px -38% 0px'});
+secciones.forEach(id=>floorObs.observe($(id)));
+})();
+</script>
+</body>
+</html>

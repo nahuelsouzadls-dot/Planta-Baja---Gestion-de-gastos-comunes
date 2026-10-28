@@ -1,0 +1,239 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/jetbrains-mono';
+
+/*
+ * Sistema de diseño (design/DISENO.md): plano y sobrio. Fondo gris, tarjetas blancas con
+ * borde de 1px y radio 12; el color va solo en la barra lateral (tema) y en acentos chicos.
+ * Los nombres siguen la convención de shadcn/ui para que sus componentes funcionen tal cual.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.75rem;
+
+  --background: #f4f5f7;
+  --foreground: #12151a;
+  --card: #ffffff;
+  --card-foreground: #12151a;
+  --popover: #ffffff;
+  --popover-foreground: #12151a;
+  --primary: #12151a;
+  --primary-hover: #2b3038;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f2f5;
+  --secondary-foreground: #12151a;
+  --muted: #f0f2f5;
+  --muted-foreground: #5d6573;
+  --accent: #f0f2f5;
+  --accent-foreground: #12151a;
+  --destructive: #b42318;
+  --border: #e3e6eb;
+  --line: #e8ebef;
+  --input: #cfd4dc;
+  --ring: var(--acc);
+  --ink-2: #454c57;
+
+  /* Estados de cuenta */
+  --ok: #0f7a4f;
+  --ok-bg: #e3f5ec;
+  --warn: #8a5a00;
+  --warn-bg: #fdf1d8;
+  --pend: #8a6a1f;
+  --pend-bg: #fbf6e6;
+  --bad: #a3170c;
+  --bad-bg: #fdeceb;
+
+  /* Tema (estilo Slack): color de la barra + acento. Lagoon por defecto. */
+  --side: #0e4a5e;
+  --acc: #12909f;
+  --accl: #7fe0ee;
+  --acc-soft: rgb(18 144 159 / 0.12);
+  --acc-soft2: rgb(18 144 159 / 0.2);
+}
+
+[data-theme='noche'] {
+  --side: #14233d;
+  --acc: #2a86bd;
+  --accl: #8fd3f4;
+  --acc-soft: rgb(42 134 189 / 0.12);
+  --acc-soft2: rgb(42 134 189 / 0.2);
+}
+[data-theme='berenjena'] {
+  --side: #3b1f45;
+  --acc: #1f9e80;
+  --accl: #86e3c8;
+  --acc-soft: rgb(31 158 128 / 0.12);
+  --acc-soft2: rgb(31 158 128 / 0.2);
+}
+[data-theme='bosque'] {
+  --side: #1d3b2f;
+  --acc: #a97a2b;
+  --accl: #e6c98a;
+  --acc-soft: rgb(169 122 43 / 0.13);
+  --acc-soft2: rgb(169 122 43 / 0.22);
+}
+[data-theme='grafito'] {
+  --side: #25282e;
+  --acc: #d9604f;
+  --accl: #f3a396;
+  --acc-soft: rgb(217 96 79 / 0.12);
+  --acc-soft2: rgb(217 96 79 / 0.2);
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-display: 'Manrope Variable', 'Inter Variable', sans-serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 12px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-line: var(--line);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ink-2: var(--ink-2);
+
+  --color-ok: var(--ok);
+  --color-ok-bg: var(--ok-bg);
+  --color-warn: var(--warn);
+  --color-warn-bg: var(--warn-bg);
+  --color-pend: var(--pend);
+  --color-pend-bg: var(--pend-bg);
+  --color-bad: var(--bad);
+  --color-bad-bg: var(--bad-bg);
+
+  --color-side: var(--side);
+  --color-acc: var(--acc);
+  --color-accl: var(--accl);
+  --color-acc-soft: var(--acc-soft);
+  --color-acc-soft2: var(--acc-soft2);
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-enter: enter 0.35s var(--ease-out-soft);
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground font-sans text-sm;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-acc;
+  }
+}
+
+@layer utilities {
+  /* Números: tabulares para que las columnas de montos alineen. */
+  .num {
+    @apply font-mono;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Vidrio líquido (excepción aprobada en DISENO.md): manchas desenfocadas lentas + reflejo. */
+.glass {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.glass::before,
+.glass::after {
+  content: '';
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.7;
+}
+.glass::before {
+  width: max(70%, 160px);
+  aspect-ratio: 1;
+  left: -20%;
+  top: -10%;
+  background: var(--acc);
+  animation: glass-a 28s ease-in-out infinite alternate;
+}
+.glass::after {
+  width: max(60%, 140px);
+  aspect-ratio: 1;
+  right: -25%;
+  bottom: -20%;
+  background: var(--accl);
+  opacity: 0.4;
+  animation: glass-b 34s ease-in-out infinite alternate;
+}
+@keyframes glass-a {
+  to {
+    transform: translate(30%, 40%) scale(1.15);
+  }
+}
+@keyframes glass-b {
+  to {
+    transform: translate(-35%, -30%) scale(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass::before,
+  .glass::after {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}
