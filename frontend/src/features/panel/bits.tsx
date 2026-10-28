@@ -7,27 +7,42 @@ import type { Account, AccountStatus, StatusCounts } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 /** Tarjeta de cifra del mes. */
-export function Fig({ icon, label, value, foot, tone, bar }: { icon: React.ReactNode; label: string; value: React.ReactNode; foot: React.ReactNode; tone?: 'bad' | 'warn'; bar?: number }) {
+const FIG_TONE = {
+  ok: ['text-ok', 'bg-ok'],
+  warn: ['text-warn', 'bg-brand-amber'],
+  bad: ['text-bad', 'bg-bad'],
+  brand: ['text-brand', 'bg-brand'],
+} as const
+
+/** Cifra del tablero. El tono pinta el número y el punto de la etiqueta: verde cobrado, ámbar acción, rojo mora. */
+export function Fig({ label, value, foot, tone, bar }: { icon?: React.ReactNode; label: string; value: React.ReactNode; foot: React.ReactNode; tone?: keyof typeof FIG_TONE; bar?: number }) {
+  // Un cero no pide atención: queda en gris aunque la cifra tenga tono.
+  const zero = typeof value === 'string' && /^[^1-9]*$/.test(value)
+  const [text, dot] = tone && !zero ? FIG_TONE[tone] : ['', 'bg-muted-foreground/40']
   return (
     <div className="min-w-0 px-4 py-4 sm:px-6 sm:py-5">
-      <div className="flex items-center gap-2 text-[10.5px] font-semibold tracking-wider text-muted-foreground uppercase sm:text-[11px]">
-        <span className="grid size-6 place-items-center rounded-md bg-acc-soft text-[color-mix(in_srgb,var(--acc)_75%,#000)] [&_svg]:size-3.5" aria-hidden="true">{icon}</span>
-        {label}
+      <div className="flex items-center gap-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
+        <span className={cn('size-2 shrink-0 rounded-full', dot)} aria-hidden="true" />
+        <span className="truncate">{label}</span>
       </div>
-      <div className={cn('num mt-2 truncate font-display text-[20px] leading-tight font-bold tracking-tight sm:text-[28px]', tone === 'bad' && 'text-bad', tone === 'warn' && 'text-warn')}>{value}</div>
+      <div className={cn('num mt-2 truncate font-display text-[20px] leading-tight font-bold tracking-tight sm:text-[28px]', text)}>{value}</div>
       <div className="mt-0.5 text-xs text-muted-foreground">{foot}</div>
       {bar != null ? (
         <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
-          <div className="h-full rounded-full bg-acc transition-[width] duration-700 ease-out-soft" style={{ width: `${Math.min(bar, 100)}%` }} />
+          <div className={cn('h-full rounded-full transition-[width] duration-700 ease-out-soft', tone === 'ok' ? 'bg-ok' : 'bg-acc')} style={{ width: `${Math.min(bar, 100)}%` }} />
         </div>
       ) : null}
     </div>
   )
 }
 
+/** Color del % cobrado: verde desde 90, marca desde 60, ámbar por debajo. */
+export const pctTone = (p: number) => (p >= 90 ? 'text-ok' : p >= 60 ? 'text-brand' : 'text-warn')
+export const pctBar = (p: number) => (p >= 90 ? 'bg-ok' : p >= 60 ? 'bg-acc' : 'bg-brand-amber')
+
 export function Figs({ children }: { children: React.ReactNode }) {
   return (
-    <Card className="grid grid-cols-2 gap-px overflow-hidden bg-line xl:grid-cols-4 [&>*]:bg-card">{children}</Card>
+    <Card className="grid grid-cols-2 gap-y-2 py-2 xl:grid-cols-4">{children}</Card>
   )
 }
 
@@ -99,7 +114,7 @@ export const legend = (counts: StatusCounts) =>
 export const shortName = (name: string) => name.replace('Edificio ', '')
 
 /** Paneles superpuestos (ficha de unidad, comprobante, gastos) en la URL: el botón Atrás los cierra. */
-export function useOverlay(name: 'unidad' | 'comprobante' | 'gastos') {
+export function useOverlay(name: 'unidad' | 'comprobante' | 'gastos' | 'alta') {
   const [params, setParams] = useSearchParams()
   const value = params.get(name)
   const open = React.useCallback(

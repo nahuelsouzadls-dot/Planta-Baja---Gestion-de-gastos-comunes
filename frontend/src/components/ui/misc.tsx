@@ -114,6 +114,7 @@ function Chip({ active, className, ...props }: React.ComponentProps<'button'> & 
   return (
     <button
       type="button"
+      data-slot="chip"
       aria-pressed={active}
       className={cn(
         'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ink-2 transition-colors hover:bg-foreground hover:text-white',

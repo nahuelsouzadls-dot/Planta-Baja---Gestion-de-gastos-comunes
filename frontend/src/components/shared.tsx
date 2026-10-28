@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { AlertCircleIcon, Building2Icon, CheckIcon, PaletteIcon } from 'lucide-react'
+import { AlertCircleIcon, Building2Icon, CheckIcon, CircleCheckIcon, CircleDashedIcon, CircleMinusIcon, Clock3Icon, PaletteIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/misc'
@@ -27,16 +27,26 @@ export const STATUS: Record<AccountStatus, [Tone, string]> = {
   'sin-cargar': ['none', 'Sin liquidación'],
 }
 
+/** Ícono de cada estado: el estado nunca depende solo del color. */
+const TONE_ICON: Record<Tone, React.ComponentType<React.SVGProps<SVGSVGElement> & { strokeWidth?: number }>> = {
+  ok: CircleCheckIcon,
+  warn: Clock3Icon,
+  pend: CircleDashedIcon,
+  bad: AlertCircleIcon,
+  none: CircleMinusIcon,
+}
+
 export function Pill({ tone, children, className }: { tone: Tone; children: React.ReactNode; className?: string }) {
   return (
     <span
+      data-slot="pill"
       className={cn(
         'inline-flex h-[22px] items-center gap-1.5 rounded-full px-2.5 text-[11.5px] font-semibold whitespace-nowrap',
         TONE[tone],
         className,
       )}
     >
-      <span className="size-1.5 rounded-full bg-current opacity-80" aria-hidden="true" />
+      {React.createElement(TONE_ICON[tone], { className: 'size-3.5 shrink-0', 'aria-hidden': true, strokeWidth: 2.25 })}
       {children}
     </span>
   )
@@ -165,4 +175,25 @@ export function useDocumentTitle(title: string) {
   React.useEffect(() => {
     document.title = title
   }, [title])
+}
+
+/** Escalerita de Planta Baja (la de la landing), redibujada para tamaño ícono:
+ * tres escalones celestes con el contraescalón más oscuro y el último en ámbar (planta baja). */
+export function PbMark({ className }: { className?: string; onDark?: boolean }) {
+  const steps = [0, 1, 2, 3]
+  return (
+    <svg viewBox="0 0 32 28" className={className} aria-hidden="true">
+      {steps.map((i) => {
+        const x = 1 + i * 7
+        const y = 2 + i * 6
+        const last = i === 3
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width="8" height="3.2" rx=".6" fill={last ? '#F5B800' : '#53B2EC'} />
+            <rect x={x + 5.6} y={y + 3.2} width="2.4" height={last ? 4 : 2.8} fill={last ? '#C89200' : '#2E95D6'} />
+          </g>
+        )
+      })}
+    </svg>
+  )
 }

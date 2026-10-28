@@ -53,6 +53,15 @@
   --accl: #7fe0ee;
   --acc-soft: rgb(18 144 159 / 0.12);
   --acc-soft2: rgb(18 144 159 / 0.2);
+
+  /* Marca: en el portal sigue al tema; el panel la fija en .brand-pb */
+  --brand: var(--side);
+  --brand-soft: var(--acc-soft);
+  --brand-amber: #f5b800;
+
+  /* Tipografías de títulos y números (el panel las unifica en Inter, ver .brand-pb) */
+  --ff-display: 'Manrope Variable', 'Inter Variable', sans-serif;
+  --ff-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 }
 
 [data-theme='noche'] {
@@ -84,10 +93,142 @@
   --acc-soft2: rgb(217 96 79 / 0.2);
 }
 
+/*
+ * Panel de administración con la marca Planta Baja: sobrio y profesional.
+ * - Una sola tipografía (Inter) con números tabulares; sin Manrope ni monoespaciada.
+ * - Celeste de marca para identidad y navegación (activo, links, progreso, foco).
+ * - Ámbar solo para lo que pide acción (en revisión, pendientes); rojo mora; verde cobrado.
+ * - Botones principales casi negros: el cliente pidió no rellenar botones de azul (DISENO.md).
+ * Va en <html> (PanelApp) para que también lo tomen diálogos y popovers, que se montan en <body>.
+ */
+html.brand-pb {
+  --ff-display: 'Inter Variable', system-ui, sans-serif;
+  --ff-mono: 'Inter Variable', system-ui, sans-serif;
+
+  --background: #f6f7f9;
+  --foreground: #111827;
+  --card-foreground: #111827;
+  --popover-foreground: #111827;
+  --primary: #111827;
+  --primary-hover: #1f2937;
+  --secondary: #f1f3f6;
+  --muted: #f1f3f6;
+  --muted-foreground: #6b7280;
+  --accent: #f1f4f8;
+  --border: #e5e7eb;
+  --line: #eceef1;
+  --input: #d1d5db;
+  --ink-2: #374151;
+
+  --side: #166aa3;
+  --acc: #53b2ec;
+  --accl: #bfe3f8;
+  --acc-soft: rgb(83 178 236 / 0.13);
+  --acc-soft2: rgb(83 178 236 / 0.24);
+  --brand: #166aa3;
+  --brand-amber: #f5b800;
+
+  --brand-soft: rgb(22 106 163 / 0.08);
+
+  /* Estados con más presencia: verde cobrado, ámbar acción, rojo mora. */
+  --ok: #0b8457;
+  --ok-bg: #e2f6ec;
+  --warn: #8a5a00;
+  --warn-bg: #fff4d1;
+  --pend: #4b5563;
+  --pend-bg: #f1f3f6;
+  --bad: #c0281b;
+  --bad-bg: #fdecea;
+}
+/* Menos "cajas": tarjetas sin borde, con sombra leve y esquinas más suaves; sin animaciones de entrada. */
+html.brand-pb {
+  /* Más redondeado: botones y campos 12px, tarjetas 20px, diálogos 24px. */
+  --radius: 1rem;
+  --background: #f2f4f7;
+}
+html.brand-pb [data-slot='card'] {
+  border-color: transparent;
+  border-radius: 20px;
+  box-shadow: 0 1px 2px rgb(17 24 39 / 0.05), 0 6px 20px -4px rgb(17 24 39 / 0.08);
+}
+/* Un poco de relieve, para que no se vea plano. */
+html.brand-pb [data-slot='button'].bg-primary {
+  box-shadow: 0 1px 2px rgb(17 24 39 / 0.25), 0 4px 10px -2px rgb(17 24 39 / 0.2), inset 0 1px 0 rgb(255 255 255 / 0.1);
+}
+html.brand-pb [data-slot='button'].bg-card {
+  box-shadow: 0 1px 2px rgb(17 24 39 / 0.05);
+}
+html.brand-pb [data-slot='input'],
+html.brand-pb [data-slot='select'],
+html.brand-pb [data-slot='textarea'] {
+  border-radius: 12px;
+}
+html.brand-pb [data-slot='dialog-content'] {
+  border-radius: 24px;
+  border-color: transparent;
+}
+/* Estados en el panel: ícono y texto del color del estado, sin cápsula de fondo. */
+html.brand-pb [data-slot='pill'] {
+  height: auto;
+  padding: 0;
+  gap: 5px;
+  background: none;
+  border-radius: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+/* Chips de filtro: el activo y el hover toman la marca en vez del negro. */
+html.brand-pb [data-slot='chip'] {
+  background: var(--card);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+html.brand-pb [data-slot='chip']:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 25%, transparent);
+}
+html.brand-pb [data-slot='chip'][aria-pressed='true'] {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 1px 2px rgb(22 106 163 / 0.3), 0 4px 10px -3px rgb(22 106 163 / 0.35);
+}
+/* Tarjetas clickeables: se levantan un poco al pasar el mouse. */
+html.brand-pb .lift {
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms;
+}
+html.brand-pb .lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1px 2px rgb(17 24 39 / 0.06), 0 10px 24px -8px rgb(22 106 163 / 0.22);
+}
+html.brand-pb [data-slot='button'] {
+  transition: background-color 200ms, color 200ms, box-shadow 300ms, transform 150ms;
+}
+html.brand-pb [data-slot='button']:active:not(:disabled) {
+  transform: translateY(1px);
+}
+html.brand-pb [data-slot='button'].bg-primary:hover {
+  box-shadow: 0 1px 2px rgb(17 24 39 / 0.25), 0 8px 16px -4px rgb(17 24 39 / 0.28), inset 0 1px 0 rgb(255 255 255 / 0.1);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.brand-pb .lift:hover,
+  html.brand-pb [data-slot='button']:active { transform: none; }
+}
+html.brand-pb .animate-enter {
+  animation: none;
+}
+html.brand-pb .num {
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+}
+html.brand-pb h1,
+html.brand-pb h2,
+html.brand-pb h3 {
+  letter-spacing: -0.015em;
+}
+
 @theme inline {
   --font-sans: 'Inter Variable', system-ui, sans-serif;
-  --font-display: 'Manrope Variable', 'Inter Variable', sans-serif;
-  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  --font-display: var(--ff-display);
+  --font-mono: var(--ff-mono);
 
   --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 4px);
@@ -131,6 +272,9 @@
   --color-accl: var(--accl);
   --color-acc-soft: var(--acc-soft);
   --color-acc-soft2: var(--acc-soft2);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-amber: var(--brand-amber);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 

@@ -134,6 +134,33 @@ export const useAdjustment = (occId: string) =>
   useWrite((body: { entry_id: string; amount: string; description: string }) => api.post(`occupancies/${occId}/adjustments`, body))
 export const useMoveOut = () => useWrite(({ occId, end_date }: { occId: string; end_date: string }) => api.post(`occupancies/${occId}/move-out`, { end_date }))
 
+export interface BuildingInput {
+  name: string
+  address: string
+  neighborhood: string
+  due_day: number
+  bank_name: string
+  bank_account: string
+  bank_holder: string
+}
+export const useNewBuilding = (orgId: string) =>
+  useWrite((body: BuildingInput) => api.post<{ id: string; name: string }>(`organizations/${orgId}/buildings`, body))
+
+/** Alta de unidad con su propietario y, si viene, la deuda inicial (asiento de apertura del día cero). */
+export const useNewUnit = (orgId: string) =>
+  useWrite(async ({ buildingId, unit, owner, start, opening }: {
+    buildingId: string
+    unit: { number: string; floor: number; coefficient: string; receives_paper: boolean }
+    owner: PersonInput
+    start: string
+    opening: string | null
+  }) => {
+    const created = await api.post<{ id: string }>(`buildings/${buildingId}/units`, unit)
+    const person = await api.post<{ id: string }>(`organizations/${orgId}/people`, owner)
+    const occ = await api.post<{ id: string }>(`units/${created.id}/move-in`, { person_id: person.id, role: 'owner', start_date: start })
+    if (opening) await api.post(`occupancies/${occ.id}/opening`, { amount: opening, date: start })
+  })
+
 export interface PersonInput {
   first_name: string
   last_name: string

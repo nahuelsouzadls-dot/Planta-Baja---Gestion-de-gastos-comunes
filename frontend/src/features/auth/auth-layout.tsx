@@ -2,7 +2,8 @@ import * as React from 'react'
 import { Link } from 'react-router'
 import { CheckIcon } from 'lucide-react'
 
-import { BrandMark, useTheme } from '@/components/shared'
+import { BrandMark, PbMark, useTheme } from '@/components/shared'
+import { cn } from '@/lib/utils'
 
 const POINTS = {
   admin: ['Liquidaciones con prorrateo por coeficiente', 'Comprobantes validados contra el banco', 'Cobros, morosidad y reclamos de toda la cartera'],
@@ -24,13 +25,30 @@ export function AuthLayout({
   footer?: React.ReactNode
 }) {
   useTheme()
+  const admin = audience === 'admin'
+  // La entrada al panel lleva la marca Planta Baja (sobria, sin vidrio), igual que el panel.
+  React.useEffect(() => {
+    if (!admin) return
+    const root = document.documentElement
+    root.classList.add('brand-pb')
+    return () => root.classList.remove('brand-pb')
+  }, [admin])
   return (
     <div className="flex min-h-dvh flex-col bg-background lg:flex-row">
-      <aside className="relative isolate flex shrink-0 flex-col overflow-hidden bg-side px-6 py-6 text-white lg:w-[44%] lg:max-w-[620px] lg:px-12 lg:py-10">
-        <span className="glass -z-10" aria-hidden="true" />
+      <aside className={cn("relative isolate flex shrink-0 flex-col overflow-hidden px-6 py-6 text-white lg:w-[44%] lg:max-w-[620px] lg:px-12 lg:py-10", admin ? "bg-[#0F2A3F]" : "bg-side")}>
+        {admin ? null : <span className="glass -z-10" aria-hidden="true" />}
         <Link to={audience === 'admin' ? '/ingresar/administracion' : '/ingresar'} className="flex items-center gap-3 self-start rounded-md">
-          <BrandMark className="bg-white/15 text-white backdrop-blur" />
-          <span className="font-display text-base font-bold">Gastos comunes</span>
+          {admin ? (
+            <>
+              <PbMark className="h-[30px] w-[34px]" />
+              <span className="text-base font-bold tracking-[-0.02em]"><span className="text-[#53B2EC]">P</span>lanta <span className="text-[#53B2EC]">B</span>aja</span>
+            </>
+          ) : (
+            <>
+              <BrandMark className="bg-white/15 text-white backdrop-blur" />
+              <span className="font-display text-base font-bold">Gastos comunes</span>
+            </>
+          )}
         </Link>
         <div className="hidden flex-1 flex-col justify-center lg:flex">
           <p className="font-display text-[34px] leading-[1.1] font-bold text-balance">
