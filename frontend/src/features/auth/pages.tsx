@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2Icon, Loader2Icon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -11,12 +12,18 @@ import { AuthLayout, PasswordInput } from './auth-layout'
 
 const MIN_PASSWORD = 10
 
-/** Después de entrar: empleados al panel, residentes al portal. */
-async function goHome(fallback: string) {
-  const me = await api.get<Me>('auth/me', { noRedirect: true })
-  if (me.organizations.length) location.href = '/panel'
-  else if (me.persons.some((p) => p.occupancies.length)) location.href = '/portal'
-  else location.href = fallback
+/** Después de entrar: empleados al panel, residentes al portal. Sin recargar la página:
+ * se guarda la sesión en la caché y se navega dentro de la app (sin pantalla en blanco). */
+function useGoHome() {
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  return async (fallback: string) => {
+    const me = await api.get<Me>('auth/me', { noRedirect: true })
+    qc.setQueryData(['me'], me)
+    if (me.organizations.length) navigate('/panel', { replace: true })
+    else if (me.persons.some((p) => p.occupancies.length)) navigate('/portal', { replace: true })
+    else navigate(fallback, { replace: true })
+  }
 }
 
 /** Envío de formulario con estado de carga y mensaje de error. */
@@ -60,6 +67,11 @@ export function LoginPage({ audience }: { audience: 'admin' | 'resident' }) {
   const admin = audience === 'admin'
   useDocumentTitle(admin ? 'Ingresar · Administración' : 'Ingresar · Mi edificio')
   const [params] = useSearchParams()
+  const goHome = useGoHome()
+  // Mientras completás el formulario, el código del panel o del portal ya se descarga.
+  React.useEffect(() => {
+    void (admin ? import('@/features/panel/panel-app') : import('@/features/portal/portal-app'))
+  }, [admin])
   const { busy, error, setError, run } = useSubmit(async (email: string, password: string) => {
     await api.post('auth/login', { email, password }, { noRedirect: true })
     await goHome(admin ? '/ingresar/administracion' : '/ingresar')
@@ -200,6 +212,7 @@ export function ResetPasswordPage() {
 export function AcceptInvitationPage() {
   useDocumentTitle('Activar tu cuenta')
   const [params] = useSearchParams()
+  const goHome = useGoHome()
   const { busy, error, setError, run } = useSubmit(async (password: string) => {
     await api.post('invitations/accept', { token: params.get('token') || '', password }, { noRedirect: true })
     await goHome('/ingresar')

@@ -4,6 +4,7 @@ import { Navigate } from 'react-router'
 
 import { api, ApiError, PANEL_LOGIN, PORTAL_LOGIN } from '@/lib/api'
 import type { Me } from '@/lib/types'
+import { Splash } from '@/components/shared'
 
 export const isEmployee = (me: Me) => me.organizations.length > 0
 export const isResident = (me: Me) => me.persons.some((p) => p.occupancies.length > 0)
@@ -31,13 +32,7 @@ export function useMe() {
   })
 }
 
-function FullScreenLoader() {
-  return (
-    <div className="grid min-h-dvh place-items-center" aria-busy="true" aria-label="Cargando">
-      <span className="size-6 animate-spin rounded-full border-2 border-border border-t-acc" />
-    </div>
-  )
-}
+const FullScreenLoader = Splash
 
 /** Solo deja pasar a quien corresponde; el resto va a su inicio o al login (igual que apps/frontend/views.py). */
 export function RequireRole({ role, children }: { role: 'employee' | 'resident'; children: (me: Me) => React.ReactNode }) {
