@@ -388,9 +388,10 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 .fld.err input,.fld.err select{border-color:var(--bad)}
 .fld-err{font-size:12px;color:var(--bad);font-weight:600;min-height:0}
 .fld-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.btn-dark{background:var(--ink);justify-content:center;width:100%}
+.btn-dark{background:var(--ink);color:#fff;justify-content:center;width:100%}
 .btn-dark:hover{background:var(--acc-dd);transform:translateY(-2px);box-shadow:0 10px 28px rgba(13,59,92,.35)}
 .btn-dark:disabled{opacity:.6;cursor:default;transform:none;box-shadow:none}
+.lead-sub{font-size:14px;line-height:20px;color:var(--ink-60);margin:4px 0 16px}
 .lead-note{font-size:12px;color:var(--ink-50);text-align:center;font-weight:600}
 .lead-note a{color:inherit}
 .lead-done{text-align:center;padding:24px 0}
@@ -842,7 +843,8 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
   <!-- data-endpoint: URL a la que se hace POST (JSON). Vacío = abre el correo con los datos cargados. -->
   <form class="lead" id="leadForm" novalidate data-endpoint="" data-mailto="hola@plantabaja.uy">
     <div id="leadFields">
-      <h3 style="margin-bottom:16px">Pedí tu demo</h3>
+      <h3>Pedí tu demo y te cotizamos</h3>
+      <p class="lead-sub">Te mostramos el sistema con tu cartera real y te pasamos el precio según cuántos edificios administrás.</p>
       <div style="display:flex;flex-direction:column;gap:16px">
         <div class="fld"><label for="fNombre">Nombre y apellido</label><input id="fNombre" name="nombre" autocomplete="name" required><div class="fld-err" hidden></div></div>
         <div class="fld"><label for="fEmail">Email</label><input id="fEmail" name="email" type="email" autocomplete="email" inputmode="email" required><div class="fld-err" hidden></div></div>
@@ -852,7 +854,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
         </div>
         <div class="fld"><label for="fMsg">¿Algo que debamos saber? <span>(opcional)</span></label><textarea id="fMsg" name="mensaje" rows="3"></textarea></div>
         <div class="lead-error" id="leadError" role="alert" hidden></div>
-        <button class="btn-dark" type="submit" id="leadSubmit">Pedir mi demo</button>
+        <button class="btn-dark" type="submit" id="leadSubmit">Pedir demo y cotización</button>
         <p class="lead-note">Te respondemos en un día hábil. O escribinos a <a href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a></p>
       </div>
     </div>
@@ -1097,14 +1099,14 @@ form.addEventListener('submit',async e=>{
     try{
       const r=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
       if(!r.ok)throw new Error(r.status);
-      done('Gracias, '+data.nombre.split(' ')[0]+'. Te escribimos a '+data.email+' en un día hábil para coordinar la demo.');
+      done('Gracias, '+data.nombre.split(' ')[0]+'. Te escribimos a '+data.email+' en un día hábil para coordinar la demo y pasarte la cotización.');
     }catch(err){
       const le=$('leadError');le.textContent='No pudimos enviar el pedido. Probá de nuevo en un rato o escribinos a '+form.dataset.mailto+'.';le.hidden=false;
-      btn.disabled=false;btn.textContent='Pedir mi demo';
+      btn.disabled=false;btn.textContent='Pedir demo y cotización';
     }
   }else{
     const body=`Nombre: ${data.nombre}\nEmail: ${data.email}\nTeléfono: ${data.telefono||'-'}\nEdificios: ${data.edificios}\n\n${data.mensaje||''}`;
-    location.href='mailto:'+form.dataset.mailto+'?subject='+encodeURIComponent('Pedido de demo · '+data.nombre)+'&body='+encodeURIComponent(body);
+    location.href='mailto:'+form.dataset.mailto+'?subject='+encodeURIComponent('Demo y cotización · '+data.nombre)+'&body='+encodeURIComponent(body);
     done('Se abrió tu programa de correo con el pedido cargado. Mandalo y te respondemos en un día hábil.');
   }
 });
