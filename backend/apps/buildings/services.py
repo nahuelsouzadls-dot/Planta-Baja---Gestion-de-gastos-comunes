@@ -110,3 +110,74 @@ def validate_coefficients(building: Building) -> None:
         raise ValidationError(
             f'Los coeficientes del edificio suman {total}; deben sumar exactamente 1.'
         )
+
+
+@transaction.atomic
+def add_concept(building: Building, user, *, name, kind) -> ExpenseConcept:
+    """Concepto de gasto propio del edificio (ascensor, portería, seguro…)."""
+    assert_member(user, building.organization)
+    name = str(name or '').strip()
+    if not name:
+        raise ValidationError('El nombre del concepto es obligatorio.')
+    if len(name) > 100:
+        raise ValidationError('El nombre del concepto admite hasta 100 caracteres.')
+    if kind not in ExpenseConcept.Kind.values:
+        raise ValidationError('El tipo debe ser "ordinary" (gasto común) u "owner_only" (solo propietario).')
+    if building.concepts.filter(name__iexact=name).exists():
+        raise ValidationError(f'Ya existe el concepto "{name}" en el edificio.')
+    last = building.concepts.order_by('-order').values_list('order', flat=True).first() or 0
+    with audit_context(user, organization=building.organization):
+        concept = ExpenseConcept.objects.create(
+            building=building, name=name, kind=kind, order=last + 1
+        )
+        record_event(
+            user,
+            building.organization,
+            'concept.create',
+            concept,
+            f'Agregó el concepto {concept.name} en {building.name}',
+            concept=concept.name,
+            building=building.name,
+        )
+        return concept
+
+
+@transaction.atomic
+def update_concept(concept: ExpenseConcept, user, *, name=None, is_active=None) -> ExpenseConcept:
+    """Renombrar o activar/desactivar. Nunca se borra: las liquidaciones emitidas lo referencian.
+    El tipo no cambia (cambiaría quién paga): para eso se desactiva y se crea otro."""
+    building = concept.building
+    assert_member(user, building.organization)
+    fields = []
+    if name is not None:
+        name = str(name).strip()
+        if not name:
+            raise ValidationError('El nombre del concepto es obligatorio.')
+        if len(name) > 100:
+            raise ValidationError('El nombre del concepto admite hasta 100 caracteres.')
+        if building.concepts.filter(name__iexact=name).exclude(pk=concept.pk).exists():
+            raise ValidationError(f'Ya existe el concepto "{name}" en el edificio.')
+        concept.name = name
+        fields.append('name')
+    if is_active is not None:
+        if not isinstance(is_active, bool):
+            raise ValidationError('El campo "is_active" debe ser verdadero o falso.')
+        if concept.is_reserve_fund and not is_active:
+            raise ValidationError('El fondo de reserva no se puede desactivar.')
+        concept.is_active = is_active
+        fields.append('is_active')
+    if not fields:
+        return concept
+    with audit_context(user, organization=building.organization):
+        concept.save(update_fields=[*fields, 'updated_at'])
+        record_event(
+            user,
+            building.organization,
+            'concept.update',
+            concept,
+            f'Actualizó el concepto {concept.name} en {building.name}',
+            concept=concept.name,
+            building=building.name,
+            is_active=concept.is_active,
+        )
+        return concept

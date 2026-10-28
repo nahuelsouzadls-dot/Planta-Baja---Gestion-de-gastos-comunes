@@ -19,6 +19,7 @@ import { HistoryPage } from './history'
 import { HomePage } from './home'
 import { ReceiptDialog } from './receipt-dialog'
 import { SetupDialogs } from './setup'
+import { HelpButton, HelpSheet } from '@/features/help/help'
 import { UnitSheet } from './unit-sheet'
 
 const ORG_KEY = 'gc-org'
@@ -97,6 +98,7 @@ function Shell({ me }: { me: Me }) {
           <UnitSheet month={portfolio.data.month} />
           <ReceiptDialog />
           <SetupDialogs portfolio={portfolio.data} />
+          <HelpSheet />
         </>
       ) : null}
     </div>
@@ -341,6 +343,7 @@ function Topbar({ me, portfolio, onMenu }: { me: Me; portfolio?: Portfolio; onMe
               {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
             </NativeSelect>
           ) : null}
+          <HelpButton />
           <SchemeSwitch />
           <Inbox portfolio={portfolio} />
           <AccountMenu name={userName || 'Administración'} email={me.email} company={company} />

@@ -96,7 +96,7 @@ window.GC = window.GC || {};
       name: 'Edificio Minas',
       address: 'Av. Brasil 2234',
       barrio: 'Pocitos',
-      bank: 'Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.',
+      bank: 'Banco Demo · Cuenta corriente en pesos a nombre de Administración Demo',
       reserveOpening: 38500,
       units,
       expenses,
@@ -110,7 +110,7 @@ window.GC = window.GC || {};
           id: 't1', kind: 'reclamo', unit: '202', author: 'Pedro Martínez', title: 'Humedad en el pasillo del 2.º piso', status: 'en-proceso', date: '2026-10-18',
           messages: [
             { from: 'resident', name: 'Pedro Martínez', date: '2026-10-18', text: 'Hay una mancha de humedad que crece en la pared del pasillo, al lado del ascensor.' },
-            { from: 'admin', name: 'Confort S.A.', date: '2026-10-19', text: 'Gracias, Pedro. El lunes va un técnico a evaluar si viene de la azotea.' },
+            { from: 'admin', name: 'Administración Demo', date: '2026-10-19', text: 'Gracias, Pedro. El lunes va un técnico a evaluar si viene de la azotea.' },
           ],
         },
         {
@@ -123,7 +123,7 @@ window.GC = window.GC || {};
           id: 't3', kind: 'reclamo', unit: '201', author: 'Sofía López', title: 'La puerta principal no cierra', status: 'resuelto', date: '2026-10-15',
           messages: [
             { from: 'resident', name: 'Sofía López', date: '2026-10-15', text: 'La puerta de entrada queda sin trabar si no se empuja fuerte.' },
-            { from: 'admin', name: 'Confort S.A.', date: '2026-10-16', text: 'El cerrajero ajustó el pestillo hoy. Avisanos si vuelve a pasar.' },
+            { from: 'admin', name: 'Administración Demo', date: '2026-10-16', text: 'El cerrajero ajustó el pestillo hoy. Avisanos si vuelve a pasar.' },
           ],
         },
       ],
@@ -165,7 +165,7 @@ window.GC = window.GC || {};
       name: 'Edificio Centro',
       address: '18 de Julio 1120',
       barrio: 'Centro',
-      bank: 'Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.',
+      bank: 'Banco Demo · Cuenta corriente en pesos a nombre de Administración Demo',
       reserveOpening: 21000,
       units,
       expenses,
@@ -186,7 +186,7 @@ window.GC = window.GC || {};
       name: 'Edificio Pocitos',
       address: 'Bulevar España 2780',
       barrio: 'Pocitos',
-      bank: 'Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.',
+      bank: 'Banco Demo · Cuenta corriente en pesos a nombre de Administración Demo',
       reserveOpening: 64000,
       units,
       expenses,
@@ -204,7 +204,7 @@ window.GC = window.GC || {};
       today: TODAY,
       currentMonth: CURRENT_MONTH,
       dueDay: 10,
-      company: { name: 'Confort S.A.', email: 'administracion@confort.com.uy' },
+      company: { name: 'Administración Demo', email: 'contacto@administracion.demo' },
       buildings: [minas(), centro(), pocitos()],
     };
   };

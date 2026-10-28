@@ -269,7 +269,7 @@ def test_manual_payment_requires_source_and_has_no_receipt():
     with pytest.raises(ValidationError):
         record_manual_payment(occupancy, Decimal('1.00'), date.today(), user, '')
     entry = record_manual_payment(
-        occupancy, Decimal('123.45'), date.today(), user, 'Extracto Scotiabank 21/10, ref. 4821'
+        occupancy, Decimal('123.45'), date.today(), user, 'Extracto bancario 21/10, ref. 4821'
     )
     assert entry.kind == LedgerEntry.Kind.PAYMENT
     assert entry.amount == Decimal('-123.45')

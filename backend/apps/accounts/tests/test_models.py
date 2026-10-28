@@ -37,7 +37,7 @@ def test_create_superuser_sets_admin_flags():
 @pytest.mark.django_db
 def test_membership_is_unique():
     user = User.objects.create_user('member@example.com', 'strong-password')
-    organization = Organization.objects.create(name='Confort')
+    organization = Organization.objects.create(name='Administración Demo')
     OrgMembership.objects.create(user=user, organization=organization)
     with pytest.raises(IntegrityError):
         OrgMembership.objects.create(user=user, organization=organization)

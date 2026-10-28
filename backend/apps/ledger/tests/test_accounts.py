@@ -161,7 +161,7 @@ def test_golden_minas_accounts_match_front():
             if credit:
                 record_manual_payment(
                     occupancy, credit, date.fromisoformat(movement['date']),
-                    employee, 'Golden Scotiabank',
+                    employee, 'Golden transferencia',
                 )
         if expected['review']:
             amount = Decimal(expected['balance'])

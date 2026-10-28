@@ -53,7 +53,10 @@ export interface BuildingData {
   accounts: Account[]
   summary: Summary
   settlements: Settlement[]
+  /** Conceptos activos: los que se cargan en un mes nuevo. */
   concepts: Concept[]
+  /** Todos, también los desactivados (los meses viejos los muestran). */
+  allConcepts: Concept[]
   notices: Notice[]
   claims: ClaimSummary[]
 }
@@ -77,7 +80,8 @@ export function useBuilding(id: string | undefined) {
         accounts: accounts.accounts,
         summary,
         settlements: settlements.settlements,
-        concepts: settlements.concepts,
+        concepts: settlements.concepts.filter((c) => c.is_active),
+        allConcepts: settlements.concepts,
         notices: notices.notices,
         claims: claims.claims,
       }
@@ -120,6 +124,11 @@ export const useSaveSettlement = (buildingId: string) =>
   useWrite(({ month, items }: { month: string; items: Record<string, { amount: string; detail?: string }> }) =>
     api.put(`buildings/${buildingId}/settlements/${month}`, { items }),
   )
+export const useAddConcept = (buildingId: string) =>
+  useWrite((body: { name: string; kind: Concept['kind'] }) => api.post<Concept>(`buildings/${buildingId}/concepts`, body))
+export const useUpdateConcept = () =>
+  useWrite(({ id, ...body }: { id: string; name?: string; is_active?: boolean }) => api.patch<Concept>(`concepts/${id}`, body))
+
 export const useIssueSettlement = (buildingId: string) => useWrite((month: string) => api.post(`buildings/${buildingId}/settlements/${month}/issue`))
 
 export const usePublishNotice = (buildingId: string) => useWrite((body: { title: string; body: string }) => api.post(`buildings/${buildingId}/notices`, body))

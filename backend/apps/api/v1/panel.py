@@ -147,6 +147,16 @@ def _unit_json(unit):
     }
 
 
+def _concept_json(concept):
+    return {
+        'id': str(concept.pk),
+        'name': concept.name,
+        'kind': concept.kind,
+        'is_reserve_fund': concept.is_reserve_fund,
+        'is_active': concept.is_active,
+    }
+
+
 def _occupancy_json(occupancy):
     return {
         **OccupancySerializer(occupancy).data,
@@ -723,10 +733,12 @@ class BuildingSummaryView(PanelAPIView):
                 for item in settlement.items.all()
             ]
         )
+        # Solo lo emitido: un borrador todavía no se le cobró a nadie.
         reserve = building.reserve_opening + sum(
             (
                 item.amount
                 for settlement_item in settlements
+                if settlement_item.status == Settlement.Status.ISSUED
                 for item in settlement_item.items.all()
                 if item.concept.is_reserve_fund
             ),
@@ -792,18 +804,12 @@ class BuildingSettlementsView(PanelAPIView):
             .prefetch_related('items__concept')
             .all()
         )
-        concepts = building.concepts.filter(is_active=True).order_by('order', 'name')
+        # Todos los conceptos (también los inactivos: los meses viejos los muestran);
+        # el front carga gastos solo en los activos.
+        concepts = building.concepts.order_by('order', 'name')
         return Response(
             {
-                'concepts': [
-                    {
-                        'id': str(concept.pk),
-                        'name': concept.name,
-                        'kind': concept.kind,
-                        'is_reserve_fund': concept.is_reserve_fund,
-                    }
-                    for concept in concepts
-                ],
+                'concepts': [_concept_json(concept) for concept in concepts],
                 'settlements': [
                     {
                         'month': settlement.month.strftime('%Y-%m'),
@@ -1210,6 +1216,39 @@ class BuildingUnitsView(PanelAPIView):
             receives_paper=bool(data.get('receives_paper', False)),
         )
         return Response(_unit_json(unit), status=201)
+
+
+@extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+class BuildingConceptsView(PanelAPIView):
+    def post(self, request, building_id):
+        building = employee_building_or_404(request.user, building_id)
+        data = _payload(request)
+        concept = building_services.add_concept(
+            building,
+            request.user,
+            name=_required(data, 'name'),
+            kind=_required(data, 'kind'),
+        )
+        return Response(_concept_json(concept), status=201)
+
+
+@extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+class ConceptDetailView(PanelAPIView):
+    def patch(self, request, concept_id):
+        concept = get_in_scope_or_404(
+            ExpenseConcept.objects.filter(
+                building__in=employee_buildings(request.user)
+            ).select_related('building__organization'),
+            concept_id,
+        )
+        data = _payload(request)
+        updated = building_services.update_concept(
+            concept,
+            request.user,
+            name=data.get('name'),
+            is_active=data.get('is_active'),
+        )
+        return Response(_concept_json(updated))
 
 
 @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)

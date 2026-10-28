@@ -23,6 +23,8 @@ pytestmark = pytest.mark.django_db
 WRITE_ROUTE_NAMES = (
     'create_building',
     'add_unit',
+    'add_concept',
+    'update_concept',
     'create_person',
     'update_person',
     'move_in',
@@ -51,13 +53,13 @@ def demo(monkeypatch):
     monkeypatch.setenv('DEMO_PASSWORD', 'demo-password-123')
     with override_settings(DEBUG=True):
         call_command('seed_demo')
-    return User.objects.get(email='maria@confort.demo')
+    return User.objects.get(email='maria@admin.demo')
 
 
 @pytest.fixture
 def write_env():
-    organization = Organization.objects.create(name='Confort S.A.')
-    employee = User.objects.create_user('maria@confort.demo', password='password-12345')
+    organization = Organization.objects.create(name='Administración Demo')
+    employee = User.objects.create_user('maria@admin.demo', password='password-12345')
     OrgMembership.objects.create(user=employee, organization=organization)
 
     resident_user = User.objects.create_user(
@@ -265,6 +267,16 @@ def write_env():
             f'/api/v1/occupancies/{clean_occupancy.pk}',
             {'start_date': '2026-11-05'},
         ),
+        'add_concept': (
+            'post',
+            f'/api/v1/buildings/{building.pk}/concepts',
+            {'name': 'Ascensor', 'kind': 'ordinary'},
+        ),
+        'update_concept': (
+            'patch',
+            f'/api/v1/concepts/{concept.pk}',
+            {'name': 'Agua (O.S.E.)'},
+        ),
         'save_draft': (
             'put',
             f'/api/v1/buildings/{building.pk}/settlements/2026-12',
@@ -296,7 +308,7 @@ def write_env():
             {
                 'amount': '1000.00',
                 'date': '2026-10-20',
-                'source': 'Extracto Scotiabank',
+                'source': 'Extracto bancario',
             },
         ),
         'adjustment': (
@@ -847,3 +859,47 @@ def test_end_to_end_demo_approve_maria_garcia_updates_portfolio(demo):
     assert Decimal(after['portfolio_totals']['collected']) == (
         Decimal(before['portfolio_totals']['collected']) + amount
     )
+
+
+def test_building_concepts_add_rename_deactivate(demo):
+    """Conceptos propios del edificio: se agregan, se renombran y se desactivan; nunca se borran."""
+    organization = demo.org_memberships.get().organization
+    building = organization.buildings.get(name='Edificio Minas')
+    client = api_client_for(demo)
+    url = f'/api/v1/buildings/{building.pk}/settlements'
+
+    created = client.post(
+        f'/api/v1/buildings/{building.pk}/concepts',
+        {'name': 'Ascensor', 'kind': 'ordinary'},
+        format='json',
+    )
+    assert created.status_code == 201
+    concept = created.json()
+    assert concept['is_active'] is True and concept['kind'] == 'ordinary'
+    assert concept['id'] in {c['id'] for c in client.get(url).json()['concepts']}
+
+    duplicate = client.post(
+        f'/api/v1/buildings/{building.pk}/concepts',
+        {'name': 'Ascensor', 'kind': 'ordinary'},
+        format='json',
+    )
+    assert duplicate.status_code == 400
+
+    renamed = client.patch(f'/api/v1/concepts/{concept["id"]}', {'name': 'Ascensor (service)'}, format='json')
+    assert renamed.json()['name'] == 'Ascensor (service)'
+
+    off = client.patch(f'/api/v1/concepts/{concept["id"]}', {'is_active': False}, format='json')
+    assert off.json()['is_active'] is False
+    listed = {c['id']: c for c in client.get(url).json()['concepts']}
+    assert listed[concept['id']]['is_active'] is False
+    draft = client.put(
+        f'{url}/2026-12',
+        {'items': {concept['id']: '1000.00'}},
+        format='json',
+    )
+    assert draft.status_code == 400
+
+    reserve = building.concepts.get(is_reserve_fund=True)
+    keep = client.patch(f'/api/v1/concepts/{reserve.pk}', {'is_active': False}, format='json')
+    assert keep.status_code == 400
+    assert ExpenseConcept.objects.filter(pk=concept['id']).exists()

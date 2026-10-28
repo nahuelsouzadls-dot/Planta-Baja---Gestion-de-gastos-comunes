@@ -129,7 +129,7 @@ window.GC = window.GC || {};
       const amount = L.charge(unit, role, L.expenseFor(building, month));
       if (amount <= 0) return;
       const p = acc.paid[month];
-      rows.push({ date: p.date, concept: 'Pago ' + GC.fmt.monthLong(month) + ' — transferencia Scotiabank', debit: 0, credit: amount });
+      rows.push({ date: p.date, concept: 'Pago ' + GC.fmt.monthLong(month) + ' — transferencia bancaria', debit: 0, credit: amount });
     });
     (acc.events || []).forEach((ev) => rows.push({ date: ev.date, concept: ev.text, debit: 0, credit: 0, note: true }));
     rows.sort((a, b) => a.date.localeCompare(b.date) || (a.debit ? -1 : 1));

@@ -9,7 +9,7 @@ import { money, monthLong, monthTitle } from '@/lib/format'
 import type { PortfolioBuilding } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { hasTenant, useOverlay } from './bits'
-import { useSaveSettlement, type BuildingData } from './data'
+import { useIssueSettlement, useSaveSettlement, type BuildingData } from './data'
 
 /** Monto escrito por la persona: con punto o coma decimal, hasta 2 decimales. */
 const AMOUNT_RE = /^\d{1,9}(\.\d{1,2})?$/
@@ -48,6 +48,10 @@ export function ExpenseDialog({ building, data: d, month: current }: { building:
 
 function ExpenseForm({ building, d, initialMonth, onDone }: { building: PortfolioBuilding; d: BuildingData; initialMonth: string; onDone: () => void }) {
   const save = useSaveSettlement(building.id)
+  const issue = useIssueSettlement(building.id)
+  // Al tocar "Guardar y emitir" se pide una confirmación en el pie antes de emitir.
+  const [confirming, setConfirming] = React.useState(false)
+  const wantIssue = React.useRef(false)
   const [month, setMonth] = React.useState(initialMonth)
   const existing = d.settlements.find((s) => s.month === month)
   const last = d.settlements.slice().sort((x, y) => y.month.localeCompare(x.month))[0]
@@ -73,17 +77,20 @@ function ExpenseForm({ building, d, initialMonth, onDone }: { building: Portfoli
       if (extra && c.id === extra.id) items[c.id].detail = note.trim().slice(0, 140)
     }
     setError('')
-    save.mutate(
-      { month, items },
-      {
-        onSuccess: () => {
-          toast.success(`Borrador de ${monthLong(month)} guardado. Emitilo cuando esté listo.`)
+    if (wantIssue.current && !confirming) return setConfirming(true)
+    const issuing = wantIssue.current
+    save
+      .mutateAsync({ month, items })
+      .then(() => (issuing ? issue.mutateAsync(month) : null))
+      .then(
+        () => {
+          toast.success(issuing ? `Liquidación de ${monthLong(month)} emitida. Los residentes ya la ven en su portal.` : `Borrador de ${monthLong(month)} guardado. Todavía no lo ven los residentes.`)
           onDone()
         },
-        onError: (err) => setError(err.message),
-      },
-    )
+        (err: Error) => { setConfirming(false); setError(err.message) },
+      )
   }
+  const busy = save.isPending || issue.isPending
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto]">
@@ -92,6 +99,15 @@ function ExpenseForm({ building, d, initialMonth, onDone }: { building: Portfoli
         <DialogDescription>
           {building.name} · {existing ? 'editando el borrador con los montos guardados.' : 'se precargan los montos del último mes como referencia.'}
         </DialogDescription>
+        <ol className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground" aria-label="Pasos">
+          {['Cargás los montos', 'Revisás el reparto', 'Emitís y lo ven los residentes'].map((t, i) => (
+            <li key={t} className="flex items-center gap-2">
+              {i ? <span aria-hidden="true">→</span> : null}
+              <span className="grid size-5 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand">{i + 1}</span>
+              {t}
+            </li>
+          ))}
+        </ol>
       </DialogHeader>
 
       <div className="grid gap-6 overflow-y-auto px-6 py-5 md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
@@ -127,13 +143,33 @@ function ExpenseForm({ building, d, initialMonth, onDone }: { building: Portfoli
         <Preview d={d} values={values} />
       </div>
 
-      <DialogFooter className="border-t border-line px-6 py-4">
-        <Button type="button" variant="ghost" onClick={onDone}>Cancelar</Button>
-        <Button type="submit" disabled={save.isPending}>
-          {save.isPending ? <Loader2Icon className="animate-spin" /> : null}
-          Guardar borrador
-        </Button>
-      </DialogFooter>
+      {confirming ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-warn-bg px-6 py-4">
+          <p className="max-w-[52ch] text-[13px] text-warn">
+            <b className="font-semibold">¿Emitir {monthLong(month)}?</b> La liquidación queda fija y cada residente la ve en su portal. Si después hay un error, se corrige con un ajuste.
+          </p>
+          <div className="flex gap-2">
+            <Button type="button" variant="ghost" onClick={() => { setConfirming(false); wantIssue.current = false }} disabled={busy}>Volver</Button>
+            <Button type="submit" disabled={busy}>
+              {busy ? <Loader2Icon className="animate-spin" /> : null}
+              Sí, emitir
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <DialogFooter className="border-t border-line px-6 py-4 sm:justify-between">
+          <Button type="button" variant="ghost" onClick={onDone}>Cancelar</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" variant="outline" disabled={busy} onClick={() => (wantIssue.current = false)}>
+              {busy && !wantIssue.current ? <Loader2Icon className="animate-spin" /> : null}
+              Guardar como borrador
+            </Button>
+            <Button type="submit" disabled={busy} onClick={() => (wantIssue.current = true)}>
+              Guardar y emitir
+            </Button>
+          </div>
+        </DialogFooter>
+      )}
     </form>
   )
 }

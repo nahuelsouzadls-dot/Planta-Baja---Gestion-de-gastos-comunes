@@ -344,8 +344,8 @@ def test_sec3_1_resident_invitation_revoked_on_email_change_and_rejects_stale_em
     from apps.accounts.invitations import accept_invitation, invite_resident
     from apps.people.services import update_person
 
-    org = OrganizationFactory(name='Confort S.A.')
-    admin = create_user('sec3-admin1@confort.com')
+    org = OrganizationFactory(name='Administración Demo')
+    admin = create_user('sec3-admin1@admin.demo')
     OrgMembershipFactory(user=admin, organization=org)
 
     person = PersonFactory(

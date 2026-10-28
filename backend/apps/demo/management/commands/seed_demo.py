@@ -71,13 +71,13 @@ class Command(BaseCommand):
                 email=data['company']['email'],
             )
             maria = User.objects.create_user(
-                'maria@confort.demo',
+                'maria@admin.demo',
                 password,
                 first_name='María',
                 last_name='Fernández',
             )
             pablo = User.objects.create_user(
-                'pablo@confort.demo',
+                'pablo@admin.demo',
                 password,
                 first_name='Pablo',
                 last_name='Suárez',
@@ -97,7 +97,7 @@ class Command(BaseCommand):
                     address=building_data['address'],
                     neighborhood=building_data['barrio'],
                     bank_name=building_data['bank'].split(' · ', 1)[0],
-                    # Número inventado, con el formato de una cuenta en pesos de Scotiabank.
+                    # Número inventado para la demo.
                     bank_account='0012 3456 789',
                     bank_holder=organization.name,
                     due_day=data['meta']['dueDay'],
@@ -198,7 +198,7 @@ class Command(BaseCommand):
                                 Decimal(movement['credit']),
                                 date.fromisoformat(movement['date']),
                                 pablo,
-                                f"Extracto Scotiabank {movement['date']}",
+                                f"Extracto bancario {movement['date']}",
                             )
 
                     review = account.get('review')

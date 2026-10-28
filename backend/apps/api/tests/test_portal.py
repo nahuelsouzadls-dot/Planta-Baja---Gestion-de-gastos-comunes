@@ -97,8 +97,8 @@ def test_demo_juan_perez_and_maria_garcia_portal_views(demo):
     assert account['closed'] is False
     assert account['concept'] == 'Apto 101'
     assert account['bank']['concept'] == 'Apto 101'
-    assert account['bank']['bank_name'] == 'Scotiabank'
-    assert account['bank']['holder'] == 'Confort S.A.'
+    assert account['bank']['bank_name'] == 'Banco Demo'
+    assert account['bank']['holder'] == 'Administración Demo'
 
     months_resp = juan_client.get(f'/api/v1/portal/occupancies/{juan_occ.pk}/months?month=2026-10')
     assert months_resp.status_code == 200
@@ -148,10 +148,10 @@ def test_demo_juan_perez_and_maria_garcia_portal_views(demo):
 
 @pytest.fixture
 def portal_isolation_env():
-    org_a = Organization.objects.create(name='Confort S.A.')
+    org_a = Organization.objects.create(name='Administración Demo')
     org_b = Organization.objects.create(name='Otra Administración')
 
-    employee = User.objects.create_user('emp@confort.demo', password='password-12345')
+    employee = User.objects.create_user('emp@admin.demo', password='password-12345')
     OrgMembership.objects.create(user=employee, organization=org_a)
 
     foreign_employee = User.objects.create_user('emp@otra.demo', password='password-12345')
@@ -348,8 +348,8 @@ def test_portal_isolation_across_unit_building_organization_employee_and_anonymo
 
 
 def test_ex_tenant_n17_with_debt_and_without_debt():
-    org = Organization.objects.create(name='Confort S.A.')
-    employee = User.objects.create_user('emp@confort.demo', password='password-12345')
+    org = Organization.objects.create(name='Administración Demo')
+    employee = User.objects.create_user('emp@admin.demo', password='password-12345')
     OrgMembership.objects.create(user=employee, organization=org)
     building = create_building(org, employee, name='Edificio Sur', address='Sur 100')
     unit_debt = Unit.objects.create(
@@ -539,8 +539,8 @@ def test_ex_tenant_n17_with_debt_and_without_debt():
 
 
 def test_multiple_occupancies_do_not_mix_balances_and_split_receipts():
-    org = Organization.objects.create(name='Confort S.A.')
-    employee = User.objects.create_user('emp@confort.demo', password='password-12345')
+    org = Organization.objects.create(name='Administración Demo')
+    employee = User.objects.create_user('emp@admin.demo', password='password-12345')
     OrgMembership.objects.create(user=employee, organization=org)
 
     building_1 = create_building(org, employee, name='Edificio Uno', address='Uno 100')
@@ -622,7 +622,7 @@ def test_multiple_occupancies_do_not_mix_balances_and_split_receipts():
 def test_portal_responses_never_expose_other_peoples_data_or_secrets(demo):
     minas = demo.buildings.get(name='Edificio Minas')
     juan_user = User.objects.get(email='juan.perez@correo.com.uy')
-    maria_employee = User.objects.get(email='maria@confort.demo')
+    maria_employee = User.objects.get(email='maria@admin.demo')
     juan_occ = minas.units.get(number='101').occupancies.get(role=Occupancy.Role.OWNER)
     juan_claim = Claim.objects.get(unit=juan_occ.unit, author=juan_occ.person)
 
@@ -636,7 +636,7 @@ def test_portal_responses_never_expose_other_peoples_data_or_secrets(demo):
         'token_hash',
         'argon2',
         maria_employee.email.lower(),
-        'pablo@confort.demo',
+        'pablo@admin.demo',
     }
     for other in other_people:
         if other.email:
@@ -679,8 +679,8 @@ def test_portal_responses_never_expose_other_peoples_data_or_secrets(demo):
 
 
 def test_portal_amounts_are_strings_and_queries_are_constant_for_6_and_12_movements():
-    org = Organization.objects.create(name='Confort S.A.')
-    employee = User.objects.create_user('emp@confort.demo', password='password-12345')
+    org = Organization.objects.create(name='Administración Demo')
+    employee = User.objects.create_user('emp@admin.demo', password='password-12345')
     OrgMembership.objects.create(user=employee, organization=org)
     building = create_building(org, employee, name='Edificio Constante', address='Av. 100')
     unit = Unit.objects.create(
