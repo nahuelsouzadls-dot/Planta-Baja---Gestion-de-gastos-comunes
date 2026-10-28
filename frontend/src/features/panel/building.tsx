@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Input, NativeSelect } from '@/components/ui/form'
 import { Chip, Count, Tabs, TabsList, TabsTrigger } from '@/components/ui/misc'
 import { Empty, ErrorState, Pill, ROLE_LABEL, StatusPill, useDocumentTitle } from '@/components/shared'
 import { api, apiUrl, openSigned } from '@/lib/api'
@@ -15,7 +16,7 @@ import { money, monthLong, monthShort, monthTitle, monthWord, percent, plural } 
 import type { AccountStatus, Portfolio, PortfolioBuilding } from '@/lib/types'
 import { cn, pct } from '@/lib/utils'
 import { Fig, Figs, FigsSkeleton, hasTenant, matchesQuery, RowsSkeleton, SectionTitle, sortedAccounts, useOverlay } from './bits'
-import { useBuilding, useIssueSettlement, usePanel, type BuildingData } from './data'
+import { useAddConcept, useBuilding, useIssueSettlement, usePanel, useUpdateConcept, type BuildingData } from './data'
 import { ExpenseDialog } from './expense-dialog'
 
 const TABS = [['cobros', 'Cobros'], ['resumen', 'Resumen'], ['gastos', 'Gastos']] as const
@@ -26,7 +27,6 @@ export function BuildingPage({ portfolio }: { portfolio: Portfolio }) {
   const navigate = useNavigate()
   const b = portfolio.buildings.find((x) => x.id === id)
   const q = useBuilding(b?.id)
-  const expense = useOverlay('gastos')
   const alta = useOverlay('alta')
   const tab: Tab = (TABS.some(([t]) => t === rawTab) ? rawTab : 'cobros') as Tab
   useDocumentTitle(b ? `${b.name} · Administración` : 'Administración')
@@ -60,10 +60,6 @@ export function BuildingPage({ portfolio }: { portfolio: Portfolio }) {
               <DownloadIcon />
               Exportar a Excel
             </a>
-          </Button>
-          <Button onClick={() => expense.open('nuevo')} disabled={!d}>
-            <PlusIcon />
-            Cargar gastos
           </Button>
         </div>
       </header>
@@ -209,7 +205,6 @@ function Cobros({ b, d, month }: { b: PortfolioBuilding; d: BuildingData; month:
 // ── Resumen ────────────────────────────────────────────────────────────
 function Resumen({ b, d, month }: { b: PortfolioBuilding; d: BuildingData; month: string }) {
   const unit = useOverlay('unidad')
-  const expense = useOverlay('gastos')
   const navigate = useNavigate()
   const s = d.summary
   const current = d.settlements.find((x) => x.month === month)
@@ -253,8 +248,8 @@ function Resumen({ b, d, month }: { b: PortfolioBuilding; d: BuildingData; month
                     ? `Los gastos de ${monthLong(month)} están en borrador. Emitilos desde la pestaña Gastos.`
                     : `Todavía no se cargaron los gastos de ${monthLong(month)}.`}
                 </p>
-                <Button className="mt-3" onClick={() => (b.settlement === 'draft' ? navigate(`/panel/edificio/${b.id}/gastos`) : expense.open('nuevo'))}>
-                  {b.settlement === 'draft' ? 'Ir a Gastos' : 'Cargar gastos'}
+                <Button className="mt-3" variant="outline" onClick={() => navigate(`/panel/edificio/${b.id}/gastos`)}>
+                  Ir a Gastos
                 </Button>
               </Empty>
             )}
@@ -323,6 +318,9 @@ function Gastos({ b, d }: { b: PortfolioBuilding; d: BuildingData }) {
   const rows = d.settlements.slice().sort((x, y) => y.month.localeCompare(x.month))
   const paper = b.settlement === 'issued' ? sortedAccounts(d.accounts).filter((a) => a.receives_paper && Number(a.charge)) : []
   const n = (v: string | undefined) => (Number(v) ? money(v).replace('$ ', '') : '—')
+  // Columnas: los conceptos activos y los desactivados que todavía aparecen en algún mes.
+  const used = new Set(rows.flatMap((e) => e.items.map((it) => it.concept_id)))
+  const cols = d.allConcepts.filter((c) => c.is_active || used.has(c.id))
 
   return (
     <>
@@ -349,7 +347,7 @@ function Gastos({ b, d }: { b: PortfolioBuilding; d: BuildingData }) {
               <thead>
                 <tr className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                   <th className="px-3 py-2 text-left font-semibold">Mes</th>
-                  {d.concepts.map((c) => <th key={c.id} className="px-3 py-2 text-right font-semibold">{SHORT[c.name] ?? c.name}</th>)}
+                  {cols.map((c) => <th key={c.id} className="px-3 py-2 text-right font-semibold">{SHORT[c.name] ?? c.name}</th>)}
                   <th className="px-3 py-2 text-right font-semibold">Total</th>
                   <th className="px-3 py-2 text-left font-semibold">Estado</th>
                 </tr>
@@ -361,7 +359,7 @@ function Gastos({ b, d }: { b: PortfolioBuilding; d: BuildingData }) {
                   return (
                     <tr key={e.month} className="border-t border-line transition-colors first:border-0 hover:bg-brand-soft/60">
                       <td className="px-3 py-3 font-medium whitespace-nowrap">{monthTitle(e.month)}</td>
-                      {d.concepts.map((c) => <td key={c.id} className="num px-3 py-3 text-right">{n(by[c.id])}</td>)}
+                      {cols.map((c) => <td key={c.id} className="num px-3 py-3 text-right">{n(by[c.id])}</td>)}
                       <td className="num px-3 py-3 text-right font-semibold">{money(e.total)}</td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-1">
@@ -377,7 +375,7 @@ function Gastos({ b, d }: { b: PortfolioBuilding; d: BuildingData }) {
                             </>
                           ) : (
                             <>
-                              <Button variant="ghost" size="sm" onClick={() => expense.open(e.month)}>Editar</Button>
+                              <Button variant="ghost" size="sm" onClick={() => expense.open(e.month)}>Seguir cargando</Button>
                               <Button
                                 size="sm"
                                 disabled={issue.isPending}
@@ -405,6 +403,89 @@ function Gastos({ b, d }: { b: PortfolioBuilding; d: BuildingData }) {
           )}
         </div>
       </Card>
+      <Concepts b={b} d={d} />
     </>
+  )
+}
+
+// ── Conceptos de gasto del edificio ────────────────────────────────────
+const KIND_LABEL = { ordinary: 'Gasto común', owner_only: 'Solo propietario' } as const
+
+function Concepts({ b, d }: { b: PortfolioBuilding; d: BuildingData }) {
+  const add = useAddConcept(b.id)
+  const update = useUpdateConcept()
+  const [name, setName] = React.useState('')
+  const [kind, setKind] = React.useState<'ordinary' | 'owner_only'>('ordinary')
+  const [editing, setEditing] = React.useState<{ id: string; name: string } | null>(null)
+  const fail = (e: Error) => toast.error(e.message)
+
+  return (
+    <Card>
+      <SectionTitle hint="Cada edificio puede tener sus propios gastos (ascensor, portería, seguro…). Un concepto no se borra: se desactiva y los meses ya emitidos lo conservan.">
+        Conceptos de gasto
+      </SectionTitle>
+      <div className="p-2 sm:p-3">
+        <ul className="divide-y divide-line">
+          {d.allConcepts.map((c) => (
+            <li key={c.id} className={cn('flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-2.5', !c.is_active && 'opacity-55')}>
+              {editing?.id === c.id ? (
+                <form
+                  className="flex min-w-0 flex-1 items-center gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const next = editing.name.trim()
+                    if (!next || next === c.name) return setEditing(null)
+                    update.mutate({ id: c.id, name: next }, { onSuccess: () => { setEditing(null); toast.success('Concepto renombrado') }, onError: fail })
+                  }}
+                >
+                  <Input autoFocus aria-label="Nombre del concepto" maxLength={100} value={editing.name} onChange={(e) => setEditing({ id: c.id, name: e.target.value })} className="h-8 max-w-[280px]" />
+                  <Button type="submit" size="sm" disabled={update.isPending}>Guardar</Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(null)}>Cancelar</Button>
+                </form>
+              ) : (
+                <span className="min-w-0 flex-1 text-[14px] font-medium">{c.name}</span>
+              )}
+              <span className={cn('rounded-md px-2 py-0.5 text-[11.5px] font-medium', c.is_reserve_fund ? 'bg-brand-soft text-brand' : c.kind === 'ordinary' ? 'bg-muted text-ink-2' : 'bg-warn-bg text-warn')}>
+                {c.is_reserve_fund ? 'Fondo de reserva' : KIND_LABEL[c.kind]}
+              </span>
+              {editing?.id === c.id ? null : (
+                <span className="flex gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => setEditing({ id: c.id, name: c.name })}>Renombrar</Button>
+                  {c.is_reserve_fund ? null : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={update.isPending}
+                      onClick={() => update.mutate({ id: c.id, is_active: !c.is_active }, { onSuccess: () => toast.success(c.is_active ? `${c.name} desactivado` : `${c.name} activado`), onError: fail })}
+                    >
+                      {c.is_active ? 'Desactivar' : 'Activar'}
+                    </Button>
+                  )}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+        <form
+          className="mt-2 flex flex-wrap items-center gap-2 border-t border-line px-3 pt-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const t = name.trim()
+            if (!t) return
+            add.mutate({ name: t, kind }, { onSuccess: () => { setName(''); toast.success(`Concepto ${t} agregado`) }, onError: fail })
+          }}
+        >
+          <Input aria-label="Nuevo concepto" placeholder="Nuevo concepto, ej.: Ascensor" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} className="min-w-[200px] flex-1" />
+          <NativeSelect aria-label="Quién lo paga" value={kind} onChange={(e) => setKind(e.target.value as 'ordinary' | 'owner_only')} className="w-44" title="Gasto común: lo paga el inquilino, o el propietario si no hay. Solo propietario: siempre el dueño.">
+            <option value="ordinary">Gasto común</option>
+            <option value="owner_only">Solo propietario</option>
+          </NativeSelect>
+          <Button type="submit" variant="outline" disabled={add.isPending || !name.trim()}>
+            {add.isPending ? <Loader2Icon className="animate-spin" /> : <PlusIcon />}
+            Agregar
+          </Button>
+        </form>
+      </div>
+    </Card>
   )
 }

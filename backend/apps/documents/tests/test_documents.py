@@ -40,7 +40,7 @@ def demo(monkeypatch, s3):
     monkeypatch.setenv('DEMO_PASSWORD', 'demo-password-123')
     with override_settings(DEBUG=True):
         call_command('seed_demo')
-    return User.objects.get(email='maria@confort.demo')
+    return User.objects.get(email='maria@admin.demo')
 
 
 def minas(user):
@@ -176,4 +176,4 @@ def test_unit_pdf_previous_balance_is_taken_at_issue_date(demo, s3):
 
     assert 'Saldo anterior $ 0,00' in text
     assert 'Total a pagar antes del día 10 $ 4.153,80' in text
-    assert 'maria@confort.demo' not in text
+    assert 'maria@admin.demo' not in text

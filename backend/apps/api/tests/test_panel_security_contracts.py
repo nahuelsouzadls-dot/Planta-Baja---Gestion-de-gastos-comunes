@@ -48,7 +48,7 @@ def demo(monkeypatch):
     monkeypatch.setenv('DEMO_PASSWORD', 'demo-password-123')
     with override_settings(DEBUG=True):
         call_command('seed_demo')
-    return User.objects.get(email='maria@confort.demo')
+    return User.objects.get(email='maria@admin.demo')
 
 
 def panel_routes(organization):

@@ -20,6 +20,7 @@ Escritas por Claude el 2026-10-24, mientras Copilot (cuota mensual) y agy (cuota
 | 14 | `H1.md` — buscador de movimientos de toda la cartera (Historial) | — | `backend/apps/api/v1/panel.py`, tests | Pedido de Nahuel (2026-10-28); el front de Historial ya existe |
 | 15 | `R1.md` — roles del equipo (titular, administrativo, solo lectura) y pantalla Equipo | — | `backend/apps/accounts/`, `api/v1/panel.py`, front `panel/` | Pedido de Nahuel (2026-10-28); base ahora, forma final de roles con el piloto |
 | 16 | `A1.md` — backoffice del dueño del SaaS (etapa 1: comando de alta + admin de Django; etapas 2 y 3 diseñadas) | R1 | `backend/apps/accounts/`, `admin.py`, más adelante `frontend/` | Pedido de Nahuel (2026-10-28) |
+| 17 | `B1.md` — Ayuda ("?") con manual interno y buscador "Buscar o preguntar" sin IA | H1 (opcional) | `frontend/src/features/help/`, `api/v1/search.py` | Pedido de Nahuel (2026-10-28); manual en `frontend/src/features/help/manual.md` |
 
 Antes de abrir a residentes reales: revisión de seguridad independiente de todo lo nuevo (como `docs/auditorias/`), texto de privacidad (Ley 18.331) y piloto con la administración (`docs/plan-mvp.md`, sección F).
 > Formato O-A-R-S (ver ../README.md). Las pendientes viejas se convierten al despacharlas.

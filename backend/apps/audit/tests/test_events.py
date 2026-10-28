@@ -170,7 +170,7 @@ def test_record_manual_payment_records_event():
     before = event_count()
 
     entry = record_manual_payment(
-        occupancy, Decimal('850.00'), date(2026, 10, 8), user, 'Extracto Scotiabank'
+        occupancy, Decimal('850.00'), date(2026, 10, 8), user, 'Extracto bancario'
     )
 
     assert AuditLog.objects.count() == before + 1
@@ -180,7 +180,7 @@ def test_record_manual_payment_records_event():
     assert event.target_id == entry.pk
     assert '$ 850,00' in event.summary
     assert '303' in event.summary
-    assert 'Extracto Scotiabank' in event.summary
+    assert 'Extracto bancario' in event.summary
 
 
 def test_adjust_records_event():

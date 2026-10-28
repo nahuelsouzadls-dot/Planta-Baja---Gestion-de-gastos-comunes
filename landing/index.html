@@ -244,7 +244,7 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 .fv-done{margin-top:8px;font-size:12px;font-weight:700;color:var(--ok);background:var(--ok-l);border-radius:8px;padding:8px;text-align:center}
 /* escena 4: validar */
 .fv-img{height:150px;border-radius:8px;background:linear-gradient(135deg,#E9EEF2,#CBD7E0);position:relative;margin-bottom:12px}
-.fv-img::after{content:'transferencia_scotiabank.jpg';position:absolute;left:8px;bottom:8px;font-size:12px;font-weight:700;color:#fff;background:rgba(11,13,26,.45);border-radius:4px;padding:2px 6px}
+.fv-img::after{content:'transferencia_banco.jpg';position:absolute;left:8px;bottom:8px;font-size:12px;font-weight:700;color:#fff;background:rgba(11,13,26,.45);border-radius:4px;padding:2px 6px}
 .fv-check{display:flex;gap:8px;align-items:center;font-size:14px;padding:4px 0}
 .fv-check i{width:18px;height:18px;border-radius:5px;border:1.5px solid #CFD4DC;display:grid;place-items:center;font-style:normal;font-size:12px;color:transparent;transition:background .3s var(--ease),border-color .3s var(--ease),color .3s var(--ease)}
 .fv-check.ok i{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -608,7 +608,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
     </div>
     <div class="pr-nav">
       <div class="pr-tabs" role="tablist" aria-label="Procesos">
-        <button class="pr-tab on" role="tab" aria-selected="true" aria-controls="prGastos" id="prTabGastos" data-p="0">Gastos</button>
+        <button class="pr-tab on" role="tab" aria-selected="true" aria-controls="prGastos" id="prTabGastos" data-p="0">Cobros</button>
         <button class="pr-tab" role="tab" aria-selected="false" aria-controls="prChat" id="prTabChat" data-p="1" tabindex="-1">Comunicaciones</button>
       </div>
       <button class="pr-arrow" id="prPrev" aria-label="Proceso anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
@@ -684,7 +684,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
         <div class="fv-row"><span class="k">Honorarios</span><span class="v">$ 1.108</span></div>
         <div class="fv-row"><span class="k">Fondo de reserva</span><span class="v">$ 848</span></div>
         <span class="fv-btn fv-up" id="fvUp">Subir comprobante</span>
-        <div class="fv-file fv-hide" id="fvFile">📎 transferencia_scotiabank.jpg</div>
+        <div class="fv-file fv-hide" id="fvFile">📎 transferencia_banco.jpg</div>
         <div class="fv-done fv-hide" id="fvDone">✓ Comprobante enviado</div>
       </div>
       <div class="fv-card fv-hide-m" style="align-self:center">
@@ -708,7 +708,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
         <div style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:-4px 0 12px">$ 5.870</div>
         <div class="fv-check"><i>✓</i>El monto coincide con el saldo</div>
         <div class="fv-check"><i>✓</i>La cuenta de destino es la del edificio</div>
-        <div class="fv-check"><i>✓</i>Aparece en el extracto de Scotiabank</div>
+        <div class="fv-check"><i>✓</i>Aparece en el extracto del banco</div>
         <div style="margin-top:16px"><span class="fv-btn" id="fvApprove">✓ Aprobar pago</span></div>
       </div>
       <div class="fv-toast" id="fvToast">Pago validado · Unidad 102</div>
@@ -1158,12 +1158,12 @@ function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=te
       bubble('them','Pedro · 202','Hola, hay una mancha de humedad que crece al lado del ascensor del 2.º piso.');await wait(900,id);
       bubble('them','Pedro · 202','Les mando una foto.',{label:'foto_pasillo.jpg'});await wait(1200,id);
       setStep(1,N,'La administración responde');await typeIn('Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.',id);
-      bubble('me','Confort S.A.','Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.');await wait(500,id);
+      bubble('me','Administración','Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.');await wait(500,id);
       setStep(2,N,'El reclamo pasa a En proceso');setStatus('proc',th);await wait(900,id);
       setStep(3,N,'Queda en la agenda');add(el('div','ev task','Agendado · Técnico de humedad · jueves 24, 10:00'));await wait(1400,id);
       setStep(4,N,'Dos días después');add(el('div','ev time','2 días después'));await wait(1000,id);
       setStep(5,N,'Se informa el arreglo');await typeIn('Listo: se selló la junta de la azotea y se pintó la pared.',id);
-      bubble('me','Confort S.A.','Listo: se selló la junta de la azotea y se pintó la pared.',{label:'pasillo_reparado.jpg',after:true});await wait(1200,id);
+      bubble('me','Administración','Listo: se selló la junta de la azotea y se pintó la pared.',{label:'pasillo_reparado.jpg',after:true});await wait(1200,id);
       await typing('Pedro',1200,id);bubble('them','Pedro · 202','Quedó perfecto. Muchas gracias.');await wait(700,id);
       setStep(6,N,'Reclamo resuelto');setStatus('ok',th);await wait(1400,id);
       setStep(7,N,'Aviso a todo el edificio');toastT.textContent='Aviso enviado a 12 unidades: trabajos en la azotea terminados';toast.classList.add('on');await wait(2600,id);toast.classList.remove('on');
@@ -1175,9 +1175,9 @@ function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=te
   /* Reducir movimiento: la conversación completa, sin animar. */
   function staticView(){reset();const th=el('li','cw-th on','<b>Humedad en el pasillo del 2.º piso</b><small>Pedro Martínez · 202</small><span class="st st-ok">Resuelto</span>');list.prepend(th);
     bubble('them','Pedro · 202','Hola, hay una mancha de humedad que crece al lado del ascensor del 2.º piso.',{label:'foto_pasillo.jpg'});
-    bubble('me','Confort S.A.','Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.');
+    bubble('me','Administración','Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.');
     add(el('div','ev task','Agendado · Técnico de humedad · jueves 24, 10:00'));
-    bubble('me','Confort S.A.','Listo: se selló la junta de la azotea y se pintó la pared.',{label:'pasillo_reparado.jpg',after:true});
+    bubble('me','Administración','Listo: se selló la junta de la azotea y se pintó la pared.',{label:'pasillo_reparado.jpg',after:true});
     bubble('them','Pedro · 202','Quedó perfecto. Muchas gracias.');setStatus('ok');setStep(1,1,'Reclamo resuelto')}
 
   function setPaused(p){paused=p;toggle.innerHTML=p?ICON_PLAY:ICON_PAUSE;toggle.setAttribute('aria-label',p?'Reproducir animación':'Pausar animación')}

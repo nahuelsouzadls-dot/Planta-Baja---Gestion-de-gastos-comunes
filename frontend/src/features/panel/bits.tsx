@@ -114,7 +114,7 @@ export const legend = (counts: StatusCounts) =>
 export const shortName = (name: string) => name.replace('Edificio ', '')
 
 /** Paneles superpuestos (ficha de unidad, comprobante, gastos) en la URL: el botón Atrás los cierra. */
-export function useOverlay(name: 'unidad' | 'comprobante' | 'gastos' | 'alta') {
+export function useOverlay(name: 'unidad' | 'comprobante' | 'gastos' | 'alta' | 'ayuda') {
   const [params, setParams] = useSearchParams()
   const value = params.get(name)
   const open = React.useCallback(

@@ -3,11 +3,11 @@
     "today": "2026-10-21",
     "currentMonth": "2026-10",
     "dueDay": 10,
-    "commit": "8d79834"
+    "commit": "ad8ae17"
   },
   "company": {
-    "name": "Confort S.A.",
-    "email": "administracion@confort.com.uy"
+    "name": "Administración Demo",
+    "email": "contacto@administracion.demo"
   },
   "portfolio": {
     "expected": "73830.00",
@@ -24,7 +24,7 @@
       "name": "Edificio Minas",
       "address": "Av. Brasil 2234",
       "barrio": "Pocitos",
-      "bank": "Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.",
+      "bank": "Banco Demo · Cuenta corriente en pesos a nombre de Administración Demo",
       "reserveOpening": "38500.00",
       "units": [
         {
@@ -2140,7 +2140,7 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3067.62",
               "balance": "4153.80"
@@ -2154,7 +2154,7 @@
             },
             {
               "date": "2026-09-05",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3147.60",
               "balance": "3067.62"
@@ -2168,7 +2168,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3010.00",
               "balance": "3147.60"
@@ -2207,14 +2207,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "1394.40",
               "balance": "0.00"
             },
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "398.40",
               "balance": "1394.40"
@@ -2228,7 +2228,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "398.40",
               "balance": "398.40"
@@ -2242,7 +2242,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "398.40",
               "balance": "398.40"
@@ -2289,7 +2289,7 @@
           "movements": [
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2562.21",
               "balance": "2614.50"
@@ -2303,7 +2303,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2639.40",
               "balance": "2562.21"
@@ -2317,7 +2317,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2506.60",
               "balance": "2639.40"
@@ -2356,14 +2356,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "1344.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "384.00",
               "balance": "1344.00"
@@ -2377,7 +2377,7 @@
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "384.00",
               "balance": "384.00"
@@ -2391,7 +2391,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "384.00",
               "balance": "384.00"
@@ -2438,7 +2438,7 @@
           "movements": [
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2469.60",
               "balance": "2520.00"
@@ -2452,7 +2452,7 @@
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2544.00",
               "balance": "2469.60"
@@ -2466,7 +2466,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2416.00",
               "balance": "2544.00"
@@ -2505,14 +2505,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "4057.20",
               "balance": "0.00"
             },
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2996.28",
               "balance": "4057.20"
@@ -2526,7 +2526,7 @@
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3074.40",
               "balance": "2996.28"
@@ -2540,7 +2540,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2940.00",
               "balance": "3074.40"
@@ -2584,7 +2584,7 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "412.80",
               "balance": "1444.80"
@@ -2598,7 +2598,7 @@
             },
             {
               "date": "2026-09-03",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "412.80",
               "balance": "412.80"
@@ -2612,7 +2612,7 @@
             },
             {
               "date": "2026-08-06",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "412.80",
               "balance": "412.80"
@@ -2659,7 +2659,7 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2654.82",
               "balance": "2709.00"
@@ -2673,7 +2673,7 @@
             },
             {
               "date": "2026-09-03",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2734.80",
               "balance": "2654.82"
@@ -2687,7 +2687,7 @@
             },
             {
               "date": "2026-08-06",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2597.20",
               "balance": "2734.80"
@@ -2726,14 +2726,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2960.61",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "4008.90",
               "balance": "2960.61"
@@ -2747,7 +2747,7 @@
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3037.80",
               "balance": "2960.61"
@@ -2761,7 +2761,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2905.00",
               "balance": "3037.80"
@@ -2800,14 +2800,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "384.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-05",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "1344.00",
               "balance": "384.00"
@@ -2821,7 +2821,7 @@
             },
             {
               "date": "2026-09-05",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "384.00",
               "balance": "384.00"
@@ -2835,7 +2835,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "384.00",
               "balance": "384.00"
@@ -2910,7 +2910,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2416.00",
               "balance": "2544.00"
@@ -2949,14 +2949,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "4057.20",
               "balance": "0.00"
             },
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2996.28",
               "balance": "4057.20"
@@ -2970,7 +2970,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3074.40",
               "balance": "2996.28"
@@ -2984,7 +2984,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2940.00",
               "balance": "3074.40"
@@ -3028,7 +3028,7 @@
           "movements": [
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3103.29",
               "balance": "4202.10"
@@ -3042,7 +3042,7 @@
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3184.20",
               "balance": "3103.29"
@@ -3056,7 +3056,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3045.00",
               "balance": "3184.20"
@@ -3100,7 +3100,7 @@
           "movements": [
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "398.40",
               "balance": "1394.40"
@@ -3114,7 +3114,7 @@
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "398.40",
               "balance": "398.40"
@@ -3128,7 +3128,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "398.40",
               "balance": "398.40"
@@ -3167,14 +3167,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2614.50",
               "balance": "0.00"
             },
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2562.21",
               "balance": "2614.50"
@@ -3188,7 +3188,7 @@
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2639.40",
               "balance": "2562.21"
@@ -3202,7 +3202,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2506.60",
               "balance": "2639.40"
@@ -3262,7 +3262,7 @@
             },
             {
               "date": "2026-09-03",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2928.00",
               "balance": "2853.60"
@@ -3276,7 +3276,7 @@
             },
             {
               "date": "2026-08-06",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2800.00",
               "balance": "2928.00"
@@ -3315,14 +3315,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "403.20",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "1411.20",
               "balance": "403.20"
@@ -3336,7 +3336,7 @@
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "403.20",
               "balance": "403.20"
@@ -3350,7 +3350,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "403.20",
               "balance": "403.20"
@@ -3389,14 +3389,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2593.08",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2646.00",
               "balance": "2593.08"
@@ -3410,7 +3410,7 @@
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2671.20",
               "balance": "2593.08"
@@ -3424,7 +3424,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2536.80",
               "balance": "2671.20"
@@ -3478,7 +3478,7 @@
             },
             {
               "from": "admin",
-              "name": "Confort S.A.",
+              "name": "Administración Demo",
               "date": "2026-10-19",
               "text": "Gracias, Pedro. El lunes va un técnico a evaluar si viene de la azotea."
             }
@@ -3518,7 +3518,7 @@
             },
             {
               "from": "admin",
-              "name": "Confort S.A.",
+              "name": "Administración Demo",
               "date": "2026-10-16",
               "text": "El cerrajero ajustó el pestillo hoy. Avisanos si vuelve a pasar."
             }
@@ -3549,7 +3549,7 @@
       "name": "Edificio Centro",
       "address": "18 de Julio 1120",
       "barrio": "Centro",
-      "bank": "Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.",
+      "bank": "Banco Demo · Cuenta corriente en pesos a nombre de Administración Demo",
       "reserveOpening": "21000.00",
       "units": [
         {
@@ -4912,14 +4912,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3165.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-05",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3191.25",
               "balance": "3165.00"
@@ -4933,7 +4933,7 @@
             },
             {
               "date": "2026-09-05",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3138.75",
               "balance": "3165.00"
@@ -4947,7 +4947,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3112.50",
               "balance": "3138.75"
@@ -4986,14 +4986,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5007,7 +5007,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5021,7 +5021,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5060,14 +5060,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2791.25",
               "balance": "0.00"
             },
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2765.00",
               "balance": "2791.25"
@@ -5081,7 +5081,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2738.75",
               "balance": "2765.00"
@@ -5095,7 +5095,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2712.50",
               "balance": "2738.75"
@@ -5142,7 +5142,7 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3165.00",
               "balance": "3191.25"
@@ -5156,7 +5156,7 @@
             },
             {
               "date": "2026-09-03",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3138.75",
               "balance": "3165.00"
@@ -5170,7 +5170,7 @@
             },
             {
               "date": "2026-08-06",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3112.50",
               "balance": "3138.75"
@@ -5209,14 +5209,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3165.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3191.25",
               "balance": "3165.00"
@@ -5230,7 +5230,7 @@
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3138.75",
               "balance": "3165.00"
@@ -5244,7 +5244,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3112.50",
               "balance": "3138.75"
@@ -5283,14 +5283,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5304,7 +5304,7 @@
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5318,7 +5318,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5357,14 +5357,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2791.25",
               "balance": "0.00"
             },
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2765.00",
               "balance": "2791.25"
@@ -5378,7 +5378,7 @@
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2738.75",
               "balance": "2765.00"
@@ -5392,7 +5392,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2712.50",
               "balance": "2738.75"
@@ -5436,7 +5436,7 @@
           "movements": [
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3165.00",
               "balance": "3191.25"
@@ -5450,7 +5450,7 @@
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3138.75",
               "balance": "3165.00"
@@ -5464,7 +5464,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3112.50",
               "balance": "3138.75"
@@ -5503,14 +5503,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3165.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-05",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3191.25",
               "balance": "3165.00"
@@ -5524,7 +5524,7 @@
             },
             {
               "date": "2026-09-05",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3138.75",
               "balance": "3165.00"
@@ -5538,7 +5538,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3112.50",
               "balance": "3138.75"
@@ -5577,14 +5577,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "0.00"
             },
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5598,7 +5598,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5612,7 +5612,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "400.00",
               "balance": "400.00"
@@ -5651,14 +5651,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago octubre 2026 — transferencia Scotiabank",
+              "concept": "Pago octubre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2791.25",
               "balance": "0.00"
             },
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2765.00",
               "balance": "2791.25"
@@ -5672,7 +5672,7 @@
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2738.75",
               "balance": "2765.00"
@@ -5686,7 +5686,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "2712.50",
               "balance": "2738.75"
@@ -5734,7 +5734,7 @@
       "name": "Edificio Pocitos",
       "address": "Bulevar España 2780",
       "barrio": "Pocitos",
-      "bank": "Scotiabank · Cuenta corriente en pesos a nombre de Confort S.A.",
+      "bank": "Banco Demo · Cuenta corriente en pesos a nombre de Administración Demo",
       "reserveOpening": "64000.00",
       "units": [
         {
@@ -7735,14 +7735,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-05",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -7756,7 +7756,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -7795,14 +7795,14 @@
           "movements": [
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -7816,7 +7816,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -7855,14 +7855,14 @@
           "movements": [
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3125.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3103.13",
               "balance": "3125.00"
@@ -7876,7 +7876,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3081.25",
               "balance": "3103.13"
@@ -7915,14 +7915,14 @@
           "movements": [
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -7936,7 +7936,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -7975,14 +7975,14 @@
           "movements": [
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -7996,7 +7996,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8035,14 +8035,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-03",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8056,7 +8056,7 @@
             },
             {
               "date": "2026-08-06",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8095,14 +8095,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -8116,7 +8116,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -8155,14 +8155,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3125.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3103.13",
               "balance": "3125.00"
@@ -8176,7 +8176,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3081.25",
               "balance": "3103.13"
@@ -8240,7 +8240,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8279,14 +8279,14 @@
           "movements": [
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8300,7 +8300,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8339,14 +8339,14 @@
           "movements": [
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8360,7 +8360,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8399,14 +8399,14 @@
           "movements": [
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -8420,7 +8420,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -8459,14 +8459,14 @@
           "movements": [
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3125.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3103.13",
               "balance": "3125.00"
@@ -8480,7 +8480,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3081.25",
               "balance": "3103.13"
@@ -8519,14 +8519,14 @@
           "movements": [
             {
               "date": "2026-10-06",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-03",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8540,7 +8540,7 @@
             },
             {
               "date": "2026-08-06",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8579,14 +8579,14 @@
           "movements": [
             {
               "date": "2026-10-07",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-04",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8600,7 +8600,7 @@
             },
             {
               "date": "2026-08-07",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8639,14 +8639,14 @@
           "movements": [
             {
               "date": "2026-10-08",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-05",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8660,7 +8660,7 @@
             },
             {
               "date": "2026-08-08",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8699,14 +8699,14 @@
           "movements": [
             {
               "date": "2026-10-03",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -8720,7 +8720,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "450.00",
               "balance": "450.00"
@@ -8769,7 +8769,7 @@
           "movements": [
             {
               "date": "2026-09-06",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3103.13",
               "balance": "3125.00"
@@ -8783,7 +8783,7 @@
             },
             {
               "date": "2026-08-03",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3081.25",
               "balance": "3103.13"
@@ -8822,14 +8822,14 @@
           "movements": [
             {
               "date": "2026-10-04",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-07",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8843,7 +8843,7 @@
             },
             {
               "date": "2026-08-04",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"
@@ -8882,14 +8882,14 @@
           "movements": [
             {
               "date": "2026-10-05",
-              "concept": "Pago setiembre 2026 — transferencia Scotiabank",
+              "concept": "Pago setiembre 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3575.00",
               "balance": "0.00"
             },
             {
               "date": "2026-09-08",
-              "concept": "Pago agosto 2026 — transferencia Scotiabank",
+              "concept": "Pago agosto 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3553.13",
               "balance": "3575.00"
@@ -8903,7 +8903,7 @@
             },
             {
               "date": "2026-08-05",
-              "concept": "Pago julio 2026 — transferencia Scotiabank",
+              "concept": "Pago julio 2026 — transferencia bancaria",
               "debit": "0.00",
               "credit": "3531.25",
               "balance": "3553.13"

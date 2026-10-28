@@ -67,7 +67,7 @@ def test_anonymous_goes_to_its_login(path, target):
 
 
 def test_employee_lands_on_panel_and_is_kept_out_of_portal(demo):
-    client = client_for('maria@confort.demo')
+    client = client_for('maria@admin.demo')
 
     assert client.get('/')['Location'] == '/panel'
     for path in ('/panel', '/panel/edificio/123/gastos'):
@@ -103,7 +103,7 @@ def test_screens_only_answer_safe_methods():
 
 
 def test_screens_are_not_cached(demo):
-    response = client_for('maria@confort.demo').get('/panel')
+    response = client_for('maria@admin.demo').get('/panel')
 
     assert 'no-cache' in response['Cache-Control']
 

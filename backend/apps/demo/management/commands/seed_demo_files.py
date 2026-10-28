@@ -23,7 +23,7 @@ def _lines(receipt):
         f'Monto: {format_money(receipt.declared_amount)}',
         f'Fecha: {receipt.transfer_date:%d/%m/%Y}',
         f'Origen: {receipt.person}',
-        'Destino: Confort S.A.',
+        'Destino: Administración Demo',
     ]
 
 

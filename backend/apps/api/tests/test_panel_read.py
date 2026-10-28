@@ -23,7 +23,7 @@ def demo(monkeypatch):
     monkeypatch.setenv('DEMO_PASSWORD', 'demo-password-123')
     with override_settings(DEBUG=True):
         call_command('seed_demo')
-    return User.objects.get(email='maria@confort.demo')
+    return User.objects.get(email='maria@admin.demo')
 
 
 def get_portfolio(client, organization):
@@ -230,3 +230,21 @@ def test_accounts_paid_is_the_covered_part_of_the_month_charge(demo):
     assert after['charge'] == '4153.80'
     assert after['paid'] == '2500.00'
     assert after['balance'] == '1653.80'
+
+
+def test_reserve_fund_ignores_draft_settlements(demo):
+    """El fondo de reserva acumulado cuenta solo lo emitido: un borrador no suma."""
+    organization = demo.org_memberships.get().organization
+    building = organization.buildings.get(name='Edificio Minas')
+    client = api_client_for(demo)
+    url = f'/api/v1/buildings/{building.pk}/summary?month=2026-10'
+    before = client.get(url).json()['funds']['reserve']
+
+    draft = Settlement.objects.create(
+        building=building, month=date(2026, 11, 1), status=Settlement.Status.DRAFT
+    )
+    draft.items.create(
+        concept=building.concepts.get(is_reserve_fund=True), amount=Decimal('7200.00')
+    )
+
+    assert client.get(url).json()['funds']['reserve'] == before

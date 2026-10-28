@@ -62,8 +62,8 @@ def test_seed_records_actors_and_uploaders(monkeypatch):
     with override_settings(DEBUG=True):
         seed(monkeypatch)
 
-    maria = User.objects.get(email='maria@confort.demo')
-    pablo = User.objects.get(email='pablo@confort.demo')
+    maria = User.objects.get(email='maria@admin.demo')
+    pablo = User.objects.get(email='pablo@admin.demo')
     assert not LedgerEntry.objects.filter(kind='charge', created_by=pablo).exists()
     assert not LedgerEntry.objects.filter(kind='payment', created_by=maria).exists()
     assert Receipt.objects.filter(

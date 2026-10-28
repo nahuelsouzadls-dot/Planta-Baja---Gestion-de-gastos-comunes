@@ -174,7 +174,7 @@ def test_receipt_file_is_visible_to_owner_and_staff_only(demo, s3):
     other = api_client_for(User.objects.get(email=MARIA_GARCIA))
     assert other.get(f'/api/v1/portal/receipts/{receipt_id}/file').status_code == 404
 
-    staff = api_client_for(User.objects.get(email='maria@confort.demo'))
+    staff = api_client_for(User.objects.get(email='maria@admin.demo'))
     assert staff.get(f'/api/v1/receipts/{receipt_id}/file').status_code == 200
     outsider = api_client_for(OrgMembershipFactory().user)
     assert outsider.get(f'/api/v1/receipts/{receipt_id}/file').status_code == 404
@@ -182,7 +182,7 @@ def test_receipt_file_is_visible_to_owner_and_staff_only(demo, s3):
 
 def test_missing_object_answers_404(demo, s3):
     # Los comprobantes de la demo no tienen archivo en el almacenamiento.
-    staff = api_client_for(User.objects.get(email='maria@confort.demo'))
+    staff = api_client_for(User.objects.get(email='maria@admin.demo'))
     receipt = Receipt.objects.filter(status=Receipt.Status.PENDING).first()
 
     assert staff.get(f'/api/v1/receipts/{receipt.pk}/file').status_code == 404

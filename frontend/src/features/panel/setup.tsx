@@ -77,7 +77,7 @@ function BuildingForm() {
         <legend className="sr-only">Cuenta para transferencias</legend>
         <p className="text-xs font-semibold text-ink-2">Cuenta para transferencias <span className="font-normal text-muted-foreground">(opcional, sale en la liquidación)</span></p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field label="Banco" htmlFor="nb-bn"><Input id="nb-bn" name="bank_name" maxLength={100} placeholder="Ej.: Scotiabank" /></Field>
+          <Field label="Banco" htmlFor="nb-bn"><Input id="nb-bn" name="bank_name" maxLength={100} placeholder="Nombre del banco" /></Field>
           <Field label="Número de cuenta" htmlFor="nb-ba"><Input id="nb-ba" name="bank_account" maxLength={50} className="num" /></Field>
         </div>
         <Field label="Titular" htmlFor="nb-bh"><Input id="nb-bh" name="bank_holder" maxLength={200} /></Field>

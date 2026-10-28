@@ -137,6 +137,7 @@ export interface Concept {
   name: string
   kind: 'ordinary' | 'owner_only'
   is_reserve_fund: boolean
+  is_active: boolean
 }
 
 export interface Settlement {
