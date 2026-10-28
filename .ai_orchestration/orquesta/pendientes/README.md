@@ -15,7 +15,8 @@ Escritas por Claude el 2026-10-24, mientras Copilot (cuota mensual) y agy (cuota
 | 9 | `E2.md` — roles de base separados | — | compose, scripts de Postgres, settings | Cambia cómo se corren los tests |
 | 10 | `E4.md` — carga del día cero de Confort | — | `backend/apps/onboarding/` | Necesita la planilla real de Confort |
 | 11 | `E5.md` — salud, logs y errores | — | `backend/apps/core/` | |
-| 12 | `E6.md` — deploy en Railway | todo lo anterior | `railway.json` / docs | Requiere cuentas y decisiones de Nahuel |
+| 12 | `SEC4.md` — sacar las credenciales del `docker-compose.yml` a `backend/.env` | coordinar con E2 | `docker-compose.yml`, `Makefile`, `backend/.env.example`, CI | Pedido de Nahuel (2026-10-28); obliga a `make reset-db` en cada máquina |
+| 13 | `E6.md` — deploy en Railway | todo lo anterior | `railway.json` / docs | Requiere cuentas y decisiones de Nahuel |
 
 Antes de abrir a residentes reales: revisión de seguridad independiente de todo lo nuevo (como `docs/auditorias/`), texto de privacidad (Ley 18.331) y piloto con la administración (`docs/plan-mvp.md`, sección F).
 > Formato O-A-R-S (ver ../README.md). Las pendientes viejas se convierten al despacharlas.

@@ -13,7 +13,7 @@ Todos los puertos de desarrollo se publican únicamente en `127.0.0.1` (no queda
 | `mailpit` | `axllent/mailpit:v1.32.0` | `1025` (SMTP)<br>`8025` (Web) | Interfaz web: `http://localhost:8025`<br>SMTP: `127.0.0.1:1025` | Captura local de todos los correos enviados en desarrollo (invitaciones, reseteos de contraseña, avisos de liquidación y pagos) sin enviar emails reales. |
 | `minio` | `rancher/mirrored-minio-minio:RELEASE.2023-07-07T07-13-57Z` | `9000` (API S3)<br>`9001` (Consola) | Consola web: `http://localhost:9001`<br>API S3: `http://localhost:9000` | Almacenamiento de objetos compatible con S3 (emula Cloudflare R2 en local para comprobantes y PDFs). Se usa el mirror oficial multi-arch de Rancher con tag `RELEASE.*` fijo porque los repositorios públicos `minio/minio` y `minio/mc` fueron retirados de Docker Hub. |
 | `minio-init` | `rancher/mirrored-minio-mc:RELEASE.2023-06-28T21-54-17Z` | — | Servicio de inicialización (`exited 0`) | Espera a que `minio` esté saludable, crea el bucket `comprobantes` si no existe y configura su política anónima en `none` (privado). |
-| `web` | Build local (`backend/Dockerfile.dev`) | `8000` → `8000` | `http://localhost:8000` (panel en `/panel`, portal en `/portal`, logins en `/ingresar`) | Aplicación Django en modo desarrollo (`runserver`) con recarga en vivo, montaje de `./backend` y del front `./design`. |
+| `web` | Build local (`backend/Dockerfile.dev`) | `8000` → `8000` | `http://localhost:8000` (panel en `/panel`, portal en `/portal`, logins en `/ingresar`) | Aplicación Django en modo desarrollo (`runserver`) con recarga en vivo, montaje de `./backend` y del build del front `./frontend/dist` (ADR-0018). |
 
 ## Cómo arrancar de cero
 
@@ -23,19 +23,24 @@ Todos los puertos de desarrollo se publican únicamente en `127.0.0.1` (no queda
    ```
    Ajustá `SECRET_KEY` y las credenciales de ejemplo (`MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`) en `backend/.env` si fuera necesario.
 
-2. **Levantar los servicios:**
+2. **Compilar el front** (necesita Node 22; Django sirve el resultado):
+   ```bash
+   make front-install && make front-build
+   ```
+
+3. **Levantar los servicios:**
    ```bash
    make up
    # equivalente a: docker compose up -d
    ```
 
-3. **Aplicar las migraciones:**
+4. **Aplicar las migraciones:**
    ```bash
    make migrate
    # equivalente a: docker compose run --rm web python manage.py migrate
    ```
 
-4. **Cargar los datos de demostración (opcional, sobre base vacía):**
+5. **Cargar los datos de demostración (opcional, sobre base vacía):**
    ```bash
    make seed DEMO_PASSWORD=una_clave_de_al_menos_10_caracteres
    ```
@@ -44,12 +49,12 @@ Todos los puertos de desarrollo se publican únicamente en `127.0.0.1` (no queda
 
    **Almacenamiento (D1/D4):** `web` habla con MinIO en `http://minio:9000` (`S3_ENDPOINT_URL`) y firma las URLs del navegador contra `http://localhost:9000` (`S3_PUBLIC_ENDPOINT_URL`). Las credenciales salen de `MINIO_ROOT_*`. Los comprobantes van a `receipts/<organización>/<uuid>` y los PDF de liquidación a `settlements/…`. Para borrar subidas huérfanas: `make cleanup-uploads` (cuando exista el worker de D2, lo hará `celery beat`).
 
-5. **Ejecutar la suite de tests (con base de tests limpia):**
+6. **Ejecutar la suite de tests (con base de tests limpia):**
    ```bash
    make test
    ```
 
-6. **Reiniciar la base de datos desde cero (borra volúmenes locales):**
+7. **Reiniciar la base de datos desde cero (borra volúmenes locales):**
    ```bash
    make reset-db
    # equivalente a: docker compose down -v
@@ -77,6 +82,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 git status            # debe estar limpio; si no, commitear o descartar antes
 git pull --ff-only
 make up && make migrate
+make front-install && make front-build   # el build del front (frontend/dist) no viaja por git
 ```
 
 **Al terminar:** commitear y hacer `git push` antes de cambiar de máquina, para que la otra no diverja.
@@ -92,9 +98,9 @@ make up && make migrate
 | **Usuario de ejecución** | `root` (para facilitar el montaje del volumen local `./backend:/app`). | Usuario sin privilegios `app` (`UID 10001`, `GID 10001`, shell `/usr/sbin/nologin`). |
 | **Permisos de archivos** | Escritura completa sobre `/app` montado desde el host. | Código en `/app` perteneciente a `root:root` y de **solo lectura** para `app` (`chmod -R go-w,a+rX /app`), salvo `/app/staticfiles` perteneciente a `app:app`. |
 | **Código y `.env`** | Se monta `./backend` como volumen y Compose inyecta `backend/.env`. | Código copiado en build; `.dockerignore` excluye `.env*`, `__pycache__`, `.pytest_cache` y reportes de cobertura. |
-| **Front (`design/`, ADR-0002)** | Se monta `./design` en `/design` (solo lectura): los cambios en el HTML/JS se ven al recargar. | Se copia `design/` a `/design` (sin `design/ref/` ni `DISENO.md`). El contexto de build es la **raíz del repo** (`.dockerignore` de la raíz). |
+| **Front (`frontend/`, ADR-0018)** | Se monta `./frontend/dist` en `/frontend/dist` (solo lectura): hay que compilarlo con `make front-build`. Para trabajar en el front con recarga en vivo, `make front-dev` (Vite en `http://localhost:5173`, le pasa `/api` a Django). | Una etapa `node:22-slim` corre `npm ci && npm run build` y solo se copia `dist/` a `/frontend/dist`. El contexto de build es la **raíz del repo** (`.dockerignore` de la raíz). |
 | **Servidor WSGI** | `python manage.py runserver 0.0.0.0:8000` (definido en `docker-compose.yml`). | `gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-2} --access-logfile -`. |
-| **Archivos estáticos (`collectstatic`)** | Servidos directamente por Django en `DEBUG=True`; `design/assets/` se publica en `/static/assets/`. | No se corre `collectstatic` durante el `docker build` porque requiere las variables de entorno de producción; debe ejecutarse en el arranque/release del contenedor (`python manage.py collectstatic --noinput`) antes o al iniciar el servicio. |
+| **Archivos estáticos (`collectstatic`)** | Servidos directamente por Django en `DEBUG=True`; el build del front se publica en `/static/app/`. | No se corre `collectstatic` durante el `docker build` porque requiere las variables de entorno de producción; debe ejecutarse en el arranque/release del contenedor (`python manage.py collectstatic --noinput`) antes o al iniciar el servicio. |
 | **Healthcheck** | Sin `HEALTHCHECK` en imagen. | `HEALTHCHECK` TCP liviano en el puerto `8000` (hasta que se incorpore el endpoint `/health` en E5). |
 
 Para construir y probar localmente la imagen de producción:

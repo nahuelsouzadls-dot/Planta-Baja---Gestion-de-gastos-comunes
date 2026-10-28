@@ -1,4 +1,4 @@
-.PHONY: up down reset-db migrate test seed shell logs build-prod cleanup-uploads
+.PHONY: up down reset-db migrate test seed shell logs build-prod cleanup-uploads front-install front-dev front-build
 
 up:
 	docker compose up -d
@@ -36,3 +36,15 @@ build-prod:
 
 cleanup-uploads:
 	docker compose run --rm web python manage.py cleanup_orphan_uploads
+
+# Front (ADR-0018): app React en frontend/. `front-dev` levanta Vite en :5173 con recarga
+# en vivo (le pasa /api a Django en :8000); `front-build` genera frontend/dist, que Django
+# sirve en :8000.
+front-install:
+	cd frontend && npm ci
+
+front-dev:
+	cd frontend && npm run dev
+
+front-build:
+	cd frontend && npm run build

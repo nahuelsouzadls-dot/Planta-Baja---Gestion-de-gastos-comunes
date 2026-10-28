@@ -57,7 +57,7 @@ Nahuel abre el proyecto en más de una máquina. Lo único compartido es el repo
 
 ### Checklist de máquina nueva
 
-1. Instalar Docker. En macOS con Apple Silicon: OrbStack (`brew install --cask orbstack`) o Docker Desktop.
+1. Instalar Docker (en macOS con Apple Silicon: OrbStack con `brew install --cask orbstack`, o Docker Desktop) y Node 22.
 2. Clonar el repo (o, si ya estaba clonado, asegurarse de que `git status` esté limpio y hacer `git pull`).
 3. `git config pull.ff only`
 4. Crear `backend/.env` desde `backend/.env.example` y reemplazar `SECRET_KEY`, `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD`. Para generar secretos:
@@ -67,9 +67,10 @@ Nahuel abre el proyecto en más de una máquina. Lo único compartido es el repo
    (Crear el `.env` es configuración local, no código: Claude puede hacerlo directamente.)
 5. Levantar todo:
    ```bash
+   make front-install && make front-build   # requiere Node 22
    make up && make migrate && make seed DEMO_PASSWORD=<la de siempre>
    ```
-6. Verificar: `http://localhost:8000/panel` y `/portal` responden; `make test` pasa.
+6. Verificar: `http://localhost:8000/panel` y `/portal` responden; `make test` pasa. Para trabajar en el front con recarga en vivo: `make front-dev` (`http://localhost:5173`).
 
 Puertos que tienen que estar libres: 8000 (web), 5434 (Postgres), 6379 (Redis), 1025/8025 (Mailpit), 9000/9001 (MinIO).
 
@@ -79,6 +80,7 @@ Puertos que tienen que estar libres: 8000 (web), 5434 (Postgres), 6379 (Redis), 
 git status            # debe estar limpio; si no, commitear o descartar antes
 git pull --ff-only
 make up && make migrate
+make front-install && make front-build   # el build del front (frontend/dist) no viaja por git
 ```
 
 ### Al terminar de trabajar

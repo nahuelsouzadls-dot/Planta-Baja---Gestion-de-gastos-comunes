@@ -7,6 +7,17 @@ Maneja dinero real de residentes: priorizá la corrección sobre la brevedad.
 - Python 3.12 + Django 5.x + Django REST Framework
 - PostgreSQL 16, Celery + Redis, Cloudflare R2 (storage)
 - Moneda: UYU. Idioma del dominio: español (nombres de modelos y campos en español).
+- Front (ADR-0018): React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui en `frontend/`, con TanStack Query y React Router. Django sirve el build (`frontend/dist`) desde el mismo origen.
+
+## Front (`frontend/`)
+- **Dirección visual del cliente (`design/DISENO.md`), no negociable:** plano y sobrio, fondo gris y tarjetas blancas de radio 12, color solo en la barra lateral y en acentos chicos. Nada de amarillo como acento, botones azules o cian rellenos, botones muy redondos o gruesos, degradados de fondo ni aspecto "startup". Seleccionado en filtros: negro con letra blanca.
+- **Usá los tokens de `src/index.css`** (`bg-card`, `text-muted-foreground`, `bg-side`, `text-ok`, `bg-bad-bg`, etc.); no escribas colores sueltos. Los 5 temas cambian `--side`/`--acc`/`--accl` con `data-theme` en `<html>`.
+- **Componentes:** primero los de `src/components/ui/` (shadcn) y `src/components/shared.tsx` (`Pill`, `StatusPill`, `Empty`, `ErrorState`). Si falta uno, agregalo ahí con el mismo estilo; no instales otra librería de componentes.
+- **Datos:** toda llamada a la API pasa por `src/lib/api.ts` (cookie de sesión + CSRF). Lecturas con `useQuery` y escrituras con `useMutation` que invalidan la caché (ver `features/*/data.ts`). Tipos de las respuestas en `src/lib/types.ts`.
+- **Montos:** llegan como texto y se muestran con `money()` de `src/lib/format.ts`. **Nunca se calcula dinero en el front**: totales, saldos y prorrateos vienen del backend (ADR-0011). Lo que escribe una persona se convierte con `amountText()`, sin pasar por `Number`.
+- **Estados de pantalla:** cada lista o vista con datos tiene carga (esqueleto), vacío (`Empty` con texto que explique qué hacer) y error (`ErrorState` con Reintentar). Errores de formulario con `FormError`, en el formulario; confirmaciones con `toast` de sonner, en tono calmo y específico.
+- **Accesibilidad:** etiquetas en todos los campos, `aria-label` en botones de solo ícono, foco visible y nada que dependa solo del color (los estados llevan texto).
+- `npm run build` (en `frontend/`) verifica tipos y compila; tiene que pasar sin errores.
 
 ## Reglas no negociables
 

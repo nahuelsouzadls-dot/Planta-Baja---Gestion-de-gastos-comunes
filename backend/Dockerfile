@@ -24,7 +24,18 @@ COPY backend/requirements/ requirements/
 RUN pip install --no-cache-dir -r requirements/production.txt
 
 # ==============================================================================
-# Etapa 2: runtime — solo librería cliente de PostgreSQL y usuario sin privilegios
+# Etapa 2: front — compila la app React (ADR-0018) a archivos estáticos
+# ==============================================================================
+FROM node:22-slim AS front
+
+WORKDIR /front
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+RUN npm run build
+
+# ==============================================================================
+# Etapa 3: runtime — solo librería cliente de PostgreSQL y usuario sin privilegios
 # ==============================================================================
 FROM python:3.12-slim AS runtime
 
@@ -44,11 +55,11 @@ COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
 
-# El código de la aplicación y el front (ADR-0002) pertenecen a root y son de solo
-# lectura para el usuario `app`. El contexto de build es la raíz del repo.
+# El código de la aplicación y el build del front (ADR-0018) pertenecen a root y son de
+# solo lectura para el usuario `app`. El contexto de build es la raíz del repo.
 COPY --chown=root:root backend/ /app
-COPY --chown=root:root design/ /design
-RUN chmod -R go-w,a+rX /app /design \
+COPY --from=front --chown=root:root /front/dist /frontend/dist
+RUN chmod -R go-w,a+rX /app /frontend \
     && mkdir -p /app/staticfiles \
     && chown app:app /app/staticfiles
 

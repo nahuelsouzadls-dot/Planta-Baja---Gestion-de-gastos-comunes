@@ -1,0 +1,872 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Planta Baja — Azul</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap">
+<style>
+/* ── VARIANTE E: AZUL ULTRAMAR + ÁMBAR ── */
+:root{
+  --bg:     #F4F1EC;   /* hueso cálido */
+  --bg2:    #E8E4DC;
+  --bg3:    #DDD8CE;
+  --ink:    #0B0D1A;   /* casi negro con tinte azul */
+  --ink2:   #1B2240;   /* azul noche */
+  --ink-50: rgba(11,13,26,.50);
+  --ink-30: rgba(11,13,26,.30);
+  --acc:    #2845C8;   /* azul ultramar */
+  --acc-d:  #1C308F;   /* más oscuro */
+  --acc-dd: #111E5C;   /* noche */
+  --acc-l:  #EBF0FF;
+  --lift:   #F5B800;   /* ámbar */
+  --lift-d: #C89200;
+  --white:  #FFFFFF;
+  --border: rgba(11,13,26,.10);
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;padding-top:env(safe-area-inset-top,0px)}
+
+/* ── NAV ── */
+.nav{
+  position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:300;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 max(40px,env(safe-area-inset-left,0px));height:64px;
+  transition:background .25s,box-shadow .25s;
+}
+.nav.scrolled{background:rgba(244,241,236,.95);backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--border)}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.nav-wordmark{font-size:19px;font-weight:800;letter-spacing:-.6px;color:var(--ink)}
+.nav-wordmark em{color:var(--acc);font-style:normal}
+.nav-sub{font-size:10px;font-weight:600;color:var(--ink-50);letter-spacing:.04em;margin-top:1px}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-link{font-size:13px;font-weight:600;color:var(--ink-50);text-decoration:none;transition:color .15s}
+.nav-link:hover{color:var(--acc)}
+.nav-cta{font-size:13px;font-weight:800;background:var(--acc-dd);color:#fff;border:none;border-radius:24px;padding:10px 22px;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .15s,transform .12s}
+.nav-cta:hover{background:var(--acc);transform:translateY(-1px)}
+@media(max-width:800px){.nav-links{display:none}}
+
+/* ── ASCENSOR DOT MATRIX — PLACA VERTICAL FIXED ── */
+.elevator{
+  position:fixed;
+  right:max(20px,env(safe-area-inset-right,0px));
+  top:50%;
+  transform:translateY(-50%);
+  z-index:400;
+  /* placa rectangular sin fondo, hereda el body */
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0;
+  border:1.5px solid var(--ink-30);
+  border-radius:10px;
+  padding:10px 8px 8px;
+  background:var(--bg); /* comparte fondo del body */
+  box-shadow:0 0 0 1px var(--border);
+  width:52px;
+}
+.dm-label{
+  font-size:6px;font-weight:700;letter-spacing:.13em;
+  color:var(--ink-30);font-family:'Plus Jakarta Sans',sans-serif;
+  margin-bottom:7px;
+}
+.dm-visor{
+  position:relative;
+  background:rgba(11,13,26,.05);
+  border-radius:5px;
+  padding:5px 4px;
+  border:1px solid var(--border);
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:36px;
+  margin-bottom:10px;
+}
+.dm-visor::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.22) 0%,transparent 52%);
+  border-radius:inherit;
+  pointer-events:none;
+}
+#dmSvg{display:block}
+/* separador */
+.dm-sep{
+  width:100%;
+  height:1px;
+  background:var(--border);
+  margin-bottom:8px;
+}
+/* botones ▲ ▼ en dot matrix */
+.dm-btns{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:center;
+}
+.dm-btn{
+  width:32px;height:22px;
+  border-radius:5px;
+  border:1.5px solid var(--border);
+  background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  transition:border-color .2s,background .2s;
+  padding:0;
+}
+.dm-btn svg{display:block}
+/* estado activo: cuando se scrolea en esa dirección */
+.dm-btn.active{
+  border-color:var(--lift);
+  background:rgba(245,184,0,.08);
+}
+@keyframes dmBlink{0%,100%{opacity:1}50%{opacity:.25}}
+@media(max-width:700px){.elevator{display:none}}
+
+/* ── HERO ── */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:calc(64px + env(safe-area-inset-top,0px) + 56px) max(48px,env(safe-area-inset-left,0px)) 80px;
+  padding-right:max(48px,env(safe-area-inset-right,0px));
+  background:var(--bg);position:relative;overflow:hidden;
+}
+/* ámbar stripe hero accent */
+.hero::before{
+  content:'';position:absolute;top:0;right:0;
+  width:6px;height:100%;background:var(--lift);opacity:.6;
+}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-pre{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;color:var(--acc);
+  background:var(--acc-l);border-radius:20px;padding:5px 12px;
+  margin-bottom:22px;
+}
+.hero-h1{font-size:clamp(40px,6vw,84px);font-weight:900;line-height:.95;letter-spacing:-3px;color:var(--ink);margin-bottom:24px}
+.hero-h1 .ht{display:inline-block;background:var(--acc-dd);color:#fff;padding:2px 14px 5px;border-radius:5px;letter-spacing:-2px;position:relative}
+.hero-h1 .ht::after{content:'';position:absolute;bottom:-3px;left:14px;right:14px;height:3px;background:var(--lift);border-radius:2px}
+.hero-body{font-size:clamp(14px,1.5vw,17px);color:var(--ink-50);line-height:1.65;max-width:44ch;margin-bottom:32px;font-weight:500}
+.hero-body b{color:var(--acc);font-weight:800}
+.hero-body em{color:var(--lift-d);font-style:normal;font-weight:800}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.btn-p{font-size:14px;font-weight:800;background:var(--acc-dd);color:#fff;border:none;border-radius:28px;padding:14px 30px;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .15s,transform .12s,box-shadow .15s}
+.btn-p:hover{background:var(--acc);transform:translateY(-2px);box-shadow:0 8px 24px rgba(40,69,200,.35)}
+.btn-lift{font-size:14px;font-weight:800;background:var(--lift);color:var(--ink);border:none;border-radius:28px;padding:14px 30px;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .15s,transform .12s,box-shadow .15s}
+.btn-lift:hover{background:var(--lift-d);transform:translateY(-2px);box-shadow:0 8px 20px rgba(245,184,0,.4)}
+.btn-o{font-size:13px;font-weight:700;color:var(--ink-50);border:1.5px solid var(--bg3);border-radius:28px;padding:13px 22px;text-decoration:none;transition:border-color .18s,color .18s}
+.btn-o:hover{border-color:var(--acc);color:var(--acc)}
+
+/* ── ESCALERA DE PERFIL ── */
+.hero-stair{display:flex;align-items:center;justify-content:center}
+.stair-step{opacity:0;transform:translateX(-12px);transition:opacity .4s ease,transform .4s ease}
+.stair-step.vis{opacity:1;transform:translateX(0)}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-stair{display:none}}
+
+/* ── SECCIONES COMUNES ── */
+.s-pad{padding:112px max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px))}
+.s-bg2{background:var(--bg2)}.s-acc{background:var(--acc-dd)}.s-bg{background:var(--bg)}
+/* fundidos entre secciones: el borde superior de cada sección se disuelve en el color previo */
+.s-bg2+.s-bg{background:linear-gradient(to bottom,var(--bg2) 0%,var(--bg) 80px)}
+.s-acc::before{
+  content:'';
+  display:block;
+  height:48px;
+  margin:-48px calc(-1*max(48px,env(safe-area-inset-left,0px))) 0 calc(-1*max(48px,env(safe-area-inset-right,0px)));
+  background:linear-gradient(to bottom,transparent,var(--acc-dd));
+  pointer-events:none;
+}
+.s-cta{
+  /* ya tiene su propia sección de ámbar — solo suavizamos el borde superior */
+  padding-top:80px;
+}
+/* el footer recibe un fundido desde la sección previa */
+footer{
+  padding-top:80px;
+}
+
+/* pain */
+.pain-top{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-bottom:56px}
+.sh{font-size:clamp(24px,3.5vw,46px);font-weight:900;letter-spacing:-1.8px;line-height:1.05;color:var(--ink)}
+.sh-w{color:var(--white)}
+.sdeck{font-size:15px;color:var(--ink-50);line-height:1.65;font-weight:500;padding-top:4px}
+.sdeck b{color:var(--acc);font-weight:800}
+.sdeck em{color:var(--lift-d);font-style:normal;font-weight:800}
+.pre{font-size:12px;font-weight:700;color:var(--acc);margin-bottom:12px}
+.pre-w{font-size:12px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:12px}
+.pain-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.pc{background:var(--bg);border:1px solid var(--border);padding:32px;opacity:0;transform:translateY(14px);transition:opacity .45s ease,transform .45s ease,border-color .2s,box-shadow .2s}
+.pc.vis{opacity:1;transform:translateY(0)}
+.pc:nth-child(2){transition-delay:.09s}.pc:nth-child(3){transition-delay:.17s}.pc:nth-child(4){transition-delay:.25s}
+.pc:hover{border-color:var(--acc);box-shadow:0 4px 24px rgba(40,69,200,.10)}
+.pc:hover .pc-ico{background:var(--acc);transform:scale(1.08)}
+.pc-ico{width:38px;height:38px;background:var(--acc-dd);border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;transition:background .2s,transform .2s}
+.pc-ico svg{width:18px;height:18px}
+.pc-t{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:6px;line-height:1.2}
+.pc-b{font-size:13px;color:var(--ink-50);line-height:1.6;font-weight:500}
+.pc:hover .pc-t{color:var(--acc)}
+@media(max-width:900px){.pain-top{grid-template-columns:1fr}.pain-grid{grid-template-columns:1fr}}
+
+/* flow */
+.flow-row{display:grid;grid-template-columns:repeat(5,1fr);position:relative}
+.flow-row::before{content:'';position:absolute;top:19px;left:24px;right:24px;height:1px;background:rgba(255,255,255,.1)}
+#flowProgress{position:absolute;top:19px;left:24px;height:1px;background:var(--lift);width:0;transition:width .35s ease;z-index:1}
+.fs{padding:0 8px 0 0}
+.fs-n{width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;margin-bottom:18px;position:relative;z-index:1;transition:background .3s,border-color .3s}
+.fs.lit .fs-n{background:var(--lift);border-color:var(--lift);color:var(--ink)}
+.fs-t{font-size:13px;font-weight:800;color:#fff;margin-bottom:5px;line-height:1.25;transition:color .2s}
+.fs.lit .fs-t{color:var(--lift)}
+.fs-b{font-size:11px;color:rgba(255,255,255,.45);line-height:1.55;font-weight:500}
+@media(max-width:900px){.flow-row{grid-template-columns:1fr 1fr}.flow-row::before{display:none}}
+@media(max-width:540px){.flow-row{grid-template-columns:1fr}}
+
+/* demo split */
+.demo-split{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;margin-top:56px}
+.demo-col-label{font-size:11px;font-weight:700;color:var(--ink-50);margin-bottom:14px}
+@media(max-width:900px){.demo-split{grid-template-columns:1fr}}
+
+/* admin window */
+.admin-demo{background:#fff;border:1px solid #D9D4CC;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(11,13,26,.08)}
+.demo-bar{background:#F0EDE6;padding:9px 14px;display:flex;align-items:center;gap:6px;border-bottom:1px solid #D9D4CC}
+.db-dot{width:8px;height:8px;border-radius:50%}
+.demo-url{font-size:10px;color:#8A847A;margin-left:8px}
+.demo-tabs{display:flex;border-bottom:1px solid #E8E3DC;background:#FAFAF7}
+.dt{font-size:11px;font-weight:700;padding:10px 14px;cursor:pointer;color:#9098A8;transition:color .15s,border-color .15s,background .15s;border-bottom:2px solid transparent;margin-bottom:-1px}
+.dt:hover{color:var(--acc-d);background:rgba(40,69,200,.04)}
+.dt.on{color:var(--acc);border-bottom-color:var(--acc)}
+.demo-panel{padding:16px;min-height:230px}
+.dp{display:none}.dp.on{display:block}
+/* kpis */
+.mm-kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
+.kpi{background:#F7F6F2;border-radius:6px;padding:10px}
+.kpi-v{font-size:15px;font-weight:900;color:#0C0E12;letter-spacing:-.4px}
+.kpi-v.ok{color:#0a6640}.kpi-v.bad{color:#991B1B}
+.kpi-l{font-size:9px;color:#9098A8;margin-top:2px}
+.mm-tbl{background:#fff;border:1px solid #E8EBF0;border-radius:7px;overflow:hidden;font-size:10px}
+.tr{display:flex;align-items:center;gap:6px;padding:7px 10px;border-bottom:1px solid #F0F2F5;transition:background .14s}
+.tr:not(.hd):hover{background:#F0EEFF}
+.tr:last-child{border:none}.tr.hd{background:#F7F8FA;font-size:9px;color:#9098A8;font-weight:800}
+.tname{flex:1;font-weight:700;color:#0C0E12}.tr.hd .tname{font-weight:800;color:#9098A8}
+.tunit{width:24px;color:#9098A8}.tamt{width:44px;text-align:right;font-weight:700}
+.tbadge{font-size:8px;font-weight:700;border-radius:8px;padding:2px 6px;white-space:nowrap}
+.tb-ok{background:#D1FAE5;color:#065F46}.tb-rev{background:#FEF3C7;color:#92400E}
+.tb-pen{background:#E0E7FF;color:#3730A3}.tb-mor{background:#FEE2E2;color:#991B1B}
+/* detalle */
+.det-head{font-size:11px;font-weight:800;color:#0C0E12;margin-bottom:10px}
+.det-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F0F2F5;font-size:11px}
+.det-row:last-child{border:none;font-weight:800}.det-k{color:#6B7280;font-weight:500}.det-v{font-weight:700;color:#0C0E12}
+.det-tag{font-size:9px;font-weight:700;background:var(--acc-l);color:var(--acc);border-radius:6px;padding:2px 8px;margin-top:8px;display:inline-block}
+/* comprobante */
+.cpb-card{background:#F7F6F2;border-radius:8px;padding:14px;margin-bottom:10px}
+.cpb-head{font-size:11px;font-weight:800;color:#0C0E12;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
+.cpb-meta{font-size:10px;color:#9098A8;margin-bottom:8px}
+.cpb-img{background:#E8E3DC;border-radius:6px;height:52px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#9098A8;font-weight:600}
+.cpb-actions{display:flex;gap:6px;margin-top:10px}
+.cpb-btn{font-size:10px;font-weight:800;border:none;border-radius:6px;padding:7px 10px;cursor:pointer;font-family:inherit;transition:background .15s}
+.cpb-ok{background:#065F46;color:#fff}.cpb-rev{background:#FEF3C7;color:#92400E}.cpb-no{background:#FEE2E2;color:#991B1B}
+.cpb-result{display:none;margin-top:8px;font-size:11px;font-weight:700;border-radius:7px;padding:9px 12px;text-align:center}
+.cpb-result.ok{background:#D1FAE5;color:#065F46}.cpb-result.rev{background:#FEF3C7;color:#92400E}
+/* mobile frame */
+.mobile-frame{width:210px;margin:0 auto;background:#fff;border-radius:28px;border:2px solid #D9D4CC;box-shadow:0 10px 40px rgba(11,13,26,.1);overflow:hidden}
+.mf-notch{width:72px;height:14px;background:#D9D4CC;border-radius:0 0 8px 8px;margin:0 auto}
+.mf-screen{padding:12px}
+.mf-header{font-size:11px;font-weight:800;color:#0C0E12;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.mf-brand-color{color:var(--acc)}.mf-unit-s{font-size:9px;font-weight:600;color:#9098A8}
+.mf-card{background:var(--acc-dd);border-radius:10px;padding:14px;margin-bottom:10px}
+.mf-c-label{font-size:9px;font-weight:700;color:rgba(255,255,255,.5);margin-bottom:3px}
+.mf-c-amt{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.8px}
+.mf-c-period{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px}
+.mf-detail-row{display:flex;justify-content:space-between;font-size:10px;padding:5px 0;border-bottom:1px solid #F0F2F5}
+.mf-detail-row:last-child{border:none}.mf-dk{color:#9098A8;font-weight:500}.mf-dv{font-weight:700;color:#0C0E12}
+.mf-btn{width:100%;font-size:11px;font-weight:800;border:none;border-radius:8px;padding:10px;cursor:pointer;font-family:inherit;margin-top:10px;background:var(--acc);color:#fff;transition:background .15s}
+.mf-btn:hover{background:var(--acc-d)}.mf-btn:disabled{background:#C8CDD8;color:#8A9EA0;cursor:default}
+.mf-upload-zone{border:1.5px dashed #C8CDD8;border-radius:8px;padding:12px;text-align:center;font-size:10px;color:#9098A8;cursor:pointer}
+.mf-upload-zone.active{background:var(--acc-l);border-color:var(--acc)}
+.mf-file-name{font-size:10px;font-weight:700;color:var(--acc);margin-top:4px;display:none}
+.res-steps{display:flex;justify-content:center;gap:6px;padding:10px 0 8px}
+.rs-dot{width:6px;height:6px;border-radius:50%;background:#E0DDD7;transition:background .2s}
+.rs-dot.on{background:var(--acc)}
+.mobile-wrap{display:flex;flex-direction:column;align-items:center}
+.mobile-label{text-align:center;font-size:11px;font-weight:600;color:var(--ink-50);margin-top:12px}
+
+/* planes */
+.planes-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.plan{background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:38px;transition:border-color .2s,box-shadow .2s,transform .18s}
+.plan:hover{border-color:var(--acc);box-shadow:0 8px 32px rgba(40,69,200,.12);transform:translateY(-3px)}
+.plan.hi{border-color:var(--acc);background:#fff;box-shadow:0 4px 20px rgba(40,69,200,.12)}
+.plan.hi:hover{box-shadow:0 12px 40px rgba(40,69,200,.2);transform:translateY(-4px)}
+.plan-tag{font-size:11px;font-weight:800;color:var(--acc);margin-bottom:12px;letter-spacing:.06em}
+.plan-name{font-size:19px;font-weight:900;color:var(--ink);letter-spacing:-.6px;line-height:1.15;margin-bottom:10px}
+.plan-desc{font-size:13px;color:var(--ink-50);line-height:1.6;margin-bottom:22px;font-weight:500}
+.plan-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.plan-list li{font-size:13px;color:var(--ink);display:flex;align-items:flex-start;gap:9px;line-height:1.4;font-weight:500;transition:color .15s;padding:3px 0;border-radius:4px}
+.plan-list li:hover{color:var(--acc)}
+.plan-list li:hover .pl-dash{color:var(--lift)}
+.pl-dash{color:var(--acc);font-weight:800;flex-shrink:0;transition:color .15s}
+.plan-soon{margin-top:18px;font-size:11px;font-weight:700;color:var(--ink-30)}
+@media(max-width:900px){.planes-grid{grid-template-columns:1fr}}
+
+/* CTA: ámbar */
+.s-cta{background:var(--lift);padding:96px max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px));display:flex;align-items:center;justify-content:space-between;gap:48px;flex-wrap:wrap}
+.cta-pre{font-size:12px;font-weight:800;color:rgba(11,13,26,.4);margin-bottom:12px}
+.cta-h{font-size:clamp(30px,5vw,64px);font-weight:900;color:var(--ink);letter-spacing:-2.5px;line-height:.97;margin-bottom:14px}
+.cta-body{font-size:15px;color:rgba(11,13,26,.55);line-height:1.6;max-width:40ch;font-weight:500}
+.cta-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+.chip{font-size:11px;font-weight:700;color:var(--ink);background:rgba(11,13,26,.08);border-radius:20px;padding:5px 12px;transition:background .15s,color .15s}
+.chip:hover{background:var(--ink);color:var(--lift)}
+.cta-right{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.btn-dark{font-size:15px;font-weight:800;background:var(--ink);color:#fff;border:none;border-radius:28px;padding:16px 40px;cursor:pointer;font-family:inherit;text-decoration:none;transition:background .15s,transform .12s,box-shadow .15s}
+.btn-dark:hover{background:var(--acc-dd);transform:translateY(-2px);box-shadow:0 10px 28px rgba(17,30,92,.4)}
+.cta-note{font-size:11px;color:rgba(11,13,26,.4);text-align:center;font-weight:600}
+@media(max-width:900px){.s-cta{flex-direction:column;gap:28px}}
+
+/* legal */
+.legal-cols{display:grid;grid-template-columns:1fr 1fr;gap:40px}
+.lb{font-size:12px;color:var(--ink-50);line-height:1.72;font-weight:500}
+.lb b{color:var(--acc-d);font-weight:700}
+.lb em{color:var(--lift-d);font-style:normal;font-weight:700}.lb p+p{margin-top:10px}
+.legal-h{font-size:18px;font-weight:800;color:var(--ink);letter-spacing:-.4px;margin-bottom:22px}
+.legal-pre{font-size:11px;font-weight:700;color:var(--ink-50);margin-bottom:9px}
+@media(max-width:700px){.legal-cols{grid-template-columns:1fr;gap:18px}}
+
+/* footer */
+footer{background:var(--ink2);padding:48px max(48px,env(safe-area-inset-left,0px));padding-right:max(48px,env(safe-area-inset-right,0px));padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+.ft-piso{font-size:10px;font-weight:700;color:var(--lift);letter-spacing:.15em;margin-bottom:28px;display:flex;align-items:center;gap:10px}
+.ft-piso::before,.ft-piso::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.ft-main{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:28px}
+.ft-wm{font-size:19px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:-.5px;margin-bottom:4px}
+.ft-wm em{color:var(--acc);font-style:normal}
+.ft-tagline{font-size:12px;color:rgba(255,255,255,.28);font-weight:500}
+.ft-links{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.ft-link{font-size:12px;color:rgba(255,255,255,.28);text-decoration:none;font-weight:600;transition:color .15s}
+.ft-link:hover{color:rgba(255,255,255,.7)}
+.ft-copy{font-size:11px;color:rgba(255,255,255,.15);font-weight:500}
+@media(prefers-reduced-motion:reduce){.stair-step,.pc,.fs{transition:none!important;opacity:1!important;transform:none!important}}
+</style>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <a class="nav-brand" href="#hero">
+    <svg width="28" height="26" viewBox="0 0 230 220">
+      <polygon points="43,61 67,73 67,86 43,73" fill="rgba(11,13,26,.25)"/>
+      <polygon points="67,73 91,61 91,73 67,86" fill="rgba(11,13,26,.14)"/>
+      <polygon points="43,61 67,48 91,61 67,73" fill="rgba(11,13,26,.42)"/>
+      <polygon points="67,83 91,95 91,108 67,95" fill="rgba(11,13,26,.30)"/>
+      <polygon points="91,95 115,83 115,95 91,108" fill="rgba(11,13,26,.18)"/>
+      <polygon points="67,83 91,70 115,83 91,95" fill="rgba(11,13,26,.50)"/>
+      <polygon points="91,105 115,117 115,130 91,117" fill="rgba(11,13,26,.36)"/>
+      <polygon points="115,117 139,105 139,117 115,130" fill="rgba(11,13,26,.22)"/>
+      <polygon points="91,105 115,92 139,105 115,117" fill="rgba(11,13,26,.58)"/>
+      <polygon points="115,127 139,139 139,152 115,139" fill="rgba(11,13,26,.44)"/>
+      <polygon points="139,139 163,127 163,139 139,152" fill="rgba(11,13,26,.28)"/>
+      <polygon points="115,127 139,114 163,127 139,139" fill="rgba(11,13,26,.70)"/>
+      <polygon points="139,149 163,161 163,174 139,161" fill="#1C308F"/>
+      <polygon points="163,161 187,149 187,161 163,174" fill="#111E5C"/>
+      <polygon points="139,149 163,136 187,149 163,161" fill="#2845C8"/>
+    </svg>
+    <div>
+      <div class="nav-wordmark"><em>P</em>lanta <em>B</em>aja</div>
+      <div class="nav-sub">Gestión de edificios</div>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="#pain">El problema</a>
+    <a class="nav-link" href="#flow">Cómo funciona</a>
+    <a class="nav-link" href="#app">Plataforma</a>
+    <a class="nav-link" href="#planes">Planes</a>
+    <a class="nav-cta" href="#cta">Pedir demo</a>
+  </div>
+</nav>
+
+<!-- ASCENSOR DOT MATRIX: placa vertical fixed -->
+<div class="elevator" id="elevator">
+  <div class="dm-label">PISO</div>
+  <div class="dm-visor">
+    <svg id="dmSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+  <div class="dm-sep"></div>
+  <div class="dm-btns">
+    <!-- botón subir: dot matrix ▲ -->
+    <button class="dm-btn" id="dmBtnUp" title="Subir" onclick="dmScrollDir(-1)">
+      <svg id="dmBtnUpSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </button>
+    <!-- botón bajar: dot matrix ▼ -->
+    <button class="dm-btn active" id="dmBtnDown" title="Bajar" onclick="dmScrollDir(1)">
+      <svg id="dmBtnDownSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-pre">Para administradores de edificios · Uruguay</div>
+        <h1 class="hero-h1">Gestión<br>de edificios<br><span class="ht">sin caos.</span></h1>
+        <p class="hero-body"><b>Liquidaciones, cobros y comunicaciones</b> — todo en un lugar. Los residentes ven su deuda y suben comprobantes <em>desde el celular</em>. Vos <b>validás</b> y seguís.</p>
+        <div class="hero-btns">
+          <a class="btn-p" href="#cta">Pedir una demo</a>
+          <a class="btn-o" href="#flow">Cómo funciona</a>
+        </div>
+      </div>
+      <div class="hero-stair">
+        <!-- Escalera de perfil lateral: escalones descendentes -->
+        <svg width="320" height="280" viewBox="0 0 320 280">
+          <defs>
+            <linearGradient id="sg1" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#2845C8" stop-opacity=".15"/>
+              <stop offset="100%" stop-color="#2845C8" stop-opacity=".05"/>
+            </linearGradient>
+          </defs>
+          <!-- sombra de base -->
+          <ellipse cx="160" cy="262" rx="120" ry="8" fill="rgba(40,69,200,.08)"/>
+          <!-- escalones: perfil lateral, 5 escalones bajando de izquierda a derecha -->
+          <g class="stair-step" id="s1">
+            <rect x="20" y="60" width="56" height="12" fill="#2845C8" rx="1"/>
+            <rect x="76" y="72" width="8" height="52" fill="#1C308F"/>
+            <rect x="20" y="112" width="64" height="4" fill="rgba(40,69,200,.15)"/>
+          </g>
+          <g class="stair-step" id="s2">
+            <rect x="76" y="112" width="56" height="12" fill="#2845C8" rx="1"/>
+            <rect x="132" y="124" width="8" height="52" fill="#1C308F"/>
+            <rect x="76" y="164" width="64" height="4" fill="rgba(40,69,200,.15)"/>
+          </g>
+          <g class="stair-step" id="s3">
+            <rect x="132" y="164" width="56" height="12" fill="#2845C8" rx="1"/>
+            <rect x="188" y="176" width="8" height="52" fill="#1C308F"/>
+            <rect x="132" y="216" width="64" height="4" fill="rgba(40,69,200,.15)"/>
+          </g>
+          <g class="stair-step" id="s4">
+            <rect x="188" y="216" width="56" height="12" fill="#F5B800" rx="1"/>
+            <rect x="244" y="228" width="8" height="28" fill="#C89200"/>
+            <rect x="188" y="244" width="64" height="4" fill="rgba(245,184,0,.25)"/>
+          </g>
+          <!-- línea de planta baja -->
+          <line x1="20" y1="256" x2="300" y2="256" stroke="rgba(40,69,200,.15)" stroke-width="2" stroke-dasharray="6 4"/>
+          <text x="256" y="252" font-size="9" font-weight="800" fill="rgba(40,69,200,.4)" font-family="'Plus Jakarta Sans',sans-serif">PB</text>
+          <!-- figurita bajando -->
+          <g class="stair-step" id="s5" transform="translate(206,190)">
+            <circle cx="0" cy="-8" r="5" fill="var(--lift)"/>
+            <line x1="0" y1="-3" x2="0" y2="10" stroke="var(--lift)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="0" y1="3" x2="-5" y2="10" stroke="var(--lift)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="0" y1="3" x2="5" y2="10" stroke="var(--lift)" stroke-width="2" stroke-linecap="round"/>
+          </g>
+        </svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EL PROBLEMA -->
+<section id="pain" class="s-pad s-bg2">
+  <div class="pain-top">
+    <h2 class="sh">Lo que pasa cuando <span style="color:var(--acc)">no hay sistema</span>.</h2>
+    <p class="sdeck">No es que los administradores trabajen mal. Es que están operando con <b>herramientas que no fueron diseñadas</b> para esto. Cuatro problemas que se repiten <em>todos los meses</em>.</p>
+  </div>
+  <div class="pain-grid">
+    <div class="pc"><div class="pc-ico"><svg viewBox="0 0 18 18" fill="none"><path d="M3 3h12v2H3V3zm0 5h8v2H3V8zm0 5h6v2H3v-2z" fill="white" opacity=".85"/></svg></div><div class="pc-t">El Excel con tres versiones</div><div class="pc-b">¿Cuál es el bueno? Cada mes hay que <b style="color:var(--ink)">reconstruir desde cero</b>.</div></div>
+    <div class="pc"><div class="pc-ico"><svg viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="11" rx="2" stroke="white" stroke-width="1.4" opacity=".85"/><path d="M2 8h14" stroke="white" stroke-width="1.4" opacity=".85"/></svg></div><div class="pc-t">El comprobante que nadie encuentra</div><div class="pc-b">Buscás entre cuarenta correos. Otra llamada, <b style="color:var(--ink)">otra hora perdida</b>.</div></div>
+    <div class="pc"><div class="pc-ico"><svg viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke="white" stroke-width="1.4" opacity=".85"/><path d="M9 5.5v4l2.5 1.5" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity=".85"/></svg></div><div class="pc-t">El reclamo que quedó abierto</div><div class="pc-b">Sin registro, el reclamo <b style="color:var(--ink)">vive para siempre</b>. No tenés prueba de lo que resolviste.</div></div>
+    <div class="pc"><div class="pc-ico"><svg viewBox="0 0 18 18" fill="none"><path d="M2 4.5h14M2 9h10M2 13.5h7" stroke="white" stroke-width="1.4" stroke-linecap="round" opacity=".85"/></svg></div><div class="pc-t">Vista cero entre edificios</div><div class="pc-b">Con varios edificios, <b style="color:var(--ink)">no sabés cuál está en mora</b> sin cambiarte de planilla.</div></div>
+  </div>
+</section>
+
+<!-- CÓMO FUNCIONA -->
+<section id="flow" class="s-pad s-acc">
+  <div class="pre-w">Del gasto al cobro</div>
+  <h2 class="sh sh-w" style="max-width:20ch;margin-bottom:48px">Cada paso, <span style="color:var(--lift)">en orden</span>.</h2>
+  <div class="flow-row" id="flowRow">
+    <div id="flowProgress"></div>
+    <div class="fs"><div class="fs-n">1</div><div class="fs-t">Cargás los gastos</div><div class="fs-b">Servicios, honorarios, extraordinarios. Se distribuyen por <span style="color:var(--lift);font-weight:700">coeficiente</span> entre las unidades.</div></div>
+    <div class="fs"><div class="fs-n">2</div><div class="fs-t">Se genera la liquidación</div><div class="fs-b"><span style="color:var(--lift);font-weight:700">PDF automático</span> por unidad. El propietario lo ve desde el celular.</div></div>
+    <div class="fs"><div class="fs-n">3</div><div class="fs-t">El residente sube el comprobante</div><div class="fs-b">Desde su celular, adjunta el comprobante. <span style="color:var(--lift);font-weight:700">Vos recibís el aviso.</span></div></div>
+    <div class="fs"><div class="fs-n">4</div><div class="fs-t">Validás contra el banco</div><div class="fs-b">Aprobás, ponés en revisión o rechazás. <span style="color:var(--lift);font-weight:700">Todo queda registrado.</span></div></div>
+    <div class="fs"><div class="fs-n">5</div><div class="fs-t">Se actualiza la cuenta corriente</div><div class="fs-b">El pago aprobado suma al <span style="color:var(--lift);font-weight:700">historial del propietario</span>.</div></div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="app" class="s-pad s-bg">
+  <div class="pre">Demo interactivo</div>
+  <h2 class="sh" style="margin-bottom:10px">Así se ve trabajar con Planta Baja.</h2>
+  <p class="sdeck" style="max-width:52ch">Panel del administrador a la izquierda, portal del residente a la derecha. <b>Interactuá con los dos</b> — es el flujo real.</p>
+  <div class="demo-split">
+    <div>
+      <div class="demo-col-label">Panel del administrador</div>
+      <div class="admin-demo">
+        <div class="demo-bar"><div class="db-dot" style="background:#FF5F57"></div><div class="db-dot" style="background:#FFBD2E"></div><div class="db-dot" style="background:#28CA41"></div><span class="demo-url">app.plantabaja.uy · Oct 2026</span></div>
+        <div class="demo-tabs">
+          <div class="dt on" data-tab="cobros">Cobros</div>
+          <div class="dt" data-tab="detalle">Unidad 102</div>
+          <div class="dt" data-tab="comprobante">Comprobante</div>
+        </div>
+        <div class="demo-panel">
+          <div class="dp on" id="tab-cobros">
+            <div class="mm-kpis"><div class="kpi"><div class="kpi-v">$52.4k</div><div class="kpi-l">Total emitido</div></div><div class="kpi"><div class="kpi-v ok">17</div><div class="kpi-l">Al día</div></div><div class="kpi"><div class="kpi-v bad">3</div><div class="kpi-l">Morosos</div></div></div>
+            <div class="mm-tbl">
+              <div class="tr hd"><span class="tname">PROPIETARIO</span><span class="tunit">UN.</span><span class="tamt">MONTO</span><span>ESTADO</span></div>
+              <div class="tr"><span class="tname">García, M.</span><span class="tunit">101</span><span class="tamt">$3.4k</span><span class="tbadge tb-ok">Al día</span></div>
+              <div class="tr" style="cursor:pointer" onclick="switchTab('detalle')"><span class="tname" style="color:var(--acc)">López, J. →</span><span class="tunit">102</span><span class="tamt">$3.4k</span><span class="tbadge tb-rev">Revisión</span></div>
+              <div class="tr"><span class="tname">Martínez, A.</span><span class="tunit">201</span><span class="tamt">$3.6k</span><span class="tbadge tb-pen">Pendiente</span></div>
+              <div class="tr"><span class="tname">Rodríguez, C.</span><span class="tunit">202</span><span class="tamt">$3.6k</span><span class="tbadge tb-mor">Moroso</span></div>
+            </div>
+            <div style="font-size:10px;color:var(--acc);margin-top:8px;font-weight:700;cursor:pointer" onclick="switchTab('detalle')">→ Tocá a López para ver el detalle de la unidad</div>
+          </div>
+          <div class="dp" id="tab-detalle">
+            <div class="det-head">Liquidación Oct 2026 — Unidad 102 (coef. 1.08)</div>
+            <div class="det-row"><span class="det-k">Expensas comunes</span><span class="det-v">$1.820</span></div>
+            <div class="det-row"><span class="det-k">ANTEL (prop. coef.)</span><span class="det-v">$284</span></div>
+            <div class="det-row"><span class="det-k">OSE</span><span class="det-v">$196</span></div>
+            <div class="det-row"><span class="det-k">Honorario administración</span><span class="det-v">$620</span></div>
+            <div class="det-row"><span class="det-k">Fondo extraordinario</span><span class="det-v">$480</span></div>
+            <div class="det-row"><span class="det-k" style="font-weight:800;color:var(--ink)">Total</span><span class="det-v">$3.400</span></div>
+            <div class="det-tag">Distribución por coeficiente · PDF</div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="cpb-btn" style="background:var(--acc-dd);color:#fff;font-size:10px" onclick="switchTab('comprobante')">Ver comprobante →</button>
+              <button class="cpb-btn" style="background:#F0EDE6;color:var(--ink);font-size:10px" onclick="switchTab('cobros')">← Volver</button>
+            </div>
+          </div>
+          <div class="dp" id="tab-comprobante">
+            <div class="cpb-card">
+              <div class="cpb-head"><span>López, J. — Unidad 102</span><span class="tbadge tb-rev">En revisión</span></div>
+              <div class="cpb-meta">Subido · 26 oct 2026 11:42</div>
+              <div class="cpb-img">📄 Comprobante_BancoRepublica_102.pdf</div>
+              <div class="cpb-actions">
+                <button class="cpb-btn cpb-ok" onclick="resolveComprobante('ok')">✓ Aprobar</button>
+                <button class="cpb-btn cpb-rev" onclick="resolveComprobante('rev')">En revisión</button>
+                <button class="cpb-btn cpb-no" onclick="resolveComprobante('no')">✗ Rechazar</button>
+              </div>
+              <div class="cpb-result" id="cpbResult"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mobile-wrap">
+      <div class="demo-col-label">Portal del residente (celular)</div>
+      <div class="mobile-frame">
+        <div class="mf-notch"></div>
+        <div class="mf-screen">
+          <div id="rs0">
+            <div class="mf-header"><span class="mf-brand-color">Planta Baja</span><span class="mf-unit-s">Unidad 102</span></div>
+            <div class="mf-card"><div class="mf-c-label">A PAGAR</div><div class="mf-c-amt">$3.400</div><div class="mf-c-period">Octubre 2026</div></div>
+            <div class="mf-detail-row"><span class="mf-dk">Expensas</span><span class="mf-dv">$1.820</span></div>
+            <div class="mf-detail-row"><span class="mf-dk">Servicios</span><span class="mf-dv">$480</span></div>
+            <div class="mf-detail-row"><span class="mf-dk">Honorarios</span><span class="mf-dv">$620</span></div>
+            <div class="mf-detail-row"><span class="mf-dk">Extraordinario</span><span class="mf-dv">$480</span></div>
+            <button class="mf-btn" onclick="resNext(1)">Subir comprobante de pago</button>
+          </div>
+          <div id="rs1" style="display:none">
+            <div class="mf-header"><span class="mf-brand-color">Comprobante</span><span class="mf-unit-s">Oct 2026</span></div>
+            <div style="font-size:10px;color:#9098A8;margin-bottom:10px;font-weight:500">Adjuntá el comprobante de transferencia</div>
+            <div class="mf-upload-zone" id="dropZone" onclick="simulateUpload()">
+              <div style="font-size:18px;margin-bottom:3px">📎</div>
+              <div>Tocá para seleccionar</div>
+              <div class="mf-file-name" id="fileName"></div>
+            </div>
+            <button class="mf-btn" id="resSendBtn" disabled onclick="resSend()">Enviar comprobante</button>
+          </div>
+          <div id="rs2" style="display:none">
+            <div class="mf-header"><span class="mf-brand-color">Planta Baja</span><span class="mf-unit-s">Unidad 102</span></div>
+            <div style="background:#D1FAE5;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px">
+              <div style="font-size:20px;margin-bottom:5px">✓</div>
+              <div style="font-size:12px;font-weight:800;color:#065F46">Comprobante recibido</div>
+              <div style="font-size:10px;color:#047857;margin-top:3px">En revisión por el administrador</div>
+            </div>
+            <div class="mf-detail-row"><span class="mf-dk">Estado</span><span class="tbadge tb-rev" style="font-size:9px">En revisión</span></div>
+            <div class="mf-detail-row"><span class="mf-dk">Enviado</span><span class="mf-dv">26 oct · 11:42</span></div>
+            <button class="mf-btn" style="background:var(--bg3,#DDD8CE);color:var(--ink);margin-top:10px;font-size:10px" onclick="resReset()">← Inicio</button>
+          </div>
+        </div>
+        <div class="res-steps"><div class="rs-dot on" id="rsd0"></div><div class="rs-dot" id="rsd1"></div><div class="rs-dot" id="rsd2"></div></div>
+      </div>
+      <div class="mobile-label">Flujo del residente</div>
+    </div>
+  </div>
+</section>
+
+<!-- PLANES -->
+<section id="planes" class="s-pad s-bg2">
+  <div class="pre">Dos modelos</div>
+  <h2 class="sh" style="margin-bottom:48px;max-width:22ch">Elegís <span style="color:var(--acc)">cómo</span> manejar los cobros.</h2>
+  <div class="planes-grid">
+    <div class="plan">
+      <div class="plan-tag">Plan Gestión</div>
+      <div class="plan-name">Control y registro.<br>Los cobros, como siempre.</div>
+      <p class="plan-desc">Usás Planta Baja para gestionar, registrar y tener visibilidad. Los pagos los seguís recibiendo por transferencia directa.</p>
+      <ul class="plan-list">
+        <li><span class="pl-dash">—</span>Liquidaciones en PDF con distribución por coeficiente</li>
+        <li><span class="pl-dash">—</span>Vista de morosos, pagados y pendientes en tiempo real</li>
+        <li><span class="pl-dash">—</span>Validación manual de comprobantes</li>
+        <li><span class="pl-dash">—</span>Portal del propietario — ve su unidad desde el celular</li>
+        <li><span class="pl-dash">—</span>Comunicaciones y avisos dentro de la plataforma</li>
+        <li><span class="pl-dash">—</span>Dashboard multi-edificio</li>
+        <li><span class="pl-dash">—</span>Exportación libre a Excel y PDF, siempre</li>
+      </ul>
+    </div>
+    <div class="plan hi">
+      <div class="plan-tag">Plan Pagos · Próximamente</div>
+      <div class="plan-name">Cobros integrados<br>en la plataforma.</div>
+      <p class="plan-desc">Todo lo del Plan Gestión, más pasarela de pagos para que los residentes paguen desde el celular. Sin cruzar con el banco manualmente.</p>
+      <ul class="plan-list">
+        <li><span class="pl-dash">—</span>Todo lo del Plan Gestión</li>
+        <li><span class="pl-dash">—</span>Pasarela de pagos integrada para residentes</li>
+        <li><span class="pl-dash">—</span>Acreditación automática al aprobar el pago</li>
+      </ul>
+      <div class="plan-soon">Disponible próximamente · Consultar</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta" class="s-cta">
+  <div>
+    <div class="cta-pre">Para early adopters</div>
+    <h2 class="cta-h">Un mes gratis.<br>Con tus edificios reales.</h2>
+    <p class="cta-body">Probás con <b style="color:var(--ink);font-weight:900">tu cartera real</b>. Si no cambió la forma en que trabajás, te vas — con <b style="color:var(--ink);font-weight:900">todos tus datos</b>.</p>
+    <div class="cta-chips"><span class="chip">Migración incluida</span><span class="chip">Capacitación del equipo</span><span class="chip">Acompañamiento real</span><span class="chip">Datos siempre tuyos</span></div>
+  </div>
+  <div class="cta-right">
+    <a class="btn-dark" href="mailto:hola@plantabaja.uy">Escribinos para la demo</a>
+    <div class="cta-note">hola@plantabaja.uy · plantabaja.uy</div>
+  </div>
+</section>
+
+<!-- LEGAL -->
+<section id="legal" class="s-pad s-bg2">
+  <div class="legal-pre">Información legal · Borrador</div>
+  <div class="legal-h">Privacidad, datos y cookies</div>
+  <div class="legal-cols">
+    <div class="lb"><p><b>Protección de datos personales.</b> Planta Baja trata los datos personales exclusivamente para la prestación del servicio. Conforme a la Ley N.° 18.331 de Protección de Datos Personales y Acción de Hábeas Data (Uruguay).</p><p><b>Titularidad de los datos.</b> Los datos de cada edificio son propiedad del administrador. Pueden exportarse en cualquier momento. En caso de baja, el administrador recibe una copia completa de su información.</p></div>
+    <div class="lb"><p><b>Cookies.</b> Solo se utilizan cookies estrictamente necesarias para el funcionamiento del servicio (autenticación, sesión). No hay cookies de seguimiento publicitario sin consentimiento previo.</p><p><b>Seguridad.</b> La información se transmite cifrada mediante HTTPS. Los accesos están segmentados por rol. Este texto es un borrador y no constituye una política legalmente vinculante.</p></div>
+  </div>
+</section>
+
+<!-- FOOTER: PLANTA BAJA -->
+<footer id="footer">
+  <div class="ft-piso">PLANTA BAJA</div>
+  <div class="ft-main">
+    <div><div class="ft-wm"><em>P</em>lanta <em>B</em>aja</div><div class="ft-tagline">Gestión de edificios · Uruguay</div></div>
+    <div class="ft-links"><a class="ft-link" href="#legal">Privacidad y cookies</a><a class="ft-link" href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a><span class="ft-link">plantabaja.uy</span></div>
+  </div>
+  <div class="ft-copy">© 2026 Planta Baja. Todos los derechos reservados.</div>
+</footer>
+
+<script>
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>30),{passive:true});
+
+/* escalera */
+const steps=document.querySelectorAll('.stair-step');
+const stepObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(!e.isIntersecting)return;const i=parseInt(e.target.id.replace('s',''))-1;setTimeout(()=>e.target.classList.add('vis'),i*180);stepObs.unobserve(e.target)});},{threshold:.1});
+steps.forEach(s=>stepObs.observe(s));
+
+/* pain */
+const cards=document.querySelectorAll('.pc');
+const cObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');cObs.unobserve(e.target)}});},{threshold:.15});
+cards.forEach(c=>cObs.observe(c));
+
+/* flow — animación secuencial con línea de progreso */
+let flowDone=false;
+const flowSteps=document.querySelectorAll('.fs');
+const flowProgress=document.getElementById('flowProgress');
+const FLOW_COUNT=flowSteps.length;
+function lightStep(idx){
+  if(idx>=FLOW_COUNT)return;
+  flowSteps[idx].classList.add('lit');
+  /* avanzar la barra al centro del siguiente paso */
+  const pct=((idx+1)/(FLOW_COUNT-1))*88;/* 88% = de left:24px a right:24px aprox */
+  flowProgress.style.width=pct+'%';
+  setTimeout(()=>lightStep(idx+1),420);
+}
+new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting&&!flowDone){flowDone=true;setTimeout(()=>lightStep(0),200);}});},{threshold:.25}).observe(document.getElementById('flowRow'));
+
+/* demo tabs */
+function switchTab(id){document.querySelectorAll('.dp').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.dt').forEach(t=>t.classList.remove('on'));document.getElementById('tab-'+id).classList.add('on');document.querySelector(`.dt[data-tab="${id}"]`).classList.add('on')}
+document.querySelectorAll('.dt').forEach(t=>t.addEventListener('click',()=>switchTab(t.dataset.tab)));
+
+/* comprobante */
+function resolveComprobante(a){const r=document.getElementById('cpbResult');const m={ok:'✓ Pago aprobado — cuenta corriente actualizada',rev:'⏳ En revisión — residente notificado',no:'✗ Rechazado — residente notificado'};r.textContent=m[a];r.className='cpb-result '+(a==='ok'?'ok':'rev');r.style.display='block';document.querySelectorAll('.cpb-btn').forEach(b=>b.disabled=true)}
+
+/* residente */
+function showRS(n){[0,1,2].forEach(i=>{document.getElementById('rs'+i).style.display=i===n?'block':'none';document.getElementById('rsd'+i).classList.toggle('on',i===n)})}
+function resNext(n){showRS(n)}
+let up=false;
+function simulateUpload(){if(up)return;up=true;document.getElementById('dropZone').classList.add('active');const fn=document.getElementById('fileName');fn.textContent='Comprobante_102.pdf';fn.style.display='block';document.getElementById('resSendBtn').disabled=false}
+function resSend(){showRS(2)}
+function resReset(){up=false;document.getElementById('dropZone').classList.remove('active');document.getElementById('fileName').style.display='none';document.getElementById('resSendBtn').disabled=true;showRS(0)}
+
+/* ascensor 7-segmentos */
+const secciones=['hero','pain','flow','app','planes','cta','footer'];
+const pisos=['7','6','5','4','3','2','PB'];
+const segNum=document.getElementById('segNum');
+/* ── DOT MATRIX ENGINE ── */
+(function(){
+  /* Bitmaps 5×7 para dígitos 0-9, letras P B y flecha abajo
+     Cada fila es un número de 5 bits (bit4=col0 … bit0=col4) */
+  const GLYPHS={
+    '0':[0b11111,0b10001,0b10001,0b10001,0b10001,0b10001,0b11111],
+    '1':[0b00100,0b01100,0b00100,0b00100,0b00100,0b00100,0b01110],
+    '2':[0b11111,0b00001,0b00001,0b11111,0b10000,0b10000,0b11111],
+    '3':[0b11111,0b00001,0b00001,0b11111,0b00001,0b00001,0b11111],
+    '4':[0b10001,0b10001,0b10001,0b11111,0b00001,0b00001,0b00001],
+    '5':[0b11111,0b10000,0b10000,0b11111,0b00001,0b00001,0b11111],
+    '6':[0b11111,0b10000,0b10000,0b11111,0b10001,0b10001,0b11111],
+    '7':[0b11111,0b00001,0b00010,0b00100,0b01000,0b01000,0b01000],
+    '8':[0b11111,0b10001,0b10001,0b11111,0b10001,0b10001,0b11111],
+    '9':[0b11111,0b10001,0b10001,0b11111,0b00001,0b00001,0b11111],
+    'P':[0b11110,0b10001,0b10001,0b11110,0b10000,0b10000,0b10000],
+    'B':[0b11110,0b10001,0b10001,0b11110,0b10001,0b10001,0b11110],
+    /* flecha abajo: 3 filas activas centradas */
+    'ARR_D':[0b00000,0b00000,0b10001,0b01010,0b00100,0b00000,0b00000],
+    'ARR_U':[0b00000,0b00000,0b00100,0b01010,0b10001,0b00000,0b00000],
+  };
+  const DOT=3;   /* radio dot px */
+  const GAP=1.4; /* espacio entre dots */
+  const STEP=DOT*2+GAP;
+  const COLS=5;const ROWS=7;
+  const CHAR_W=COLS*STEP-GAP;
+  const CHAR_H=ROWS*STEP-GAP;
+  const CHAR_GAP=5;
+  const LIFT='#F5B800';
+  const LIFT_DIM='rgba(245,184,0,0.07)';
+
+  const svg=document.getElementById('dmSvg');
+  let currentPiso='7';
+  let lastIdx=0;
+
+  function glyphSVG(char,xOff,extraClass){
+    const bits=GLYPHS[char]||GLYPHS['0'];
+    let out='';
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const on=(bits[r]>>(4-c))&1;
+        const cx=xOff+c*STEP+DOT;
+        const cy=r*STEP+DOT;
+        if(on){
+          const cls=extraClass||'';
+          out+=`<circle class="${cls}" cx="${cx}" cy="${cy}" r="${DOT}" fill="${LIFT}" filter="url(#glow)"/>`;
+        } else {
+          out+=`<circle cx="${cx}" cy="${cy}" r="${DOT}" fill="${LIFT_DIM}"/>`;
+        }
+      }
+    }
+    return out;
+  }
+
+  function renderDisplay(pisoStr,dir){
+    /* pisoStr: '7','6',…,'2','PB'  dir: 'down'|'up'|'same' */
+    const chars=pisoStr==='PB'?['P','B']:[...pisoStr];
+    const arrKey=dir==='up'?'ARR_U':'ARR_D';
+    /* 2 char columns + arrow */
+    let totalChars=chars.length===1?2:2;/* siempre 2 slots para número + separación */
+    const numSlots=chars.length===1?1:2;
+    const totalW=(numSlots+1)*CHAR_W+numSlots*CHAR_GAP+CHAR_GAP;
+    /* layout: chars centrados, luego gap, luego arrow */
+    const w=totalW;
+    const h=CHAR_H;
+
+    svg.setAttribute('width',w);
+    svg.setAttribute('height',h+STEP*2);
+    svg.setAttribute('viewBox',`0 0 ${w} ${h+STEP*2}`);
+
+    let body=`<defs>
+      <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="1.8" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>`;
+
+    /* dibujar dígitos */
+    if(chars.length===1){
+      /* un solo dígito, centrado en el primer slot */
+      body+=glyphSVG(chars[0],CHAR_W*0.5,'' );
+    } else {
+      body+=glyphSVG(chars[0],0,'');
+      body+=glyphSVG(chars[1],CHAR_W+CHAR_GAP,'');
+    }
+    /* flecha debajo, centrada */
+    const arrX=chars.length===1?(CHAR_W*0.5):(CHAR_W*0.5+CHAR_GAP*0.5);
+    body+=`<g class="dm-arr" transform="translate(${arrX},${CHAR_H+GAP*1.5})">`;
+    body+=glyphSVG(arrKey,0,'');
+    body+='</g>';
+
+    svg.innerHTML=body;
+  }
+
+  /* botones ▲ ▼ también en dot matrix, tamaño pequeño */
+  function renderBtn(svgEl, key){
+    const bits=GLYPHS[key]||GLYPHS['ARR_D'];
+    const D=2, G=1, S=D*2+G;
+    const W=5*S-G, H=7*S-G;
+    svgEl.setAttribute('width',W);
+    svgEl.setAttribute('height',H);
+    svgEl.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    let body=`<defs><filter id="gb" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+    for(let r=0;r<7;r++){
+      for(let c=0;c<5;c++){
+        const on=(bits[r]>>(4-c))&1;
+        const cx=c*S+D, cy=r*S+D;
+        body+=on
+          ?`<circle cx="${cx}" cy="${cy}" r="${D}" fill="${LIFT}" filter="url(#gb)"/>`
+          :`<circle cx="${cx}" cy="${cy}" r="${D}" fill="${LIFT_DIM}"/>`;
+      }
+    }
+    svgEl.innerHTML=body;
+  }
+
+  /* expuesto globalmente para setFloor */
+  window._dmRender=renderDisplay;
+  window._dmLastIdx=function(){return lastIdx;};
+  window._dmSetLastIdx=function(i){lastIdx=i;};
+
+  renderDisplay('7','down');
+  /* renderizar botones */
+  renderBtn(document.getElementById('dmBtnUpSvg'),'ARR_U');
+  renderBtn(document.getElementById('dmBtnDownSvg'),'ARR_D');
+})();
+
+const dmBtnUp=document.getElementById('dmBtnUp');
+const dmBtnDown=document.getElementById('dmBtnDown');
+
+function setFloor(id){
+  const idx=secciones.indexOf(id);
+  if(idx<0)return;
+  const dir=idx>window._dmLastIdx()?'down':'up';
+  /* iluminar botón según dirección */
+  const atBottom=idx===secciones.length-1;
+  const atTop=idx===0;
+  dmBtnDown.classList.toggle('active', dir==='down' && !atBottom);
+  dmBtnUp.classList.toggle('active', dir==='up' && !atTop);
+  /* cuando llegamos al último piso apagamos ambos un instante */
+  if(atBottom){dmBtnDown.classList.remove('active')}
+  if(atTop){dmBtnUp.classList.remove('active')}
+  window._dmSetLastIdx(idx);
+  window._dmRender(pisos[idx],dir);
+}
+
+/* clicks en botones navegan entre secciones */
+function dmScrollDir(dir){
+  const idx=window._dmLastIdx();
+  const next=Math.max(0,Math.min(secciones.length-1,idx+dir));
+  const el=document.getElementById(secciones[next]);
+  if(el)el.scrollIntoView({behavior:'smooth'});
+}
+
+/* Observer del ascensor: rootMargin negativo para activar cuando la sección
+   ocupa el tercio central del viewport — sensación de detección continua */
+const floorObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)setFloor(e.target.id)});
+},{
+  threshold:0,
+  rootMargin:'-38% 0px -38% 0px'
+});
+secciones.forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)floorObs.observe(el);
+});
+
+/* elevDown removed */
+</script>
+
+</body></html>
