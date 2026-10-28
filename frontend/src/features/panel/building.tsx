@@ -134,11 +134,12 @@ function Cobros({ b, d, month }: { b: PortfolioBuilding; d: BuildingData; month:
           ))}
         </div>
         <div className="overflow-x-auto p-2 sm:p-3">
-          <table className="w-full min-w-[720px] text-[13px]">
+          <table className="w-full min-w-[800px] text-[13px]">
             <thead>
               <tr className="text-left text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
                 <th className="px-3 py-2 font-semibold">Unidad y responsable</th>
                 <th className="px-3 py-2 text-right font-semibold">Cargo del mes</th>
+                <th className="px-3 py-2 text-right font-semibold">Pagado</th>
                 <th className="px-3 py-2 text-right font-semibold">Saldo</th>
                 <th className="px-3 py-2 font-semibold">Estado</th>
                 <th className="px-3 py-2"><span className="sr-only">Acciones</span></th>
@@ -162,6 +163,7 @@ function Cobros({ b, d, month }: { b: PortfolioBuilding; d: BuildingData; month:
                       </button>
                     </td>
                     <td className="num px-3 py-2.5 text-right">{Number(a.charge) ? money(a.charge) : '—'}</td>
+                    <td className={cn('num px-3 py-2.5 text-right', Number(a.paid) ? 'text-ok' : 'text-muted-foreground')}>{Number(a.charge) ? money(a.paid) : '—'}</td>
                     <td className={cn('num px-3 py-2.5 text-right font-semibold', BALANCE_TONE[a.status])}>{money(a.balance)}</td>
                     <td className="px-3 py-2.5">
                       <StatusPill status={a.status} label={late ? `Moroso · ${plural(late, 'mes', 'meses')}` : undefined} />
