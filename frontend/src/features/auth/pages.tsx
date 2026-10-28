@@ -37,9 +37,9 @@ function useSubmit<T extends unknown[]>(fn: (...args: T) => Promise<void>) {
   return { busy, error, setError, run }
 }
 
-function Submit({ busy, children }: { busy: boolean; children: React.ReactNode }) {
+function Submit({ busy, children, admin = false }: { busy: boolean; children: React.ReactNode; admin?: boolean }) {
   return (
-    <Button type="submit" variant="theme" size="lg" className="mt-2 w-full" disabled={busy}>
+    <Button type="submit" variant={admin ? 'default' : 'theme'} size="lg" className="mt-2 w-full" disabled={busy}>
       {busy ? <Loader2Icon className="animate-spin" /> : null}
       {children}
     </Button>
@@ -102,7 +102,7 @@ export function LoginPage({ audience }: { audience: 'admin' | 'resident' }) {
           <PasswordInput id="password" name="password" autoComplete="current-password" />
         </div>
         <FormError>{error || expired}</FormError>
-        <Submit busy={busy}>Ingresar</Submit>
+        <Submit busy={busy} admin={admin}>Ingresar</Submit>
       </form>
     </AuthLayout>
   )

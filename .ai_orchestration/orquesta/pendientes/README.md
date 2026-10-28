@@ -17,6 +17,7 @@ Escritas por Claude el 2026-10-24, mientras Copilot (cuota mensual) y agy (cuota
 | 11 | `E5.md` — salud, logs y errores | — | `backend/apps/core/` | |
 | 12 | `SEC4.md` — sacar las credenciales del `docker-compose.yml` a `backend/.env` | coordinar con E2 | `docker-compose.yml`, `Makefile`, `backend/.env.example`, CI | Pedido de Nahuel (2026-10-28); obliga a `make reset-db` en cada máquina |
 | 13 | `E6.md` — deploy en Railway | todo lo anterior | `railway.json` / docs | Requiere cuentas y decisiones de Nahuel |
+| 14 | `H1.md` — buscador de movimientos de toda la cartera (Historial) | — | `backend/apps/api/v1/panel.py`, tests | Pedido de Nahuel (2026-10-28); el front de Historial ya existe |
 
 Antes de abrir a residentes reales: revisión de seguridad independiente de todo lo nuevo (como `docs/auditorias/`), texto de privacidad (Ley 18.331) y piloto con la administración (`docs/plan-mvp.md`, sección F).
 > Formato O-A-R-S (ver ../README.md). Las pendientes viejas se convierten al despacharlas.
