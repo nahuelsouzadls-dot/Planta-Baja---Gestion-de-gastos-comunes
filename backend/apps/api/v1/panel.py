@@ -330,6 +330,8 @@ def account_row(occupancy, entries, receipts, month, settlement_issued=True):
     balance = sum((item.amount for item in entries), Decimal('0'))
     account_periods = periods_from_entries(entries)
     overdue = [item for item in account_periods if item[0] < month and item[3] > 0]
+    # Parte del cargo del mes ya cubierta: los pagos se imputan primero a lo más viejo.
+    paid = next((item[2] for item in account_periods if item[0] == month), Decimal('0'))
     pending_review = bool(receipts)
     # Mismo orden que el portal (ledger.accounts.account_status): un moroso sigue siendo
     # moroso aunque el mes en curso todavía no tenga liquidación emitida.
@@ -355,6 +357,7 @@ def account_row(occupancy, entries, receipts, month, settlement_issued=True):
         'role': occupancy.role,
         'receives_paper': occupancy.unit.receives_paper,
         'charge': money(current_charge),
+        'paid': money(paid),
         'balance': money(balance),
         'status': status,
         'overdue_months': [item[0].strftime('%Y-%m') for item in overdue],

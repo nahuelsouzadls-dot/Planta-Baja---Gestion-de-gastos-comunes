@@ -1,8 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '@fontsource-variable/inter';
-@import '@fontsource-variable/manrope';
-@import '@fontsource-variable/jetbrains-mono';
+@import '@fontsource-variable/dm-sans';
 
 /*
  * Sistema de diseño (design/DISENO.md): plano y sobrio. Fondo gris, tarjetas blancas con
@@ -59,23 +57,23 @@
   --brand-soft: var(--acc-soft);
   --brand-amber: #f5b800;
 
-  /* Tipografías de títulos y números (el panel las unifica en Inter, ver .brand-pb) */
-  --ff-display: 'Manrope Variable', 'Inter Variable', sans-serif;
-  --ff-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+  /* Tipografía: DM Sans en títulos, texto y números (ver .brand-pb) */
+  --ff-display: 'DM Sans Variable', system-ui, sans-serif;
+  --ff-mono: 'DM Sans Variable', system-ui, sans-serif;
 }
 
 /*
  * Marca Planta Baja en toda la app (panel, portal y pantallas de acceso): sobria y profesional.
  * La clase va fija en <html> desde index.html. Si una administración quiere su propia marca,
  * se personaliza más adelante sobreescribiendo estos tokens por organización.
- * - Una sola tipografía (Inter) con números tabulares; sin Manrope ni monoespaciada.
+ * - Una sola tipografía (DM Sans) con números tabulares.
  * - Celeste de marca para identidad y navegación (activo, links, progreso, foco).
  * - Ámbar solo para lo que pide acción (en revisión, pendientes); rojo mora; verde cobrado.
  * - Botones principales casi negros: el cliente pidió no rellenar botones de azul (DISENO.md).
  */
 html.brand-pb {
-  --ff-display: 'Inter Variable', system-ui, sans-serif;
-  --ff-mono: 'Inter Variable', system-ui, sans-serif;
+  --ff-display: 'DM Sans Variable', system-ui, sans-serif;
+  --ff-mono: 'DM Sans Variable', system-ui, sans-serif;
 
   --background: #f6f7f9;
   --foreground: #111827;
@@ -191,7 +189,7 @@ html.brand-pb .animate-enter {
   animation: none;
 }
 html.brand-pb .num {
-  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-feature-settings: 'tnum' 1;
 }
 html.brand-pb h1,
 html.brand-pb h2,
@@ -255,7 +253,7 @@ html.brand-pb.dark .lift:hover {
 }
 
 @theme inline {
-  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-sans: 'DM Sans Variable', system-ui, sans-serif;
   --font-display: var(--ff-display);
   --font-mono: var(--ff-mono);
 

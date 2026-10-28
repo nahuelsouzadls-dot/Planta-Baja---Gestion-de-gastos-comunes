@@ -117,6 +117,8 @@ export interface Account {
   role: Role
   receives_paper: boolean
   charge: Money
+  /** Parte del cargo del mes ya cubierta (los pagos se imputan primero a lo más viejo). */
+  paid: Money
   balance: Money
   status: AccountStatus
   overdue_months: string[]

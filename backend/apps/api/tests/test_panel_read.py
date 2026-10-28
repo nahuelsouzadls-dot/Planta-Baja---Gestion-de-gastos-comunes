@@ -65,6 +65,7 @@ def test_accounts_contract_and_filters(demo):
     assert len(response.json()['accounts']) == 18
     account = next(item for item in response.json()['accounts'] if item['unit'] == '101')
     assert account['balance'] == '4153.80'
+    assert account['paid'] == '0.00'
     assert account['status'] == 'pendiente'
     filtered = client.get(
         f'/api/v1/buildings/{building.pk}/accounts?month=2026-10&status=revision'
@@ -206,3 +207,26 @@ def test_accounts_query_count_is_constant_when_occupancies_are_added(demo):
         )
     assert response.status_code == 200
     assert len(expanded_queries) == len(initial_queries)
+
+
+def test_accounts_paid_is_the_covered_part_of_the_month_charge(demo):
+    """Cargo del mes, pagado y saldo: un pago parcial deja el resto como saldo."""
+    from apps.ledger.payments import record_manual_payment
+
+    organization = demo.org_memberships.get().organization
+    building = organization.buildings.get(name='Edificio Minas')
+    client = api_client_for(demo)
+    url = f'/api/v1/buildings/{building.pk}/accounts?month=2026-10'
+    account = next(item for item in client.get(url).json()['accounts'] if item['unit'] == '101')
+    record_manual_payment(
+        Occupancy.objects.get(pk=account['id']),
+        Decimal('2500.00'),
+        date(2026, 10, 15),
+        demo,
+        'Efectivo en la oficina',
+    )
+
+    after = next(item for item in client.get(url).json()['accounts'] if item['unit'] == '101')
+    assert after['charge'] == '4153.80'
+    assert after['paid'] == '2500.00'
+    assert after['balance'] == '1653.80'
