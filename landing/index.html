@@ -105,13 +105,20 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 #liftNum{display:block}
 .lift.ding{animation:liftDing .7s var(--ease)}
 @keyframes liftDing{30%{box-shadow:0 2px 6px rgba(11,13,26,.12),0 0 0 3px rgba(255,176,0,.35),inset 0 1px 0 rgba(255,255,255,.8)}}
-@media(max-width:800px){.lift{margin:0 12px 0 auto}}
+/* Arriba se ve la marca; al scrollear la plaquita ocupa su lugar (y lleva al inicio). */
+.lift{position:absolute;left:var(--gutter);top:50%;margin:0;opacity:0;pointer-events:none;transform:translateY(calc(-50% + 10px));text-decoration:none;
+  transition:opacity .35s var(--ease),transform .4s var(--ease),box-shadow .4s var(--ease)}
+.nav.scrolled .lift{opacity:1;pointer-events:auto;transform:translateY(-50%)}
+.nav-brand{transition:opacity .3s var(--ease),transform .4s var(--ease)}
+.nav.scrolled .nav-brand{opacity:0;transform:translateY(-10px);pointer-events:none}
+@media(max-width:800px){.lift{left:24px}}
 
 /* ── HERO ── */
 .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:calc(64px + 48px) var(--gutter) 80px;position:relative;overflow:hidden}
 .hero::before{content:'';position:absolute;top:0;right:0;width:6px;height:100%;background:var(--lift);opacity:.6}
 .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center}
-.hero-pre{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--acc-t);background:var(--acc-l);border-radius:20px;padding:4px 12px;margin-bottom:24px}
+.hero-pre{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--acc-t);margin-bottom:24px}
+.hero-pre::before{content:'';width:32px;height:3px;border-radius:2px;background:var(--lift);flex-shrink:0}
 .hero-h1{font-size:clamp(48px,6.4vw,96px);font-weight:800;line-height:.95;letter-spacing:-3px;color:var(--ink);margin-bottom:24px;max-width:680px}
 .hero-h1 .ht{display:inline-block;background:var(--acc);color:var(--ink);padding:2px 12px 4px;border-radius:6px;letter-spacing:-2px;position:relative;margin-top:8px}
 .hero-h1 .ht::after{content:'';position:absolute;bottom:-4px;left:12px;right:12px;height:4px;background:var(--lift);border-radius:2px}
@@ -496,7 +503,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
       <div class="nav-sub">Gestión de edificios</div>
     </div>
   </a>
-  <div class="lift" id="lift" aria-hidden="true"><div class="lift-screen"><svg class="lift-arr" id="liftArr" xmlns="http://www.w3.org/2000/svg"></svg><svg id="liftNum" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
+  <a class="lift" id="lift" href="#hero" aria-label="Volver al inicio"><div class="lift-screen"><svg class="lift-arr" id="liftArr" xmlns="http://www.w3.org/2000/svg"></svg><svg id="liftNum" xmlns="http://www.w3.org/2000/svg"></svg></div></a>
   <nav class="nav-links" aria-label="Principal">
     <a class="nav-link" href="#pain">El problema</a>
     <a class="nav-link" href="#como">Cómo funciona</a>
