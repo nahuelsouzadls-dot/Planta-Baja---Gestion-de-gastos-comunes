@@ -18,6 +18,8 @@ Escritas por Claude el 2026-10-24, mientras Copilot (cuota mensual) y agy (cuota
 | 12 | `SEC4.md` — sacar las credenciales del `docker-compose.yml` a `backend/.env` | coordinar con E2 | `docker-compose.yml`, `Makefile`, `backend/.env.example`, CI | Pedido de Nahuel (2026-10-28); obliga a `make reset-db` en cada máquina |
 | 13 | `E6.md` — deploy en Railway | todo lo anterior | `railway.json` / docs | Requiere cuentas y decisiones de Nahuel |
 | 14 | `H1.md` — buscador de movimientos de toda la cartera (Historial) | — | `backend/apps/api/v1/panel.py`, tests | Pedido de Nahuel (2026-10-28); el front de Historial ya existe |
+| 15 | `R1.md` — roles del equipo (titular, administrativo, solo lectura) y pantalla Equipo | — | `backend/apps/accounts/`, `api/v1/panel.py`, front `panel/` | Pedido de Nahuel (2026-10-28); base ahora, forma final de roles con el piloto |
+| 16 | `A1.md` — backoffice del dueño del SaaS (etapa 1: comando de alta + admin de Django; etapas 2 y 3 diseñadas) | R1 | `backend/apps/accounts/`, `admin.py`, más adelante `frontend/` | Pedido de Nahuel (2026-10-28) |
 
 Antes de abrir a residentes reales: revisión de seguridad independiente de todo lo nuevo (como `docs/auditorias/`), texto de privacidad (Ley 18.331) y piloto con la administración (`docs/plan-mvp.md`, sección F).
 > Formato O-A-R-S (ver ../README.md). Las pendientes viejas se convierten al despacharlas.

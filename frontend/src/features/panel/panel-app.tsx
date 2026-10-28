@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Link, Route, Routes, useLocation, useMatch, useNavigate } from 'react-router'
-import { Building2Icon, ChevronDownIcon, Clock3Icon, InboxIcon, CalendarCheckIcon, HistoryIcon, MessageSquareIcon, ChevronRightIcon, LayoutGridIcon, LogOutIcon, MenuIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
+import { Building2Icon, Clock3Icon, InboxIcon, CalendarCheckIcon, HistoryIcon, MessageSquareIcon, ChevronRightIcon, LayoutGridIcon, LogOutIcon, MenuIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/form'
@@ -159,17 +159,6 @@ function Sidebar({
           <NewBuildingItem expanded={expanded} />
         </nav>
 
-        <div className="mt-auto grid gap-1">
-          {(() => {
-            const btn = (
-              <button type="button" onClick={() => api.logout()} className="flex h-10 w-full items-center gap-3 rounded-lg px-[11px] text-[13px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground">
-                <LogOutIcon className="size-[18px] shrink-0" />
-                <span className={cn(!expanded && 'sr-only')}>Cerrar sesión</span>
-              </button>
-            )
-            return expanded ? btn : <Tooltip content="Cerrar sesión">{btn}</Tooltip>
-          })()}
-        </div>
       </div>
 
       <button
@@ -286,15 +275,11 @@ function AccountMenu({ name, email, company }: { name: string; email: string; co
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-10 items-center gap-2.5 rounded-xl py-1 pr-2 pl-1 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[state=open]:bg-accent"
+          className="grid size-10 place-items-center rounded-xl transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[state=open]:bg-accent"
           aria-label={`Cuenta de ${name}`}
+          title={name}
         >
           <span className="grid size-8 place-items-center rounded-[10px] bg-brand-soft text-[12px] font-bold text-brand" aria-hidden="true">{initials(name)}</span>
-          <span className="hidden text-left leading-tight sm:block">
-            <b className="block text-[13px] font-semibold">{name}</b>
-            <small className="block text-[11.5px] text-muted-foreground">{company}</small>
-          </span>
-          <ChevronDownIcon className="hidden size-4 text-muted-foreground sm:block" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 rounded-2xl p-1.5">
