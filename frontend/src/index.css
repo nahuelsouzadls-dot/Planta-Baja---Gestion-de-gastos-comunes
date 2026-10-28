@@ -64,42 +64,14 @@
   --ff-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 }
 
-[data-theme='noche'] {
-  --side: #14233d;
-  --acc: #2a86bd;
-  --accl: #8fd3f4;
-  --acc-soft: rgb(42 134 189 / 0.12);
-  --acc-soft2: rgb(42 134 189 / 0.2);
-}
-[data-theme='berenjena'] {
-  --side: #3b1f45;
-  --acc: #1f9e80;
-  --accl: #86e3c8;
-  --acc-soft: rgb(31 158 128 / 0.12);
-  --acc-soft2: rgb(31 158 128 / 0.2);
-}
-[data-theme='bosque'] {
-  --side: #1d3b2f;
-  --acc: #a97a2b;
-  --accl: #e6c98a;
-  --acc-soft: rgb(169 122 43 / 0.13);
-  --acc-soft2: rgb(169 122 43 / 0.22);
-}
-[data-theme='grafito'] {
-  --side: #25282e;
-  --acc: #d9604f;
-  --accl: #f3a396;
-  --acc-soft: rgb(217 96 79 / 0.12);
-  --acc-soft2: rgb(217 96 79 / 0.2);
-}
-
 /*
- * Panel de administración con la marca Planta Baja: sobrio y profesional.
+ * Marca Planta Baja en toda la app (panel, portal y pantallas de acceso): sobria y profesional.
+ * La clase va fija en <html> desde index.html. Si una administración quiere su propia marca,
+ * se personaliza más adelante sobreescribiendo estos tokens por organización.
  * - Una sola tipografía (Inter) con números tabulares; sin Manrope ni monoespaciada.
  * - Celeste de marca para identidad y navegación (activo, links, progreso, foco).
  * - Ámbar solo para lo que pide acción (en revisión, pendientes); rojo mora; verde cobrado.
  * - Botones principales casi negros: el cliente pidió no rellenar botones de azul (DISENO.md).
- * Va en <html> (PanelApp) para que también lo tomen diálogos y popovers, que se montan en <body>.
  */
 html.brand-pb {
   --ff-display: 'Inter Variable', system-ui, sans-serif;
@@ -144,12 +116,14 @@ html.brand-pb {
 html.brand-pb {
   /* Más redondeado: botones y campos 12px, tarjetas 20px, diálogos 24px. */
   --radius: 1rem;
-  --background: #f2f4f7;
+  /* Fondo blanco: nada de "tarjetas blancas sobre gris". Las superficies se separan con borde fino. */
+  --background: #ffffff;
+  --border: #e6e8ec;
 }
 html.brand-pb [data-slot='card'] {
-  border-color: transparent;
+  border-color: var(--border);
   border-radius: 20px;
-  box-shadow: 0 1px 2px rgb(17 24 39 / 0.05), 0 6px 20px -4px rgb(17 24 39 / 0.08);
+  box-shadow: 0 1px 2px rgb(17 24 39 / 0.04);
 }
 /* Un poco de relieve, para que no se vea plano. */
 html.brand-pb [data-slot='button'].bg-primary {
@@ -188,7 +162,7 @@ html.brand-pb [data-slot='chip']:hover {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--brand) 25%, transparent);
 }
 html.brand-pb [data-slot='chip'][aria-pressed='true'] {
-  background: var(--brand);
+  background: #166aa3;
   color: #fff;
   box-shadow: 0 1px 2px rgb(22 106 163 / 0.3), 0 4px 10px -3px rgb(22 106 163 / 0.35);
 }
@@ -223,6 +197,61 @@ html.brand-pb h1,
 html.brand-pb h2,
 html.brand-pb h3 {
   letter-spacing: -0.015em;
+}
+
+/*
+ * Tema noche (se alterna desde el sol/luna; se guarda por navegador, ver useScheme).
+ * Mismos roles que el claro: verde cobrado, ámbar acción, rojo mora, celeste marca.
+ * Los tonos se aclaran para mantener contraste sobre fondo oscuro.
+ */
+html.brand-pb.dark {
+  color-scheme: dark;
+  --background: #0e1116;
+  --foreground: #e7e9ec;
+  --card: #151a21;
+  --card-foreground: #e7e9ec;
+  --popover: #181e26;
+  --popover-foreground: #e7e9ec;
+  --primary: #e7e9ec;
+  --primary-hover: #ffffff;
+  --primary-foreground: #0e1116;
+  --secondary: #1d232c;
+  --secondary-foreground: #e7e9ec;
+  --muted: #1d232c;
+  --muted-foreground: #9aa3af;
+  --accent: #1d232c;
+  --accent-foreground: #e7e9ec;
+  --border: #262d37;
+  --line: #222832;
+  --input: #333b47;
+  --ink-2: #c6ccd5;
+
+  --side: #5cb4ee;
+  --acc: #53b2ec;
+  --accl: #1f4d6b;
+  --acc-soft: rgb(83 178 236 / 0.14);
+  --acc-soft2: rgb(83 178 236 / 0.24);
+  --brand: #6cbcf0;
+  --brand-soft: rgb(83 178 236 / 0.12);
+
+  --ok: #3ecf95;
+  --ok-bg: rgb(62 207 149 / 0.12);
+  --warn: #f2bd3e;
+  --warn-bg: rgb(242 189 62 / 0.12);
+  --pend: #aab2bd;
+  --pend-bg: rgb(170 178 189 / 0.12);
+  --bad: #f47667;
+  --bad-bg: rgb(244 118 103 / 0.12);
+}
+html.brand-pb.dark [data-slot='card'] {
+  box-shadow: none;
+}
+html.brand-pb.dark [data-slot='button'].bg-primary,
+html.brand-pb.dark [data-slot='button'].bg-primary:hover {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+}
+html.brand-pb.dark .lift:hover {
+  box-shadow: 0 10px 24px -8px rgb(0 0 0 / 0.6);
 }
 
 @theme inline {
@@ -317,61 +346,6 @@ html.brand-pb h3 {
   }
 }
 
-/* Vidrio líquido (excepción aprobada en DISENO.md): manchas desenfocadas lentas + reflejo. */
-.glass {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-.glass::before,
-.glass::after {
-  content: '';
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(40px);
-  opacity: 0.7;
-}
-.glass::before {
-  width: max(70%, 160px);
-  aspect-ratio: 1;
-  left: -20%;
-  top: -10%;
-  background: var(--acc);
-  animation: glass-a 28s ease-in-out infinite alternate;
-}
-.glass::after {
-  width: max(60%, 140px);
-  aspect-ratio: 1;
-  right: -25%;
-  bottom: -20%;
-  background: var(--accl);
-  opacity: 0.4;
-  animation: glass-b 34s ease-in-out infinite alternate;
-}
-@keyframes glass-a {
-  to {
-    transform: translate(30%, 40%) scale(1.15);
-  }
-}
-@keyframes glass-b {
-  to {
-    transform: translate(-35%, -30%) scale(0.9);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .glass::before,
-  .glass::after {
-    animation: none;
-  }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
 
 @media print {
   .no-print {
@@ -379,5 +353,14 @@ html.brand-pb h3 {
   }
   body {
     background: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

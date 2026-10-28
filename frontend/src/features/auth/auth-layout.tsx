@@ -2,8 +2,7 @@ import * as React from 'react'
 import { Link } from 'react-router'
 import { CheckIcon } from 'lucide-react'
 
-import { BrandMark, PbMark, useTheme } from '@/components/shared'
-import { cn } from '@/lib/utils'
+import { PbMark, SchemeSwitch } from '@/components/shared'
 
 const POINTS = {
   admin: ['Liquidaciones con prorrateo por coeficiente', 'Comprobantes validados contra el banco', 'Cobros, morosidad y reclamos de toda la cartera'],
@@ -24,31 +23,12 @@ export function AuthLayout({
   children: React.ReactNode
   footer?: React.ReactNode
 }) {
-  useTheme()
-  const admin = audience === 'admin'
-  // La entrada al panel lleva la marca Planta Baja (sobria, sin vidrio), igual que el panel.
-  React.useEffect(() => {
-    if (!admin) return
-    const root = document.documentElement
-    root.classList.add('brand-pb')
-    return () => root.classList.remove('brand-pb')
-  }, [admin])
   return (
     <div className="flex min-h-dvh flex-col bg-background lg:flex-row">
-      <aside className={cn("relative isolate flex shrink-0 flex-col overflow-hidden px-6 py-6 text-white lg:w-[44%] lg:max-w-[620px] lg:px-12 lg:py-10", admin ? "bg-[#0F2A3F]" : "bg-side")}>
-        {admin ? null : <span className="glass -z-10" aria-hidden="true" />}
+      <aside className="relative isolate flex shrink-0 flex-col overflow-hidden bg-[#0F2A3F] px-6 py-6 text-white lg:w-[44%] lg:max-w-[620px] lg:px-12 lg:py-10">
         <Link to={audience === 'admin' ? '/ingresar/administracion' : '/ingresar'} className="flex items-center gap-3 self-start rounded-md">
-          {admin ? (
-            <>
-              <PbMark className="h-[30px] w-[34px]" />
-              <span className="text-base font-bold tracking-[-0.02em]"><span className="text-[#53B2EC]">P</span>lanta <span className="text-[#53B2EC]">B</span>aja</span>
-            </>
-          ) : (
-            <>
-              <BrandMark className="bg-white/15 text-white backdrop-blur" />
-              <span className="font-display text-base font-bold">Gastos comunes</span>
-            </>
-          )}
+          <PbMark className="h-[30px] w-[34px]" />
+          <span className="text-base font-bold tracking-[-0.02em]"><span className="text-[#53B2EC]">P</span>lanta <span className="text-[#53B2EC]">B</span>aja</span>
         </Link>
         <div className="hidden flex-1 flex-col justify-center lg:flex">
           <p className="font-display text-[34px] leading-[1.1] font-bold text-balance">
@@ -68,7 +48,8 @@ export function AuthLayout({
         <p className="hidden text-xs text-white/60 lg:block">Montevideo, Uruguay · Ley 10.751 de Propiedad Horizontal</p>
       </aside>
 
-      <main className="flex flex-1 items-start justify-center px-5 pt-10 pb-10 sm:px-8 lg:items-center lg:pt-10">
+      <main className="relative flex flex-1 items-start justify-center px-5 pt-10 pb-10 sm:px-8 lg:items-center lg:pt-10">
+        <SchemeSwitch className="absolute top-4 right-4" />
         <div className="w-full max-w-[380px] animate-enter">
           <h1 className="text-[26px] font-bold">{title}</h1>
           <p className="mt-1.5 text-[14px] text-muted-foreground">{lead}</p>

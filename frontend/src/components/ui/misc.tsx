@@ -38,7 +38,7 @@ function Count({ n, className }: { n: number; className?: string }) {
   return (
     <span
       className={cn(
-        'num inline-grid h-5 min-w-5 place-items-center rounded-full bg-foreground px-1.5 text-[11px] leading-none font-semibold text-white',
+        'num inline-grid h-5 min-w-5 place-items-center rounded-full bg-foreground px-1.5 text-[11px] leading-none font-semibold text-background',
         className,
       )}
     >
@@ -56,7 +56,7 @@ function Tooltip({ content, children, side = 'right' }: { content: React.ReactNo
         <TooltipPrimitive.Content
           side={side}
           sideOffset={8}
-          className="z-50 rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-white shadow-md animate-in fade-in-0 zoom-in-95"
+          className="z-50 rounded-md bg-foreground px-2.5 py-1.5 text-xs font-medium text-background shadow-md animate-in fade-in-0 zoom-in-95"
         >
           {content}
         </TooltipPrimitive.Content>
@@ -92,7 +92,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        'peer grid size-[18px] shrink-0 place-items-center rounded-[5px] border border-input bg-card transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-acc-soft2 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-white',
+        'peer grid size-[18px] shrink-0 place-items-center rounded-[5px] border border-input bg-card transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-acc-soft2 data-[state=checked]:border-foreground data-[state=checked]:bg-foreground data-[state=checked]:text-background',
         className,
       )}
       {...props}
@@ -106,7 +106,7 @@ function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxP
 
 // ── Esqueleto de carga ─────────────────────────────────────────────────
 function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
-  return <div data-slot="skeleton" className={cn('animate-pulse rounded-md bg-[#e9ecf0]', className)} {...props} />
+  return <div data-slot="skeleton" className={cn('animate-pulse rounded-md bg-muted', className)} {...props} />
 }
 
 // ── Chips de filtro (seleccionado: negro con letra blanca, DISENO.md) ──
@@ -117,8 +117,8 @@ function Chip({ active, className, ...props }: React.ComponentProps<'button'> & 
       data-slot="chip"
       aria-pressed={active}
       className={cn(
-        'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ink-2 transition-colors hover:bg-foreground hover:text-white',
-        active && 'bg-foreground text-white',
+        'inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-medium text-ink-2 transition-colors hover:bg-foreground hover:text-background',
+        active && 'bg-foreground text-background',
         className,
       )}
       {...props}

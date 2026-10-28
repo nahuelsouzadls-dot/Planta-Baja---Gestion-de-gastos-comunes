@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Field, FormError, Input, NativeSelect } from '@/components/ui/form'
 import { Chip, Skeleton } from '@/components/ui/misc'
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog'
 import { ROLE_LABEL, StatusPill } from '@/components/shared'
 import { api, apiUrl, openSigned } from '@/lib/api'
 import { amountText, comma, date, dateShort, fileLabel, money, monthLong, percent } from '@/lib/format'
@@ -19,11 +19,11 @@ import { owedText } from './receipt-dialog'
 export function UnitSheet({ month }: { month: string }) {
   const overlay = useOverlay('unidad')
   return (
-    <Sheet open={Boolean(overlay.value)} onOpenChange={(o) => !o && overlay.close()}>
-      <SheetContent aria-describedby={undefined}>
+    <Dialog open={Boolean(overlay.value)} onOpenChange={(o) => !o && overlay.close()}>
+      <DialogContent aria-describedby={undefined} className="block max-w-[760px] p-0">
         {overlay.value ? <UnitBody id={overlay.value} month={month} onSwitch={overlay.open} /> : null}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -45,11 +45,11 @@ function UnitBody({ id, month, onSwitch }: { id: string; month: string; onSwitch
   const receipt = useOverlay('comprobante')
   const o = q.data
 
-  if (q.error) return <div className="p-6"><SheetTitle className="sr-only">Detalle de unidad</SheetTitle><p className="text-[13px] text-bad">{q.error.message}</p></div>
+  if (q.error) return <div className="p-6"><DialogTitle className="sr-only">Detalle de unidad</DialogTitle><p className="text-[13px] text-bad">{q.error.message}</p></div>
   if (!o)
     return (
       <div className="grid gap-4 p-6" aria-busy="true" aria-label="Cargando unidad">
-        <SheetTitle className="sr-only">Detalle de unidad</SheetTitle>
+        <DialogTitle className="sr-only">Detalle de unidad</DialogTitle>
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-4 w-56" />
         <Skeleton className="mt-4 h-24 w-full" />
@@ -66,11 +66,11 @@ function UnitBody({ id, month, onSwitch }: { id: string; month: string; onSwitch
   return (
     <div className="pb-6">
       <div className="px-6 pt-6 pb-5">
-        <SheetTitle className="flex items-baseline gap-3 pr-10">
+        <DialogTitle className="flex items-baseline gap-3 pr-10">
           <span className="num font-display text-[30px] leading-none font-bold">{o.unit}</span>
           <span className="text-[13px] font-normal text-muted-foreground">{o.floor}.º piso · {o.building}</span>
-        </SheetTitle>
-        <SheetDescription className="sr-only">Cuenta de {o.person.name}</SheetDescription>
+        </DialogTitle>
+        <DialogDescription className="sr-only">Cuenta de {o.person.name}</DialogDescription>
         <div className="mt-3 flex items-center gap-3">
           <StatusPill status={o.status} />
           <span className="text-xs text-muted-foreground">Coeficiente {percent(o.coefficient)}</span>
@@ -90,7 +90,7 @@ function UnitBody({ id, month, onSwitch }: { id: string; month: string; onSwitch
         </div>
         <div className="mt-5 rounded-lg border border-border bg-muted/40 p-4">
           <p className="text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Saldo</p>
-          <p className={cn('num mt-1 text-[28px] leading-tight font-semibold tracking-tight', o.overdue_months.length && 'text-bad')}>{money(o.balance, true)}</p>
+          <p className={cn('num mt-1 text-[28px] leading-tight font-semibold tracking-tight', o.overdue_months.length ? 'text-bad' : Number(o.balance) > 0 ? 'text-warn' : 'text-ok')}>{money(o.balance, true)}</p>
           <p className="text-xs text-muted-foreground">{owedText(o)}</p>
         </div>
         {o.pending_receipt ? (
@@ -171,7 +171,7 @@ function UnitBody({ id, month, onSwitch }: { id: string; month: string; onSwitch
 }
 
 // ── Registrar: pago sin comprobante, ajuste y ocupantes ────────────────
-const MANAGE = [['payment', 'Pago sin comprobante'], ['adjust', 'Ajuste'], ['occupants', 'Ocupantes']] as const
+const MANAGE = [['payment', 'Registrar pago'], ['adjust', 'Ajuste'], ['occupants', 'Ocupantes']] as const
 type ManageTab = (typeof MANAGE)[number][0]
 
 function Manage({ o, rented }: { o: Occupancy; rented: boolean }) {
@@ -216,7 +216,7 @@ function Submit({ pending, children }: { pending: boolean; children: React.React
 function PaymentForm({ o, onDone }: { o: Occupancy; onDone: () => void }) {
   const { today } = usePanel()
   const m = useManualPayment(o.id)
-  const { error, setError, run } = useFormRun(onDone, 'Pago registrado')
+  const [error, setError] = React.useState('')
   return (
     <form
       className="grid gap-3"
@@ -225,13 +225,30 @@ function PaymentForm({ o, onDone }: { o: Occupancy; onDone: () => void }) {
         e.preventDefault()
         const d = new FormData(e.currentTarget)
         const amount = amountText(String(d.get('amount') || ''))
-        if (!amount) return setError('Escribí el monto (por ejemplo 4153,80).')
-        run(m.mutateAsync({ amount, date: String(d.get('date') || ''), source: String(d.get('source') || '').trim() }))
+        if (!amount) return setError('Escribí el monto (por ejemplo 2000).')
+        setError('')
+        m.mutateAsync({ amount, date: String(d.get('date') || ''), source: String(d.get('source') || '').trim() })
+          // El saldo que queda lo calcula el backend (ADR-0011): se relee la cuenta después del pago.
+          .then(() => api.get<Occupancy>(`occupancies/${o.id}`))
+          .then(
+            (after) => {
+              const left = Number(after.balance)
+              toast.success(left > 0 ? `Pago registrado. Queda debiendo ${money(after.balance, true)}` : left < 0 ? `Pago registrado. Queda a favor ${money(after.balance.replace('-', ''), true)}` : 'Pago registrado. La cuenta quedó al día')
+              onDone()
+            },
+            (err: Error) => setError(err.message),
+          )
       }}
     >
-      <p className="text-xs text-muted-foreground">Para pagos en efectivo o depósitos sin comprobante subido. Queda en el libro mayor con la fuente que indiques.</p>
+      <div className="flex items-baseline justify-between gap-3 rounded-xl bg-muted/60 px-4 py-3">
+        <span className="text-[13px] text-muted-foreground">Debe hoy</span>
+        <span className={cn('num text-[18px] font-bold', Number(o.balance) > 0 ? 'text-bad' : 'text-ok')}>{money(o.balance, true)}</span>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Para pagos en efectivo o depósitos sin comprobante. Se paga contra el total de la cuenta, no por gasto: si entrega menos, lo que falta queda pendiente.
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Monto" htmlFor="mp-a"><Input id="mp-a" name="amount" inputMode="decimal" autoComplete="off" className="num" defaultValue={Number(o.balance) > 0 ? comma(o.balance) : ''} /></Field>
+        <Field label="Monto que entregó" htmlFor="mp-a"><Input id="mp-a" name="amount" inputMode="decimal" autoComplete="off" className="num" defaultValue={Number(o.balance) > 0 ? comma(o.balance) : ''} /></Field>
         <Field label="Fecha del pago" htmlFor="mp-d"><Input id="mp-d" name="date" type="date" defaultValue={today} max={today} /></Field>
       </div>
       <Field label="Cómo se verificó" htmlFor="mp-s"><Input id="mp-s" name="source" maxLength={200} placeholder="Ej.: efectivo en la oficina, recibo 0231" /></Field>
@@ -243,9 +260,11 @@ function PaymentForm({ o, onDone }: { o: Occupancy; onDone: () => void }) {
 
 function AdjustForm({ o, onDone }: { o: Occupancy; onDone: () => void }) {
   const m = useAdjustment(o.id)
-  const { error, setError, run } = useFormRun(onDone, 'Ajuste registrado')
-  const targets = o.movements.filter((x) => ['charge', 'opening', 'surcharge'].includes(x.kind))
-  if (!targets.length) return <p className="text-[13px] text-muted-foreground">No hay cargos recientes para ajustar.</p>
+  const [error, setError] = React.useState('')
+  // El ajuste es sobre la cuenta, no sobre un gasto. El libro mayor igual exige ligarlo a un cargo:
+  // se usa el más reciente (los movimientos vienen del más nuevo al más viejo).
+  const target = o.movements.find((x) => ['charge', 'opening', 'surcharge'].includes(x.kind))
+  if (!target) return <p className="text-[13px] text-muted-foreground">La cuenta todavía no tiene cargos para ajustar.</p>
   return (
     <form
       className="grid gap-3"
@@ -254,27 +273,37 @@ function AdjustForm({ o, onDone }: { o: Occupancy; onDone: () => void }) {
         e.preventDefault()
         const d = new FormData(e.currentTarget)
         const amount = amountText(String(d.get('amount') || ''))
-        if (!amount) return setError('Escribí el monto del ajuste (por ejemplo 250).')
+        const description = String(d.get('description') || '').trim()
+        if (!amount) return setError('Escribí el monto del ajuste (por ejemplo 500).')
+        if (!description) return setError('Escribí el motivo: queda en la cuenta del residente.')
+        setError('')
         const signed = d.get('direction') === 'credit' ? '-' + amount : amount
-        run(m.mutateAsync({ entry_id: String(d.get('entry_id')), amount: signed, description: String(d.get('description') || '').trim() }))
+        m.mutateAsync({ entry_id: target.id, amount: signed, description })
+          .then(() => api.get<Occupancy>(`occupancies/${o.id}`))
+          .then(
+            (after) => {
+              toast.success(Number(after.balance) > 0 ? `Ajuste registrado. Ahora debe ${money(after.balance, true)}` : 'Ajuste registrado. La cuenta quedó al día')
+              onDone()
+            },
+            (err: Error) => setError(err.message),
+          )
       }}
     >
-      <p className="text-xs text-muted-foreground">Corrige un cargo sin tocar el original: se agrega un asiento de ajuste.</p>
-      <Field label="Movimiento a corregir" htmlFor="aj-e">
-        <NativeSelect id="aj-e" name="entry_id">
-          {targets.map((t) => <option key={t.id} value={t.id}>{dateShort(t.date)} · {t.concept} · {money(t.debit, true)}</option>)}
-        </NativeSelect>
-      </Field>
+      <div className="flex items-baseline justify-between gap-3 rounded-xl bg-muted/60 px-4 py-3">
+        <span className="text-[13px] text-muted-foreground">Debe hoy</span>
+        <span className={cn('num text-[18px] font-bold', Number(o.balance) > 0 ? 'text-bad' : 'text-ok')}>{money(o.balance, true)}</span>
+      </div>
+      <p className="text-xs text-muted-foreground">Corrige el saldo de la cuenta sin borrar nada: se agrega un asiento con el motivo.</p>
       <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
         <Field label="Tipo" htmlFor="aj-k">
           <NativeSelect id="aj-k" name="direction">
-            <option value="credit">A favor del residente (baja la deuda)</option>
-            <option value="debit">A cargo del residente (sube la deuda)</option>
+            <option value="credit">Baja la deuda (a favor del residente)</option>
+            <option value="debit">Sube la deuda (a cargo del residente)</option>
           </NativeSelect>
         </Field>
         <Field label="Monto" htmlFor="aj-a"><Input id="aj-a" name="amount" inputMode="decimal" autoComplete="off" className="num" /></Field>
       </div>
-      <Field label="Motivo" htmlFor="aj-t"><Input id="aj-t" name="description" maxLength={200} placeholder="Ej.: se cobró de más la U.T.E." /></Field>
+      <Field label="Motivo" htmlFor="aj-t"><Input id="aj-t" name="description" maxLength={200} placeholder="Ej.: bonificación acordada en asamblea" /></Field>
       <FormError>{error}</FormError>
       <Submit pending={m.isPending}>Registrar ajuste</Submit>
     </form>

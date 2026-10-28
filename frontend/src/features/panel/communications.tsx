@@ -154,7 +154,7 @@ function Claims({ rows }: { rows: ClaimRow[] }) {
             </div>
             <div className="grid flex-1 content-start gap-3 bg-muted/40 p-5">
               {thread.data.messages.map((m) => (
-                <div key={m.id} className={cn('max-w-[80%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed', m.from_admin ? 'justify-self-end rounded-br-md bg-[var(--brand)] text-white' : 'justify-self-start rounded-bl-md border border-border bg-card')}>
+                <div key={m.id} className={cn('max-w-[80%] rounded-2xl px-4 py-2.5 text-[13px] leading-relaxed', m.from_admin ? 'justify-self-end rounded-br-md bg-[#166aa3] text-white' : 'justify-self-start rounded-bl-md border border-border bg-card')}>
                   <p className={cn('mb-0.5 text-[11px]', m.from_admin ? 'text-white/70' : 'text-muted-foreground')}>{m.author} · {dateShort(m.date)}</p>
                   {m.text}
                 </div>

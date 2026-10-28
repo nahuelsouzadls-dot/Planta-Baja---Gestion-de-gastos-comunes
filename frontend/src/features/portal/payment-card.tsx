@@ -81,8 +81,7 @@ export function PaymentCard({ account, currentMonth, occupancies }: { account: P
     <section aria-live="polite" className="@container">
       <div className={cn('overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgb(16_24_40/0.05)]', canPay && 'rounded-b-none')}>
         <div className={cn('grid', canPay && '@[600px]:grid-cols-[1.1fr_1fr]')}>
-          <div className={cn('relative isolate flex flex-col justify-center overflow-hidden px-6 py-7 sm:px-7', paid ? 'bg-ok text-white' : 'bg-side text-white')}>
-            {!paid ? <span className="glass -z-10" aria-hidden="true" /> : null}
+          <div className={cn('relative isolate flex flex-col justify-center overflow-hidden px-6 py-7 sm:px-7', paid ? 'bg-ok text-white' : 'bg-[#0F2A3F] text-white')}>
             <p className="text-[13px] font-medium text-white/80">{label}</p>
             <p className="num mt-1.5 text-[38px] leading-none font-semibold tracking-tight whitespace-nowrap @[420px]:text-[44px]">{amount}</p>
             <p className="mt-3 max-w-[44ch] text-[13px] leading-relaxed text-white/80">{sub}</p>

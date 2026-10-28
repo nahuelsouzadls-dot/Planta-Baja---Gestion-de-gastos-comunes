@@ -39,7 +39,7 @@ export function BuildingPage({ portfolio }: { portfolio: Portfolio }) {
       <header className="flex flex-wrap items-end justify-between gap-4 pt-2">
         <div className="min-w-0">
           <nav aria-label="Ruta" className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Link to="/panel" className="hover:text-foreground hover:underline">Cartera</Link>
+            <Link to="/panel" className="hover:text-foreground hover:underline">Vista general</Link>
             <ChevronRightIcon className="size-3" />
             <span className="text-foreground">{b.name}</span>
           </nav>
@@ -170,7 +170,7 @@ function Cobros({ b, d, month }: { b: PortfolioBuilding; d: BuildingData; month:
                       {a.status === 'revision' ? (
                         <button
                           type="button"
-                          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-soft px-3.5 text-[13px] font-semibold text-brand transition-colors duration-200 hover:bg-brand hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          className="inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-soft px-3.5 text-[13px] font-semibold text-brand transition-colors duration-200 hover:bg-[#166aa3] hover:text-white focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                           onClick={async (e) => {
                             e.stopPropagation()
                             const o = await api.get<{ pending_receipt: { id: string } | null }>(`occupancies/${a.id}`).catch(() => null)

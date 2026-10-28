@@ -15,6 +15,7 @@ export interface PanelCtx {
   query: string
   setQuery: (q: string) => void
   today: string
+  userName: string
 }
 export const PanelContext = React.createContext<PanelCtx | null>(null)
 export function usePanel() {

@@ -10,10 +10,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: 'bg-primary text-primary-foreground hover:bg-primary-hover',
-        theme: 'bg-side text-white hover:bg-[color-mix(in_srgb,var(--side)_85%,#fff)]',
+        // Acción principal del portal: igual a la del panel (casi negra), la marca la ponen el logo y los acentos.
+        theme: 'bg-primary text-primary-foreground hover:bg-primary-hover',
         destructive: 'bg-bad text-white hover:bg-[color-mix(in_srgb,var(--bad)_88%,#000)]',
         outline: 'border border-border bg-card hover:bg-accent',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-[#e6e9ee]',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-accent',
         ghost: 'hover:bg-accent',
         link: 'h-auto px-0 text-foreground underline underline-offset-3 decoration-[color-mix(in_srgb,currentColor_35%,transparent)] hover:decoration-current',
       },
