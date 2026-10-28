@@ -12,7 +12,7 @@ import { Fig, Figs, legend, matchesQuery, pctBar, pctTone, SectionTitle, useOver
 import { useHistory, usePanel } from './data'
 
 export function HomePage({ portfolio }: { portfolio: Portfolio }) {
-  const { orgs, orgId, query } = usePanel()
+  const { orgs, orgId, query, userName } = usePanel()
   const receipt = useOverlay('comprobante')
   const alta = useOverlay('alta')
   const company = orgs.find((o) => o.id === orgId)?.name ?? ''
@@ -27,8 +27,9 @@ export function HomePage({ portfolio }: { portfolio: Portfolio }) {
     <div className="grid animate-enter gap-6">
       <header className="flex flex-wrap items-end justify-between gap-4 pt-2">
         <div>
-          <h1 className="text-[28px] leading-tight font-bold">Cartera de {company}</h1>
-          <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
+          <h1 className="text-[28px] leading-tight font-bold">Hola{userName ? `, ${userName}` : ''}</h1>
+          <p className="mt-1 text-[15px] text-ink-2">Esta es la vista general de tu cartera en {company}</p>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-muted-foreground">
             <span>{monthTitle(month)}</span>
             <span>{plural(buildings.length, 'edificio', 'edificios')}</span>
             <span>{plural(T.accounts, 'cuenta', 'cuentas')}</span>
@@ -74,7 +75,7 @@ export function HomePage({ portfolio }: { portfolio: Portfolio }) {
                       </span>
                     </span>
                     <span className="num text-[14px] font-semibold text-warn">{money(r.amount)}</span>
-                    <span className="hidden h-8 items-center gap-1.5 rounded-full bg-brand-soft px-3.5 text-[13px] font-semibold text-brand transition-colors duration-200 group-hover:bg-brand group-hover:text-white sm:inline-flex">
+                    <span className="hidden h-8 items-center gap-1.5 rounded-full bg-brand-soft px-3.5 text-[13px] font-semibold text-brand transition-colors duration-200 group-hover:bg-[#166aa3] group-hover:text-white sm:inline-flex">
                       Revisar <ArrowRightIcon className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
                     </span>
                   </button>

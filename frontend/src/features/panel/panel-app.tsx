@@ -1,14 +1,14 @@
 import * as React from 'react'
 import { Link, Route, Routes, useLocation, useMatch, useNavigate } from 'react-router'
-import { BellIcon, Building2Icon, CalendarCheckIcon, HistoryIcon, MessageSquareIcon, ChevronRightIcon, LayoutGridIcon, LogOutIcon, MenuIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
+import { Building2Icon, ChevronDownIcon, Clock3Icon, InboxIcon, CalendarCheckIcon, HistoryIcon, MessageSquareIcon, ChevronRightIcon, LayoutGridIcon, LogOutIcon, MenuIcon, PlusIcon, SearchIcon, XIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/form'
-import { Tooltip } from '@/components/ui/misc'
-import { ErrorState, PbMark, useDocumentTitle } from '@/components/shared'
+import { Popover, PopoverContent, PopoverTrigger, Tooltip } from '@/components/ui/misc'
+import { ErrorState, PbMark, SchemeSwitch, useDocumentTitle } from '@/components/shared'
 import { api } from '@/lib/api'
-import { initials } from '@/lib/format'
-import type { Me } from '@/lib/types'
+import { initials, money } from '@/lib/format'
+import type { Me, Portfolio } from '@/lib/types'
 import { cn, localToday, storage } from '@/lib/utils'
 import { FigsSkeleton, RowsSkeleton, useOverlay } from './bits'
 import { BuildingPage } from './building'
@@ -25,12 +25,6 @@ const ORG_KEY = 'gc-org'
 const NAV_KEY = 'gc-nav-open'
 
 export default function PanelApp({ me }: { me: Me }) {
-  // El panel usa la marca Planta Baja fija (sin temas): ver html.brand-pb en index.css.
-  React.useEffect(() => {
-    const root = document.documentElement
-    root.classList.add('brand-pb')
-    return () => root.classList.remove('brand-pb')
-  }, [])
   const orgsQ = useOrganizations()
   const [orgId, setOrgIdState] = React.useState<string | null>(null)
   const [query, setQuery] = React.useState('')
@@ -53,7 +47,7 @@ export default function PanelApp({ me }: { me: Me }) {
   if (!effectiveOrg) return <div className="p-8"><ErrorState message="Tu usuario no pertenece a ninguna administración." /></div>
 
   return (
-    <PanelContext.Provider value={{ orgId: effectiveOrg, orgs, setOrgId, query, setQuery, today: localToday() }}>
+    <PanelContext.Provider value={{ orgId: effectiveOrg, orgs, setOrgId, query, setQuery, today: localToday(), userName: me.first_name }}>
       <Shell me={me} />
     </PanelContext.Provider>
   )
@@ -62,7 +56,7 @@ export default function PanelApp({ me }: { me: Me }) {
 function Shell({ me }: { me: Me }) {
   const { orgId } = usePanel()
   const portfolio = usePortfolio(orgId)
-  const [navOpen, setNavOpen] = React.useState(() => storage.get(NAV_KEY) === '1')
+  const [navOpen, setNavOpen] = React.useState(() => storage.get(NAV_KEY) !== '0')
   const [mobileNav, setMobileNav] = React.useState(false)
   const location = useLocation()
   React.useEffect(() => setMobileNav(false), [location.pathname])
@@ -79,7 +73,7 @@ function Shell({ me }: { me: Me }) {
       {mobileNav ? <button type="button" aria-label="Cerrar menú" className="fixed inset-0 z-30 bg-[#0b1220]/35 lg:hidden" onClick={() => setMobileNav(false)} /> : null}
 
       <div className={cn('transition-[padding] duration-300 ease-out-soft lg:pl-[92px]', navOpen && 'lg:pl-[272px]')}>
-        <Topbar me={me} queueCount={portfolio.data?.receipt_queue.length ?? 0} firstReceipt={portfolio.data?.receipt_queue[0]?.id} onMenu={() => setMobileNav(true)} />
+        <Topbar me={me} portfolio={portfolio.data} onMenu={() => setMobileNav(true)} />
         <main className="mx-auto max-w-[1280px] px-4 pb-16 sm:px-6 lg:pr-8 lg:pl-0">
           {portfolio.error ? (
             <ErrorState message={portfolio.error.message} onRetry={() => portfolio.refetch()} />
@@ -155,7 +149,7 @@ function Sidebar({
         </div>
 
         <nav className="grid gap-1" aria-label="Principal">
-          {item('/panel', 'Cartera', <LayoutGridIcon />, queue, true)}
+          {item('/panel', 'Vista general', <LayoutGridIcon />, queue, true)}
           {item('/panel/agenda', 'Agenda', <CalendarCheckIcon />)}
           {item('/panel/comunicaciones', 'Comunicaciones', <MessageSquareIcon />, portfolio?.portfolio_totals.open_claims, false, 'Reclamos abiertos')}
           {item('/panel/historial', 'Historial', <HistoryIcon />)}
@@ -223,13 +217,100 @@ function NavItem({ to, label, icon, count, end, expanded, badgeTitle }: { to: st
       <span className="shrink-0 [&_svg]:size-[18px]">{icon}</span>
       <span className={cn('min-w-0 flex-1 truncate', !expanded && 'sr-only')}>{label}</span>
       {count ? (
-        <span title={badgeTitle} className={cn('num grid h-5 min-w-5 place-items-center rounded-full bg-[var(--brand-amber)] px-1.5 text-[11px] font-bold text-foreground', !expanded && 'absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px]')}>
+        <span title={badgeTitle} className={cn('num grid h-5 min-w-5 place-items-center rounded-full bg-[var(--brand-amber)] px-1.5 text-[11px] font-bold text-[#111827]', !expanded && 'absolute -top-1 -right-1 h-4 min-w-4 px-1 text-[10px]')}>
           {count}
         </span>
       ) : null}
     </Link>
   )
   return expanded ? link : <Tooltip content={label}>{link}</Tooltip>
+}
+
+/** Pendientes de la administración: comprobantes por validar y reclamos abiertos. */
+function Inbox({ portfolio }: { portfolio?: Portfolio }) {
+  const receipt = useOverlay('comprobante')
+  const navigate = useNavigate()
+  const [open, setOpen] = React.useState(false)
+  const queue = portfolio?.receipt_queue ?? []
+  const claims = portfolio?.portfolio_totals.open_claims ?? 0
+  const total = queue.length + claims
+  const go = (fn: () => void) => () => { setOpen(false); fn() }
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={total ? `${total} pendientes` : 'Sin pendientes'}
+          className="relative grid size-10 place-items-center rounded-xl text-ink-2 transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[state=open]:bg-accent"
+        >
+          <InboxIcon className="size-[19px]" />
+          {total ? (
+            <span className="num absolute -top-0.5 -right-0.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-[var(--brand-amber)] px-1 text-[10.5px] font-bold text-[#111827] ring-2 ring-background">{total}</span>
+          ) : null}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[340px] rounded-2xl p-1.5">
+        <p className="px-2.5 pt-2 pb-1.5 text-[13px] font-semibold">Pendientes</p>
+        {!total ? <p className="px-2.5 pb-3 text-[13px] text-muted-foreground">Nada por hacer. Todo validado y respondido.</p> : null}
+        {queue.slice(0, 5).map((r) => (
+          <button key={r.id} type="button" onClick={go(() => receipt.open(r.id))} className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-accent">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-warn-bg text-warn"><Clock3Icon className="size-4" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-medium">{r.person}</span>
+              <span className="block truncate text-xs text-muted-foreground">Comprobante · {r.building}, apto {r.unit}</span>
+            </span>
+            <span className="num text-[13px] font-semibold text-warn">{money(r.amount)}</span>
+          </button>
+        ))}
+        {queue.length > 5 ? (
+          <button type="button" onClick={go(() => navigate('/panel'))} className="w-full rounded-xl px-2.5 py-2 text-left text-xs font-medium text-brand hover:bg-accent">
+            Ver los {queue.length} comprobantes
+          </button>
+        ) : null}
+        {claims ? (
+          <button type="button" onClick={go(() => navigate('/panel/comunicaciones'))} className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition-colors hover:bg-accent">
+            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand-soft text-brand"><MessageSquareIcon className="size-4" /></span>
+            <span className="flex-1 text-[13px] font-medium">{claims === 1 ? '1 reclamo abierto' : `${claims} reclamos abiertos`}</span>
+            <ChevronRightIcon className="size-4 text-muted-foreground" />
+          </button>
+        ) : null}
+      </PopoverContent>
+    </Popover>
+  )
+}
+
+function AccountMenu({ name, email, company }: { name: string; email: string; company: string }) {
+  const row = 'flex h-9 w-full items-center gap-2.5 rounded-lg px-2.5 text-left text-[13px] font-medium transition-colors hover:bg-accent [&_svg]:size-4 [&_svg]:text-muted-foreground'
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="flex h-10 items-center gap-2.5 rounded-xl py-1 pr-2 pl-1 transition-colors hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none data-[state=open]:bg-accent"
+          aria-label={`Cuenta de ${name}`}
+        >
+          <span className="grid size-8 place-items-center rounded-[10px] bg-brand-soft text-[12px] font-bold text-brand" aria-hidden="true">{initials(name)}</span>
+          <span className="hidden text-left leading-tight sm:block">
+            <b className="block text-[13px] font-semibold">{name}</b>
+            <small className="block text-[11.5px] text-muted-foreground">{company}</small>
+          </span>
+          <ChevronDownIcon className="hidden size-4 text-muted-foreground sm:block" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 rounded-2xl p-1.5">
+        <div className="px-2.5 pt-2 pb-2.5">
+          <p className="text-[13px] font-semibold">{name}</p>
+          <p className="truncate text-xs text-muted-foreground">{email}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{company}</p>
+        </div>
+        <div className="my-1 h-px bg-line" />
+        <button type="button" className={cn(row, 'text-bad [&_svg]:text-bad')} onClick={() => api.logout()}>
+          <LogOutIcon />
+          Cerrar sesión
+        </button>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 function useMediaQuery(query: string) {
@@ -243,15 +324,13 @@ function useMediaQuery(query: string) {
   return match
 }
 
-function Topbar({ me, queueCount, firstReceipt, onMenu }: { me: Me; queueCount: number; firstReceipt?: string; onMenu: () => void }) {
+function Topbar({ me, portfolio, onMenu }: { me: Me; portfolio?: Portfolio; onMenu: () => void }) {
   const { orgs, orgId, setOrgId, query, setQuery } = usePanel()
-  const receipt = useOverlay('comprobante')
-  const navigate = useNavigate()
   const inBuilding = useMatch('/panel/edificio/:id/*')
   const company = orgs.find((o) => o.id === orgId)?.name ?? ''
   const userName = [me.first_name, me.last_name].filter(Boolean).join(' ')
   const wide = useMediaQuery('(min-width: 640px)')
-  useDocumentTitle(inBuilding ? 'Edificio · Administración' : 'Cartera · Administración')
+  useDocumentTitle(inBuilding ? 'Edificio · Administración' : 'Vista general · Administración')
 
   return (
     <header className="sticky top-0 z-20 mb-2 bg-background/85 backdrop-blur-md">
@@ -277,23 +356,9 @@ function Topbar({ me, queueCount, firstReceipt, onMenu }: { me: Me; queueCount: 
               {orgs.map((o) => <option key={o.id} value={o.id}>{o.name}</option>)}
             </NativeSelect>
           ) : null}
-          <Button
-            variant="outline"
-            size="icon"
-            className="relative"
-            aria-label={queueCount ? `${queueCount} comprobantes por validar` : 'Sin comprobantes por validar'}
-            onClick={() => (firstReceipt ? receipt.open(firstReceipt) : navigate('/panel'))}
-          >
-            <BellIcon />
-            {queueCount ? <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-bad ring-2 ring-card" /> : null}
-          </Button>
-          <div className="hidden items-center gap-2.5 pl-1 sm:flex">
-            <span className="grid size-9 place-items-center rounded-full bg-side text-xs font-bold text-white" aria-hidden="true">{initials(company)}</span>
-            <span className="leading-tight">
-              <b className="block text-[13px]">{company}</b>
-              <small className="text-[11.5px] text-muted-foreground">{userName || 'Administración'}</small>
-            </span>
-          </div>
+          <SchemeSwitch />
+          <Inbox portfolio={portfolio} />
+          <AccountMenu name={userName || 'Administración'} email={me.email} company={company} />
         </div>
       </div>
     </header>

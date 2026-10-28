@@ -5,7 +5,7 @@ import { LogOutIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NativeSelect } from '@/components/ui/form'
 import { Count, Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/misc'
-import { BrandMark, ErrorState, ROLE_LABEL, ThemePicker, useDocumentTitle, useTheme } from '@/components/shared'
+import { ErrorState, PbMark, ROLE_LABEL, SchemeSwitch, useDocumentTitle } from '@/components/shared'
 import { api } from '@/lib/api'
 import { date, money } from '@/lib/format'
 import type { Me } from '@/lib/types'
@@ -19,7 +19,6 @@ const TABS = ['liquidacion', 'comprobantes', 'avisos', 'reclamos'] as const
 type Tab = (typeof TABS)[number]
 
 export default function PortalApp({ me }: { me: Me }) {
-  const [theme, setTheme] = useTheme()
   const occupancies = React.useMemo(() => occupanciesOf(me), [me])
   const [occId, setOccId] = React.useState(() => {
     const saved = storage.get(OCC_KEY)
@@ -46,7 +45,7 @@ export default function PortalApp({ me }: { me: Me }) {
       <div className="mx-auto max-w-[1180px] px-4 pb-16 sm:px-6 lg:px-8">
         <header className="flex items-center justify-between gap-4 py-5">
           <div className="flex min-w-0 items-center gap-3">
-            <BrandMark />
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#0F2A3F]"><PbMark className="h-[22px] w-[25px]" /></span>
             <div className="min-w-0 leading-tight">
               {a ? (
                 <>
@@ -60,7 +59,7 @@ export default function PortalApp({ me }: { me: Me }) {
           </div>
           <div className="flex items-center gap-2">
             <span className="hidden text-[13px] text-muted-foreground sm:block">{date(today)}</span>
-            <ThemePicker theme={theme} onChange={setTheme} />
+            <SchemeSwitch />
             <Button variant="ghost" onClick={() => api.logout()} aria-label="Cerrar sesión">
               <LogOutIcon />
               <span className="hidden sm:inline">Cerrar sesión</span>

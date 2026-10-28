@@ -87,7 +87,7 @@ function MonthPicker({ months, statusOf, value, onChange, currentMonth }: { mont
                   className={cn(
                     'flex h-9 items-center justify-center gap-1.5 rounded-md text-[13px] transition-colors',
                     has ? 'hover:bg-accent' : 'cursor-default text-muted-foreground/40',
-                    k === value && 'bg-foreground font-semibold text-white hover:bg-foreground',
+                    k === value && 'bg-foreground font-semibold text-background hover:bg-foreground',
                   )}
                 >
                   {has ? <span className={cn('size-1.5 rounded-full', DOT[statusOf(k)][0])} aria-hidden="true" /> : null}
@@ -371,7 +371,7 @@ function Thread({ claimId, onBack, accountId }: { claimId: string; onBack: () =>
           </div>
           <div className="grid gap-3 rounded-lg bg-muted/50 p-4">
             {q.data.messages.map((m) => (
-              <div key={m.id} className={cn('max-w-[85%] rounded-xl px-3.5 py-2.5 text-[14px] leading-relaxed', m.from_admin ? 'justify-self-start rounded-bl-sm border border-border bg-card' : 'justify-self-end rounded-br-sm bg-side text-white')}>
+              <div key={m.id} className={cn('max-w-[85%] rounded-xl px-3.5 py-2.5 text-[14px] leading-relaxed', m.from_admin ? 'justify-self-start rounded-bl-sm border border-border bg-card' : 'justify-self-end rounded-br-sm bg-[#166aa3] text-white')}>
                 <p className={cn('mb-0.5 text-[11.5px]', m.from_admin ? 'text-muted-foreground' : 'text-white/70')}>{m.author} · {dateShort(m.date)}</p>
                 {m.text}
               </div>

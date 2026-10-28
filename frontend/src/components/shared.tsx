@@ -1,8 +1,7 @@
 import * as React from 'react'
-import { AlertCircleIcon, Building2Icon, CheckIcon, CircleCheckIcon, CircleDashedIcon, CircleMinusIcon, Clock3Icon, PaletteIcon } from 'lucide-react'
+import { AlertCircleIcon, CircleCheckIcon, CircleDashedIcon, CircleMinusIcon, Clock3Icon, MoonIcon, SunIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/misc'
 import type { AccountStatus, Role } from '@/lib/types'
 import { cn, storage } from '@/lib/utils'
 
@@ -57,81 +56,50 @@ export function StatusPill({ status, label }: { status: AccountStatus; label?: s
   return <Pill tone={tone}>{label ?? text}</Pill>
 }
 
-// ── Tema (compartido entre panel, portal y logins; persiste en localStorage) ──
-export const THEMES = [
-  ['lagoon', 'Lagoon', '#0e4a5e', '#12909f'],
-  ['noche', 'Azul noche', '#14233d', '#2a86bd'],
-  ['berenjena', 'Berenjena', '#3b1f45', '#1f9e80'],
-  ['bosque', 'Bosque', '#1d3b2f', '#a97a2b'],
-  ['grafito', 'Grafito', '#25282e', '#d9604f'],
-] as const
-export type ThemeId = (typeof THEMES)[number][0]
-const THEME_KEY = 'gc-theme'
+// ── Tema claro / noche (por navegador; index.html lo aplica antes de pintar) ──
+type Scheme = 'light' | 'dark'
+const SCHEME_KEY = 'pb-scheme'
+const readScheme = (): Scheme => (document.documentElement.classList.contains('dark') ? 'dark' : 'light')
 
-function readTheme(): ThemeId {
-  const saved = storage.get(THEME_KEY)
-  return (THEMES.find(([id]) => id === saved)?.[0] ?? 'lagoon') as ThemeId
-}
-
-/** Tema actual. Se aplica en <html data-theme> y se sincroniza entre pestañas. */
-export function useTheme(): [ThemeId, (id: ThemeId) => void] {
-  const [theme, setTheme] = React.useState<ThemeId>(readTheme)
+export function useScheme(): [Scheme, () => void] {
+  const [scheme, setScheme] = React.useState<Scheme>(readScheme)
   React.useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    const meta = document.querySelector('meta[name="theme-color"]')
-    meta?.setAttribute('content', THEMES.find(([id]) => id === theme)?.[2] ?? '#0e4a5e')
-  }, [theme])
+    document.documentElement.classList.toggle('dark', scheme === 'dark')
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', scheme === 'dark' ? '#0e1116' : '#0f2a3f')
+  }, [scheme])
   React.useEffect(() => {
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === THEME_KEY) setTheme(readTheme())
-    }
+    const onStorage = (e: StorageEvent) => e.key === SCHEME_KEY && setScheme(e.newValue === 'dark' ? 'dark' : 'light')
     window.addEventListener('storage', onStorage)
     return () => window.removeEventListener('storage', onStorage)
   }, [])
-  const choose = React.useCallback((id: ThemeId) => {
-    storage.set(THEME_KEY, id)
-    setTheme(id)
+  const toggle = React.useCallback(() => {
+    setScheme((s) => {
+      const next = s === 'dark' ? 'light' : 'dark'
+      storage.set(SCHEME_KEY, next)
+      return next
+    })
   }, [])
-  return [theme, choose]
+  return [scheme, toggle]
 }
 
-export function ThemePicker({ theme, onChange }: { theme: ThemeId; onChange: (id: ThemeId) => void }) {
+/** Un solo ícono: luna en el tema claro (pasa a noche), sol en el noche (pasa a claro). */
+export function SchemeSwitch({ className }: { className?: string }) {
+  const [scheme, toggle] = useScheme()
+  const dark = scheme === 'dark'
+  const label = dark ? 'Cambiar a tema claro' : 'Cambiar a tema noche'
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="icon" aria-label="Elegir tema de color" title="Tema">
-          <PaletteIcon />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-2">
-        <p className="px-2 pt-1 pb-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Tema de color</p>
-        <div role="radiogroup" aria-label="Tema de color" className="grid gap-0.5">
-          {THEMES.map(([id, label, side, acc]) => (
-            <button
-              key={id}
-              type="button"
-              role="radio"
-              aria-checked={theme === id}
-              onClick={() => onChange(id)}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors hover:bg-accent',
-                theme === id && 'bg-accent font-semibold',
-              )}
-            >
-              {/* Mini vista previa: barra lateral + página con acento */}
-              <span className="flex h-7 w-11 overflow-hidden rounded-[5px] border border-border" aria-hidden="true">
-                <span className="w-3" style={{ background: side }} />
-                <span className="flex flex-1 items-end bg-[#f4f5f7] p-1">
-                  <span className="h-1 w-full rounded-full" style={{ background: acc }} />
-                </span>
-              </span>
-              <span className="flex-1">{label}</span>
-              {theme === id ? <CheckIcon className="size-4" /> : null}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={label}
+      title={label}
+      className={cn(
+        'grid size-10 place-items-center rounded-xl text-ink-2 transition-colors duration-200 hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+        className,
+      )}
+    >
+      {dark ? <SunIcon className="size-[19px]" /> : <MoonIcon className="size-[19px]" />}
+    </button>
   )
 }
 
@@ -159,14 +127,6 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
         </Button>
       ) : null}
     </div>
-  )
-}
-
-export function BrandMark({ className }: { className?: string }) {
-  return (
-    <span className={cn('grid size-9 shrink-0 place-items-center rounded-[10px] bg-side text-accl', className)}>
-      <Building2Icon className="size-[18px]" strokeWidth={1.8} />
-    </span>
   )
 }
 
