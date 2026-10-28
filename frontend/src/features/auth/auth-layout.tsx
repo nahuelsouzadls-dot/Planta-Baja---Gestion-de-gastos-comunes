@@ -9,7 +9,7 @@ const POINTS = {
   resident: ['Tu liquidación del mes, con el detalle de cada gasto', 'Subí el comprobante de la transferencia desde el celular', 'Avisos del edificio y tus reclamos en un solo lugar'],
 }
 
-/** Pantallas de acceso: panel de marca (color del tema + vidrio líquido) y formulario. */
+/** Pantallas de acceso: panel de marca (azul noche con acentos amarillos) y formulario. */
 export function AuthLayout({
   audience,
   title,
@@ -31,13 +31,21 @@ export function AuthLayout({
           <span className="text-base font-bold tracking-[-0.02em]"><span className="text-[#53B2EC]">P</span>lanta <span className="text-[#53B2EC]">B</span>aja</span>
         </Link>
         <div className="hidden flex-1 flex-col justify-center lg:flex">
+          <span className="mb-5 inline-flex items-center gap-2 self-start rounded-full bg-[rgb(245_184_0/0.14)] px-3 py-1 text-xs font-semibold text-[#F5B800]">
+            <span className="size-1.5 rounded-full bg-[#F5B800]" aria-hidden="true" />
+            {audience === 'admin' ? 'Panel de administración' : 'Portal de residentes'}
+          </span>
           <p className="font-display text-[34px] leading-[1.1] font-bold text-balance">
-            {audience === 'admin' ? 'El mes de cada edificio, en orden.' : 'Tu edificio, al día y sin papeles.'}
+            {audience === 'admin' ? (
+              <>El mes de cada edificio, <span className="text-[#F5B800]">en orden.</span></>
+            ) : (
+              <>Tu edificio, <span className="text-[#F5B800]">al día</span> y sin papeles.</>
+            )}
           </p>
           <ul className="mt-8 grid gap-3.5">
             {POINTS[audience].map((p) => (
               <li key={p} className="flex items-start gap-3 text-[15px] text-white/85">
-                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-white/15">
+                <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-[#F5B800] text-[#0F2A3F]">
                   <CheckIcon className="size-3" strokeWidth={3} />
                 </span>
                 {p}
@@ -45,12 +53,16 @@ export function AuthLayout({
             ))}
           </ul>
         </div>
-        <p className="hidden text-xs text-white/60 lg:block">Montevideo, Uruguay · Ley 10.751 de Propiedad Horizontal</p>
+        <p className="hidden items-center gap-2 text-xs text-white/60 lg:flex">
+          <span className="h-px w-6 bg-[#F5B800]" aria-hidden="true" />
+          Montevideo, Uruguay · Ley 10.751 de Propiedad Horizontal
+        </p>
       </aside>
 
       <main className="relative flex flex-1 items-start justify-center px-5 pt-10 pb-10 sm:px-8 lg:items-center lg:pt-10">
         <SchemeSwitch className="absolute top-4 right-4" />
         <div className="w-full max-w-[380px] animate-enter">
+          <span className="mb-4 block h-1 w-10 rounded-full bg-[var(--brand-amber)]" aria-hidden="true" />
           <h1 className="text-[26px] font-bold">{title}</h1>
           <p className="mt-1.5 text-[14px] text-muted-foreground">{lead}</p>
           <div className="mt-7">{children}</div>
