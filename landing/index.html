@@ -92,20 +92,20 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 .nav-open .mmenu a{opacity:1;transform:none}
 @media(max-width:800px){.nav{padding:0 24px}.nav-links{display:none}.nav-toggle{display:block}}
 
-/* ── ASCENSOR DOT MATRIX ── */
-.elevator{position:fixed;right:max(20px,env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:250;display:flex;flex-direction:column;align-items:center;border:1.5px solid var(--ink-30);border-radius:10px;padding:12px 8px 8px;background:var(--bg);box-shadow:0 0 0 1px var(--border);width:52px}
-.dm-label{font-size:6px;font-weight:700;letter-spacing:.13em;color:var(--ink-50);margin-bottom:8px}
-.dm-visor{position:relative;background:rgba(11,13,26,.05);border-radius:4px;padding:4px;border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;width:36px;margin-bottom:12px}
-#dmSvg{display:block}
-.dm-sep{width:100%;height:1px;background:var(--border);margin-bottom:8px}
-.dm-btns{display:flex;flex-direction:column;gap:8px;align-items:center}
-.dm-btn{width:32px;height:24px;border-radius:4px;border:1.5px solid var(--border);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .3s var(--ease),background .3s var(--ease),transform .3s var(--ease);padding:0}
-.dm-btn:hover{border-color:var(--ink-30)}
-.dm-btn:active{transform:scale(.94)}
-.dm-btn.active{border-color:var(--lift);background:rgba(245,184,0,.08)}
-@media(max-width:1100px){.elevator{display:none}}
-/* El indicador de piso ocupa el borde derecho: las secciones le dejan lugar. */
-@media(min-width:1101px){body .s-pad,body .s-cta,body .tagline{padding-right:max(112px,var(--gutter))}}
+/* ── Visor del ascensor junto al isologo: placa de acero cepillado con pantalla y LED ámbar ── */
+.lift{display:inline-flex;margin:0 auto 0 16px;padding:3px;border-radius:7px;border:1px solid #A9AFB6;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.2) 0 1px,rgba(0,0,0,.025) 1px 3px),linear-gradient(180deg,#EEF0F2 0%,#CDD2D7 55%,#E2E5E8 100%);
+  box-shadow:0 2px 6px rgba(11,13,26,.12),inset 0 1px 0 rgba(255,255,255,.8);transition:box-shadow .4s var(--ease)}
+.lift-screen{position:relative;display:flex;align-items:center;gap:6px;height:26px;padding:0 7px;border-radius:4px;background:#0D0E0B;overflow:hidden;box-shadow:inset 0 2px 4px rgba(0,0,0,.7)}
+.lift-screen::after{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 45%);pointer-events:none}
+.lift-arr{display:block;animation:liftBlink 1.1s steps(1) infinite;transition:transform .3s var(--ease)}
+.lift.up .lift-arr{transform:rotate(180deg)}
+.lift.moving .lift-arr{animation-duration:.45s}
+@keyframes liftBlink{50%{opacity:.15}}
+#liftNum{display:block}
+.lift.ding{animation:liftDing .7s var(--ease)}
+@keyframes liftDing{30%{box-shadow:0 2px 6px rgba(11,13,26,.12),0 0 0 3px rgba(255,176,0,.35),inset 0 1px 0 rgba(255,255,255,.8)}}
+@media(max-width:800px){.lift{margin:0 12px 0 auto}}
 
 /* ── HERO ── */
 .hero{min-height:100vh;min-height:100svh;display:flex;flex-direction:column;justify-content:center;padding:calc(64px + 48px) var(--gutter) 80px;position:relative;overflow:hidden}
@@ -457,6 +457,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
   .stair-step,.pc,.reveal,.mmenu a{opacity:1!important;transform:none!important}
   .tagline .w{opacity:1}
   .sk::after{animation:none}
+  .lift-arr{animation:none!important}
   .bb,.ev,.cw-th.enter,.typing{animation:none!important}
   .fv-scene{transition:none!important}
 }
@@ -494,6 +495,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
       <div class="nav-sub">Gestión de edificios</div>
     </div>
   </a>
+  <div class="lift" id="lift" aria-hidden="true"><div class="lift-screen"><svg class="lift-arr" id="liftArr" xmlns="http://www.w3.org/2000/svg"></svg><svg id="liftNum" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
   <nav class="nav-links" aria-label="Principal">
     <a class="nav-link" href="#pain">El problema</a>
     <a class="nav-link" href="#como">Cómo funciona</a>
@@ -511,16 +513,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
   </nav>
 </header>
 
-<!-- ASCENSOR: indica la sección actual como un piso -->
-<aside class="elevator" aria-label="Indicador de sección">
-  <div class="dm-label" aria-hidden="true">PISO</div>
-  <div class="dm-visor"><svg id="dmSvg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Piso 7"></svg></div>
-  <div class="dm-sep"></div>
-  <div class="dm-btns">
-    <button class="dm-btn" id="dmBtnUp" aria-label="Sección anterior"><svg id="dmBtnUpSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg></button>
-    <button class="dm-btn active" id="dmBtnDown" aria-label="Sección siguiente"><svg id="dmBtnDownSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg></button>
-  </div>
-</aside>
+
 
 <main id="main" tabindex="-1">
 
@@ -538,6 +531,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
       <div class="hero-proof" aria-label="Lo que incluye">
         <span>Prorrateo por coeficiente</span>
         <span>PDF y Excel siempre</span>
+        <span>Agenda del día integrada</span>
         <span>Un mes gratis</span>
       </div>
     </div>
@@ -797,6 +791,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
         <li><span class="pl-dash" aria-hidden="true">—</span>Validación de comprobantes contra tu banco</li>
         <li><span class="pl-dash" aria-hidden="true">—</span>Portal del residente, también en el celular</li>
         <li><span class="pl-dash" aria-hidden="true">—</span>Avisos y reclamos con registro</li>
+        <li><span class="pl-dash" aria-hidden="true">—</span>Agenda integrada: tareas, visitas y vencimientos de cada edificio</li>
         <li><span class="pl-dash" aria-hidden="true">—</span>Varios edificios en un mismo panel</li>
         <li><span class="pl-dash" aria-hidden="true">—</span>Exportación a Excel y PDF, siempre</li>
       </ul>
@@ -830,6 +825,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
       <details class="faq-item"><summary>¿Cómo calcula el reparto?</summary><p>Por el coeficiente de copropiedad de cada unidad, según el reglamento del edificio y la Ley 10.751. Cargás el gasto una vez y el sistema lo reparte. Si alguien se muda a mitad de mes, se prorratea por días.</p></details>
       <details class="faq-item"><summary>¿Qué pasa con mis datos si dejo de usarlo?</summary><p>Son tuyos. Los podés exportar a Excel y PDF en cualquier momento, y si te das de baja te entregamos una copia completa.</p></details>
       <details class="faq-item"><summary>¿Cuánto cuesta?</summary><p>Es una suscripción mensual fija por administración, sin costo por residente. El precio depende de cuántos edificios manejás; te lo pasamos en la demo. El primer mes es gratis.</p></details>
+      <details class="faq-item"><summary>¿Me ayuda a organizar el día?</summary><p>Sí. Tiene una agenda integrada: anotás tareas y visitas (el técnico, la limpieza de tanques, un vencimiento) por edificio, con fecha, y cada mañana ves qué toca hoy y qué vence mañana. Cuando un reclamo necesita una visita, la agendás desde el mismo hilo.</p></details>
       <details class="faq-item"><summary>¿Sirve si manejo varios edificios?</summary><p>Sí. Ves todos en un panel, con lo cobrado y lo pendiente de cada uno, y cada edificio tiene sus datos separados.</p></details>
     </div>
   </div>
@@ -914,7 +910,45 @@ const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* ── Nav: fondo al scrollear (con rAF), menú móvil y sección actual ── */
 const nav=$('nav');
 let navTick=false;
-addEventListener('scroll',()=>{if(navTick)return;navTick=true;requestAnimationFrame(()=>{nav.classList.toggle('scrolled',scrollY>30);navTick=false})},{passive:true});
+function onScroll(){nav.classList.toggle('scrolled',scrollY>30);navTick=false}
+addEventListener('scroll',()=>{if(navTick)return;navTick=true;requestAnimationFrame(onScroll)},{passive:true});
+onScroll();
+
+/* ── Visor del ascensor junto al isologo: LED de puntos, flecha que parpadea siempre
+   y cuenta piso por piso hasta planta baja, como uno real. ── */
+(function(){
+  const lift=$('lift'),num=$('liftNum'),arr=$('liftArr');
+  const TOP=7,LED='#FFB000',LED_OFF='rgba(255,176,0,0.12)';
+  const G={'1':[4,12,4,4,4,4,14],'2':[14,17,1,2,4,8,31],'3':[31,2,4,2,1,17,14],'4':[2,6,10,18,31,2,2],'5':[31,16,30,1,1,17,14],'6':[6,8,16,30,17,17,14],'7':[31,1,2,4,8,8,8],'P':[30,17,17,30,16,16,16],'B':[30,17,17,30,17,17,30],'V':[0,0,31,14,4,0,0]};
+  const DEFS='<defs><filter id="ledGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation=".8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+  function dots(bits,x0,D,Gp,off){
+    const S=D*2+Gp;let o='';
+    for(let r=0;r<7;r++)for(let c=0;c<5;c++){const on=(bits[r]>>(4-c))&1;if(!on&&off==='none')continue;o+=`<circle cx="${x0+c*S+D}" cy="${r*S+D}" r="${D}" fill="${on?LED:LED_OFF}"${on?' filter="url(#ledGlow)"':''}/>`}
+    return o;
+  }
+  const D=1.3,GP=.6,S=D*2+GP,CW=5*S-GP,CH=7*S-GP,CG=2;
+  function show(f){
+    const two=f===0,w=two?2*CW+CG:CW;
+    num.setAttribute('width',w);num.setAttribute('height',CH);num.setAttribute('viewBox',`0 0 ${w} ${CH}`);
+    num.innerHTML=DEFS+(two?dots(G.P,0,D,GP)+dots(G.B,CW+CG,D,GP):dots(G[String(f)],0,D,GP));
+    lift.setAttribute('title',two?'Planta baja':'Piso '+f);
+  }
+  (function(){const d=1,gp=.5,st=d*2+gp,w=5*st-gp,h=7*st-gp;arr.setAttribute('width',w);arr.setAttribute('height',h);arr.setAttribute('viewBox',`0 0 ${w} ${h}`);arr.innerHTML=DEFS+dots(G.V,0,d,gp,'none')})();
+
+  let shown=TOP,target=TOP,stepT=0,lastY=scrollY;
+  show(shown);
+  const floorAt=()=>{const max=document.documentElement.scrollHeight-innerHeight;return Math.round((1-(max>0?Math.min(scrollY/max,1):0))*TOP)};
+  function step(){
+    if(shown===target){lift.classList.remove('moving','ding');void lift.offsetWidth;lift.classList.add('ding');return}
+    shown+=shown>target?-1:1;show(shown);stepT=setTimeout(step,reduceMotion?0:320);
+  }
+  addEventListener('scroll',()=>{
+    const y=scrollY,t=floorAt();
+    if(y!==lastY)lift.classList.toggle('up',y<lastY);
+    lastY=y;
+    if(t!==target){target=t;lift.classList.add('moving');clearTimeout(stepT);stepT=setTimeout(step,reduceMotion?0:120)}
+  },{passive:true});
+})();
 
 const toggle=$('navToggle'),mmenu=$('mmenu');
 function setMenu(open){
@@ -1117,7 +1151,7 @@ function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=te
       setStep(1,N,'La administración responde');await typeIn('Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.',id);
       bubble('me','Confort S.A.','Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.');await wait(500,id);
       setStep(2,N,'El reclamo pasa a En proceso');setStatus('proc',th);await wait(900,id);
-      setStep(3,N,'Queda agendado como tarea');add(el('div','ev task','Tarea creada · Técnico de humedad · jueves 24, 10:00'));await wait(1400,id);
+      setStep(3,N,'Queda en la agenda');add(el('div','ev task','Agendado · Técnico de humedad · jueves 24, 10:00'));await wait(1400,id);
       setStep(4,N,'Dos días después');add(el('div','ev time','2 días después'));await wait(1000,id);
       setStep(5,N,'Se informa el arreglo');await typeIn('Listo: se selló la junta de la azotea y se pintó la pared.',id);
       bubble('me','Confort S.A.','Listo: se selló la junta de la azotea y se pintó la pared.',{label:'pasillo_reparado.jpg',after:true});await wait(1200,id);
@@ -1133,7 +1167,7 @@ function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=te
   function staticView(){reset();const th=el('li','cw-th on','<b>Humedad en el pasillo del 2.º piso</b><small>Pedro Martínez · 202</small><span class="st st-ok">Resuelto</span>');list.prepend(th);
     bubble('them','Pedro · 202','Hola, hay una mancha de humedad que crece al lado del ascensor del 2.º piso.',{label:'foto_pasillo.jpg'});
     bubble('me','Confort S.A.','Gracias, Pedro. Mañana a las 10 va el técnico a revisar la azotea.');
-    add(el('div','ev task','Tarea creada · Técnico de humedad · jueves 24, 10:00'));
+    add(el('div','ev task','Agendado · Técnico de humedad · jueves 24, 10:00'));
     bubble('me','Confort S.A.','Listo: se selló la junta de la azotea y se pintó la pared.',{label:'pasillo_reparado.jpg',after:true});
     bubble('them','Pedro · 202','Quedó perfecto. Muchas gracias.');setStatus('ok');setStep(1,1,'Reclamo resuelto')}
 
@@ -1174,57 +1208,7 @@ function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=te
   },{threshold:.3}).observe($('como'));
 })();
 
-/* ── Ascensor: cada sección es un piso, del 7 a planta baja ── */
-const secciones=['hero','pain','como','planes','faq','cta','legal','footer'];
-const pisos=['7','6','5','4','3','2','1','PB'];
-const GLYPHS={
-  '0':[31,17,17,17,17,17,31],'1':[4,12,4,4,4,4,14],'2':[31,1,1,31,16,16,31],'3':[31,1,1,31,1,1,31],
-  '4':[17,17,17,31,1,1,1],'5':[31,16,16,31,1,1,31],'6':[31,16,16,31,17,17,31],'7':[31,1,2,4,8,8,8],
-  '8':[31,17,17,31,17,17,31],'9':[31,17,17,31,1,1,31],'P':[30,17,17,30,16,16,16],'B':[30,17,17,30,17,17,30],
-  'ARR_D':[0,0,17,10,4,0,0],'ARR_U':[0,0,4,10,17,0,0]
-};
-const LIFT='#F5B800',LIFT_DIM='rgba(245,184,0,0.07)';
-function dots(bits,x0,y0,D,G){
-  const S=D*2+G;let out='';
-  for(let r=0;r<7;r++)for(let c=0;c<5;c++){
-    const on=(bits[r]>>(4-c))&1;
-    out+=`<circle cx="${x0+c*S+D}" cy="${y0+r*S+D}" r="${D}" fill="${on?LIFT:LIFT_DIM}"${on?' filter="url(#glow)"':''}/>`;
-  }
-  return out;
-}
-const svg=$('dmSvg');
-const DOT=3,GAP=1.4,STEP=DOT*2+GAP,CW=5*STEP-GAP,CH=7*STEP-GAP,CG=5;
-function renderDisplay(piso,dir){
-  const chars=piso==='PB'?['P','B']:[piso];
-  const w=2*CW+CG,h=CH*2+GAP*2;
-  svg.setAttribute('width',w);svg.setAttribute('height',h);svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-  svg.setAttribute('aria-label',piso==='PB'?'Planta baja':'Piso '+piso);
-  let body='<defs><filter id="glow" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="1.8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
-  if(chars.length===1)body+=dots(GLYPHS[chars[0]],CW*.5+CG*.5,0,DOT,GAP);
-  else{body+=dots(GLYPHS.P,0,0,DOT,GAP);body+=dots(GLYPHS.B,CW+CG,0,DOT,GAP)}
-  body+=dots(GLYPHS[dir==='up'?'ARR_U':'ARR_D'],CW*.5+CG*.5,CH+GAP*2,DOT,GAP);
-  svg.innerHTML=body;
-}
-function renderBtn(el,key){
-  const D=2,G=1,S=D*2+G,W=5*S-G,H=7*S-G;
-  el.setAttribute('width',W);el.setAttribute('height',H);el.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  el.innerHTML=dots(GLYPHS[key],0,0,D,G).replace(/ filter="url\(#glow\)"/g,'');
-}
-renderBtn($('dmBtnUpSvg'),'ARR_U');renderBtn($('dmBtnDownSvg'),'ARR_D');
-let lastIdx=0;
-renderDisplay(pisos[0],'down');
-function setFloor(id){
-  const idx=secciones.indexOf(id);if(idx<0||idx===lastIdx)return;
-  const dir=idx>lastIdx?'down':'up';
-  $('dmBtnDown').classList.toggle('active',dir==='down'&&idx<secciones.length-1);
-  $('dmBtnUp').classList.toggle('active',dir==='up'&&idx>0);
-  lastIdx=idx;renderDisplay(pisos[idx],dir);
-}
-function go(d){const n=Math.max(0,Math.min(secciones.length-1,lastIdx+d));$(secciones[n]).scrollIntoView({behavior:reduceMotion?'auto':'smooth'})}
-$('dmBtnUp').addEventListener('click',()=>go(-1));
-$('dmBtnDown').addEventListener('click',()=>go(1));
-const floorObs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)setFloor(e.target.id)}),{rootMargin:'-38% 0px -38% 0px'});
-secciones.forEach(id=>floorObs.observe($(id)));
+
 })();
 </script>
 </body>
