@@ -7,6 +7,7 @@ import { Toaster } from 'sonner'
 import './index.css'
 import { TooltipProvider } from '@/components/ui/misc'
 import { RequireRole, RootRedirect } from '@/app/session'
+import { Splash } from '@/components/shared'
 import { AcceptInvitationPage, LoginPage, RecoverPasswordPage, ResetPasswordPage } from '@/features/auth/pages'
 
 const PanelApp = lazy(() => import('@/features/panel/panel-app'))
@@ -40,7 +41,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={250}>
-        <Suspense fallback={null}>
+        <Suspense fallback={<Splash />}>
           <RouterProvider router={router} />
         </Suspense>
         <Toaster

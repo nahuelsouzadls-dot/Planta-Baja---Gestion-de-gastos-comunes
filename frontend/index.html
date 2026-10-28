@@ -6,12 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f2a3f" />
     <title>Planta Baja</title>
+    <style>
+      /* Pantalla de carga con la marca: se ve antes de que cargue el JS y la reusa la app (Splash). */
+      html { background: #fff; }
+      html.dark { background: #0e1116; color-scheme: dark; }
+      .pb-splash { position: fixed; inset: 0; display: grid; place-items: center; }
+      .pb-splash svg { width: 44px; height: 38px; }
+      .pb-splash g { animation: pb-step 1.2s cubic-bezier(.22,1,.36,1) infinite; opacity: .25; }
+      .pb-splash g:nth-child(2) { animation-delay: .15s }
+      .pb-splash g:nth-child(3) { animation-delay: .3s }
+      .pb-splash g:nth-child(4) { animation-delay: .45s }
+      @keyframes pb-step { 0%, 100% { opacity: .25 } 40% { opacity: 1 } }
+      @media (prefers-reduced-motion: reduce) { .pb-splash g { animation: none; opacity: 1 } }
+    </style>
     <script>
       try { if (localStorage.getItem('pb-scheme') === 'dark') document.documentElement.classList.add('dark') } catch (e) {}
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root"><div class="pb-splash" aria-busy="true" aria-label="Cargando"><svg viewBox="0 0 32 28" aria-hidden="true"><g><rect x="1" y="2" width="8" height="3.2" rx=".6" fill="#53B2EC"/><rect x="6.6" y="5.2" width="2.4" height="2.8" fill="#2E95D6"/></g><g><rect x="8" y="8" width="8" height="3.2" rx=".6" fill="#53B2EC"/><rect x="13.6" y="11.2" width="2.4" height="2.8" fill="#2E95D6"/></g><g><rect x="15" y="14" width="8" height="3.2" rx=".6" fill="#53B2EC"/><rect x="20.6" y="17.2" width="2.4" height="2.8" fill="#2E95D6"/></g><g><rect x="22" y="20" width="8" height="3.2" rx=".6" fill="#F5B800"/><rect x="27.6" y="23.2" width="2.4" height="4" fill="#C89200"/></g></svg></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

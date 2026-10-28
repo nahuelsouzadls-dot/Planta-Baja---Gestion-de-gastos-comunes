@@ -137,6 +137,15 @@ export function useDocumentTitle(title: string) {
   }, [title])
 }
 
+/** Pantalla de carga: la escalerita que se enciende escalón por escalón (estilos en index.html). */
+export function Splash() {
+  return (
+    <div className="pb-splash bg-background" aria-busy="true" aria-label="Cargando">
+      <PbMark />
+    </div>
+  )
+}
+
 /** Escalerita de Planta Baja (la de la landing), redibujada para tamaño ícono:
  * tres escalones celestes con el contraescalón más oscuro y el último en ámbar (planta baja). */
 export function PbMark({ className }: { className?: string; onDark?: boolean }) {
