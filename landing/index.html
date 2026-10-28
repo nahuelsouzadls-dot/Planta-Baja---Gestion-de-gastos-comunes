@@ -12,10 +12,30 @@
 <meta property="og:description" content="Liquidaciones, cobros y comprobantes en un solo lugar. Los residentes suben el comprobante desde el celular; vos validás contra el banco.">
 <meta name="twitter:card" content="summary">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230D3B5C'/%3E%3Cpath d='M6 9h7v5h6v5h7v4H6z' fill='%2353B2EC'/%3E%3Crect x='19' y='19' width='7' height='4' fill='%23F5B800'/%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<!-- Fuente propia (Plus Jakarta Sans, OFL): un archivo variable 400–800, sin conexiones a terceros. -->
+<link rel="preload" href="fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script>document.documentElement.classList.add('is-loading')</script>
 <style>
+@font-face{font-family:'Plus Jakarta Sans';font-style:normal;font-weight:400 800;font-display:swap;src:url(fonts/plus-jakarta-sans-latin.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+/* ── Skeleton de carga: aparece solo si la fuente tarda más de 150 ms (en conexiones rápidas no se ve) ── */
+.skel{display:none;position:fixed;inset:0;z-index:2000;background:var(--bg);pointer-events:none}
+html.is-loading .skel{display:block;opacity:0;animation:skIn .2s var(--ease) .15s forwards}
+@keyframes skIn{to{opacity:1}}
+.skel-nav{height:64px;display:flex;align-items:center;gap:12px;padding:0 var(--gutter)}
+.skel-links{margin-left:auto;display:flex;gap:24px;align-items:center}
+.skel-hero{padding:112px var(--gutter) 0;display:grid;gap:16px;max-width:760px}
+.sk{display:block;border-radius:8px;background:var(--bg2);position:relative;overflow:hidden}
+.sk::after{content:'';position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:skShine 1.4s infinite}
+@keyframes skShine{to{transform:translateX(100%)}}
+.sk-logo{width:28px;height:26px}.sk-brand{width:120px;height:32px}
+.sk-link{width:72px;height:12px}.sk-cta{width:128px;height:34px;border-radius:24px;background:#CDE7F8}
+.sk-pill{width:280px;height:24px;border-radius:20px;margin-bottom:8px}
+.sk-h{height:72px;width:min(560px,90%)}.sk-h.short{width:min(420px,70%);background:#CDE7F8}
+.sk-p{height:16px;width:min(520px,92%)}.sk-p.short{width:min(360px,64%)}
+.sk-btns{display:flex;gap:12px;margin-top:16px}.sk-b1{width:150px;height:48px;border-radius:28px;background:#CDE7F8}.sk-b2{width:170px;height:48px;border-radius:28px}
+@media(max-width:800px){.skel-links .sk-link{display:none}.skel-nav{padding:0 24px}.skel-hero{padding:96px 24px 0}.sk-h{height:48px}}
+/* Lo que está más abajo se renderiza cuando se acerca a la pantalla. */
+#planes,#faq,#legal,.s-cta{content-visibility:auto;contain-intrinsic-size:auto 900px}
 /* ── PALETA: CELESTE #53B2EC + ÁMBAR ──
    acc = marca (rellenos, barras, íconos) · acc-d = hover · acc-t = texto azul legible sobre claro
    acc-dd = azul medio para texto blanco · acc-l = fondos suaves */
@@ -436,12 +456,17 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
   *,*::before,*::after{animation:none!important;transition-duration:.01ms!important}
   .stair-step,.pc,.reveal,.mmenu a{opacity:1!important;transform:none!important}
   .tagline .w{opacity:1}
+  .sk::after{animation:none}
   .bb,.ev,.cw-th.enter,.typing{animation:none!important}
   .fv-scene{transition:none!important}
 }
 </style>
 </head>
 <body>
+<div class="skel" id="skel" aria-hidden="true">
+  <div class="skel-nav"><i class="sk sk-logo"></i><i class="sk sk-brand"></i><span class="skel-links"><i class="sk sk-link"></i><i class="sk sk-link"></i><i class="sk sk-link"></i><i class="sk sk-link"></i><i class="sk sk-cta"></i></span></div>
+  <div class="skel-hero"><i class="sk sk-pill"></i><i class="sk sk-h"></i><i class="sk sk-h"></i><i class="sk sk-h short"></i><i class="sk sk-p" style="margin-top:16px"></i><i class="sk sk-p"></i><i class="sk sk-p short"></i><div class="sk-btns"><i class="sk sk-b1"></i><i class="sk sk-b2"></i></div></div>
+</div>
 <a class="skip" href="#main">Saltar al contenido</a>
 
 <!-- NAV -->
@@ -864,6 +889,22 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
   <div class="ft-copy">© 2026 Planta Baja. Todos los derechos reservados.</div>
 </footer>
 
+<script>
+/* Fin de la carga: cuando la fuente está lista (o a los 1,5 s como máximo) el skeleton se va con un fundido. */
+(function(){
+  const d=document.documentElement;
+  function done(){
+    if(!d.classList.contains('is-loading'))return;
+    const s=document.getElementById('skel');
+    if(!s||getComputedStyle(s).opacity==='0'){d.classList.remove('is-loading');return}
+    s.style.opacity=getComputedStyle(s).opacity;s.style.animation='none';s.offsetWidth;
+    s.style.transition='opacity .3s cubic-bezier(.22,1,.36,1)';s.style.opacity='0';
+    setTimeout(()=>{d.classList.remove('is-loading');s.removeAttribute('style')},320);
+  }
+  const font=document.fonts&&document.fonts.load?document.fonts.load('800 1em "Plus Jakarta Sans"'):Promise.resolve();
+  Promise.race([font,new Promise((r)=>setTimeout(r,1500))]).then(done,done);
+})();
+</script>
 <script>
 (function(){
 'use strict';
