@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { AlertCircleIcon, CircleCheckIcon, CircleDashedIcon, CircleMinusIcon, Clock3Icon, MoonIcon, SunIcon } from 'lucide-react'
+import { useRouteError } from 'react-router'
+import { AlertCircleIcon, CircleCheckIcon, CircleDashedIcon, CircleMinusIcon, Clock3Icon, MoonIcon, RotateCcwIcon, SunIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import type { AccountStatus, Role } from '@/lib/types'
@@ -126,6 +127,35 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
           Reintentar
         </Button>
       ) : null}
+    </div>
+  )
+}
+
+/** Pantalla de error del router (errorElement): cuando algo revienta al renderizar,
+ * mostramos esto en vez de la pantalla cruda de React Router. */
+export function RouteError() {
+  const error = useRouteError()
+  React.useEffect(() => {
+    // Queda en la consola para poder diagnosticar; el residente ve el mensaje amable.
+    console.error('Error de la aplicación:', error)
+  }, [error])
+  const home = () => { window.location.href = '/' }
+  return (
+    <div className="grid min-h-dvh place-items-center bg-background px-6">
+      <div className="w-full max-w-sm text-center">
+        <span className="mx-auto mb-5 grid size-14 place-items-center rounded-2xl bg-[#0F2A3F]"><PbMark className="h-7 w-8" /></span>
+        <h1 className="text-[20px] font-bold">Se nos complicó algo</h1>
+        <p className="mx-auto mt-2 max-w-[42ch] text-[14px] leading-relaxed text-muted-foreground">
+          Tuvimos un problema para mostrar esta pantalla. Probá recargar; si sigue pasando, volvé al inicio y avisale a la administración.
+        </p>
+        <div className="mt-6 flex justify-center gap-2">
+          <Button onClick={() => window.location.reload()}>
+            <RotateCcwIcon />
+            Recargar
+          </Button>
+          <Button variant="outline" onClick={home}>Volver al inicio</Button>
+        </div>
+      </div>
     </div>
   )
 }

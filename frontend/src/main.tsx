@@ -1,13 +1,13 @@
 import { StrictMode, lazy, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
-import { createBrowserRouter, RouterProvider } from 'react-router'
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 
 import './index.css'
 import { TooltipProvider } from '@/components/ui/misc'
 import { RequireRole, RootRedirect } from '@/app/session'
-import { Splash } from '@/components/shared'
+import { RouteError, Splash } from '@/components/shared'
 import { AcceptInvitationPage, LoginPage, RecoverPasswordPage, ResetPasswordPage } from '@/features/auth/pages'
 
 const PanelApp = lazy(() => import('@/features/panel/panel-app'))
@@ -20,21 +20,28 @@ const queryClient = new QueryClient({
 })
 
 const router = createBrowserRouter([
-  { path: '/', element: <RootRedirect /> },
-  { path: '/ingresar', element: <LoginPage audience="resident" /> },
-  { path: '/ingresar/administracion', element: <LoginPage audience="admin" /> },
-  { path: '/recuperar-contrasena', element: <RecoverPasswordPage /> },
-  { path: '/restablecer-contrasena', element: <ResetPasswordPage /> },
-  { path: '/aceptar-invitacion', element: <AcceptInvitationPage /> },
   {
-    path: '/panel/*',
-    element: <RequireRole role="employee">{(me) => <PanelApp me={me} />}</RequireRole>,
+    // Layout sin path: una sola pantalla de error (errorElement) cubre toda la app.
+    element: <Outlet />,
+    errorElement: <RouteError />,
+    children: [
+      { path: '/', element: <RootRedirect /> },
+      { path: '/ingresar', element: <LoginPage audience="resident" /> },
+      { path: '/ingresar/administracion', element: <LoginPage audience="admin" /> },
+      { path: '/recuperar-contrasena', element: <RecoverPasswordPage /> },
+      { path: '/restablecer-contrasena', element: <ResetPasswordPage /> },
+      { path: '/aceptar-invitacion', element: <AcceptInvitationPage /> },
+      {
+        path: '/panel/*',
+        element: <RequireRole role="employee">{(me) => <PanelApp me={me} />}</RequireRole>,
+      },
+      {
+        path: '/portal/*',
+        element: <RequireRole role="resident">{(me) => <PortalApp me={me} />}</RequireRole>,
+      },
+      { path: '*', element: <RootRedirect /> },
+    ],
   },
-  {
-    path: '/portal/*',
-    element: <RequireRole role="resident">{(me) => <PortalApp me={me} />}</RequireRole>,
-  },
-  { path: '*', element: <RootRedirect /> },
 ])
 
 createRoot(document.getElementById('root')!).render(

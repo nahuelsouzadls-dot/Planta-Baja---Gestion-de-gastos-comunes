@@ -48,21 +48,21 @@ function MonthPicker({ months, statusOf, value, onChange, currentMonth }: { mont
   const [dot] = DOT[statusOf(value)]
 
   return (
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="icon" aria-label="Mes anterior" disabled={i >= months.length - 1} onClick={() => onChange(months[i + 1])}>
+    <div className="flex w-full items-center gap-2 sm:w-auto">
+      <Button variant="outline" size="icon" className="shrink-0" aria-label="Mes anterior" disabled={i >= months.length - 1} onClick={() => onChange(months[i + 1])}>
         <ChevronLeftIcon />
       </Button>
       <Popover open={open} onOpenChange={(o) => { setOpen(o); if (o) setYear(Number(value.slice(0, 4))) }}>
         <PopoverTrigger asChild>
-          <Button variant="outline" className="min-w-52 justify-between font-semibold" aria-haspopup="listbox">
-            <span className="flex items-center gap-2.5">
-              <span className={cn('size-2 rounded-full', dot)} aria-hidden="true" />
-              {monthTitle(value)}
+          <Button variant="outline" className="min-w-0 flex-1 justify-between font-semibold sm:min-w-52 sm:flex-none" aria-haspopup="listbox">
+            <span className="flex min-w-0 items-center gap-2.5">
+              <span className={cn('size-2 shrink-0 rounded-full', dot)} aria-hidden="true" />
+              <span className="truncate">{monthTitle(value)}</span>
             </span>
-            <ChevronDownIcon className="text-muted-foreground" />
+            <ChevronDownIcon className="shrink-0 text-muted-foreground" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent align="start" className="w-72">
+        <PopoverContent align="start" className="w-72 max-w-[calc(100vw-2rem)]">
           <div className="mb-2 flex items-center justify-between">
             <Button variant="ghost" size="icon-sm" aria-label="Año anterior" disabled={year <= curYear - YEARS_BACK} onClick={() => setYear(year - 1)}>
               <ChevronLeftIcon />
@@ -129,7 +129,7 @@ export function LiquidacionTab({ account, currentMonth }: { account: PortalAccou
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between sm:gap-4">
         <div>
           <h2 className="text-lg font-bold">Liquidación de {monthLong(month)}</h2>
           <p className="mt-0.5 text-[13px] text-muted-foreground">
