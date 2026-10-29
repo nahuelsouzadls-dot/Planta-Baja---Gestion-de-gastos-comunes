@@ -130,11 +130,11 @@ function readPasswords(form: HTMLFormElement): [string | null, string] {
   return [password, '']
 }
 
-function NewPasswordFields() {
+function NewPasswordFields({ autoFocus = true }: { autoFocus?: boolean }) {
   return (
     <>
       <Field label="Nueva contraseña" htmlFor="password" hint={`Mínimo ${MIN_PASSWORD} caracteres.`}>
-        <PasswordInput id="password" name="password" autoComplete="new-password" minLength={MIN_PASSWORD} autoFocus />
+        <PasswordInput id="password" name="password" autoComplete="new-password" minLength={MIN_PASSWORD} autoFocus={autoFocus} />
       </Field>
       <Field label="Repetila" htmlFor="repeat">
         <PasswordInput id="repeat" name="repeat" autoComplete="new-password" minLength={MIN_PASSWORD} />
@@ -246,9 +246,9 @@ export function AcceptInvitationPage() {
     setStep('password')
   })
 
-  const accept = useSubmit(async (password: string) => {
+  const accept = useSubmit(async (email: string, password: string) => {
     if (!stub) {
-      await api.post('invitations/accept', token ? { token, password } : { code, password }, { noRedirect: true })
+      await api.post('invitations/accept', token ? { token, email, password } : { code, email, password }, { noRedirect: true })
     }
     setStep('install')
   })
@@ -287,8 +287,8 @@ export function AcceptInvitationPage() {
   return (
     <AuthLayout
       audience="resident"
-      title="Elegí tu contraseña"
-      lead={invite ? `Es el último paso para entrar al apartamento ${invite.unit}.` : 'Elegí una contraseña para entrar de ahora en adelante.'}
+      title="Completá tus datos"
+      lead={invite ? `Último paso para entrar al apartamento ${invite.unit}: tu correo y una contraseña.` : 'Ingresá tu correo y elegí una contraseña para entrar.'}
       footer={backToLogin}
     >
       <form
@@ -296,9 +296,11 @@ export function AcceptInvitationPage() {
         noValidate
         onSubmit={(e) => {
           e.preventDefault()
+          const email = String(new FormData(e.currentTarget).get('email') || '').trim()
           const [password, msg] = readPasswords(e.currentTarget)
+          if (!email) return accept.setError('Escribí tu correo.')
           if (!password) return accept.setError(msg)
-          accept.run(password)
+          accept.run(email, password)
         }}
       >
         {invite ? (
@@ -310,7 +312,10 @@ export function AcceptInvitationPage() {
             </div>
           </div>
         ) : null}
-        <NewPasswordFields />
+        <Field label="Tu correo electrónico" htmlFor="email" hint="El mismo que le diste a la administración.">
+          <Input id="email" name="email" type="email" autoComplete="username" placeholder="nombre@correo.com" className="h-10" autoFocus />
+        </Field>
+        <NewPasswordFields autoFocus={false} />
         <FormError>{accept.error}</FormError>
         <Submit busy={accept.busy}>Activar cuenta</Submit>
       </form>
