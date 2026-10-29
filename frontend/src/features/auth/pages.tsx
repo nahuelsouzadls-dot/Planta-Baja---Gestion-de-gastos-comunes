@@ -1,13 +1,14 @@
 import * as React from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 import { useQueryClient } from '@tanstack/react-query'
-import { CheckCircle2Icon, Loader2Icon } from 'lucide-react'
+import { CheckCircle2Icon, EllipsisVerticalIcon, Loader2Icon, ShareIcon, SquarePlusIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Field, FormError, Input } from '@/components/ui/form'
 import { useDocumentTitle } from '@/components/shared'
 import { api } from '@/lib/api'
 import type { Me } from '@/lib/types'
+import { cn } from '@/lib/utils'
 import { AuthLayout, PasswordInput } from './auth-layout'
 
 const MIN_PASSWORD = 10
@@ -209,30 +210,183 @@ export function ResetPasswordPage() {
   )
 }
 
+interface Invite {
+  unit: string
+  building: string
+}
+
+/** Valida el código contra el backend (TODO Copilot: endpoint `invitations/lookup`).
+ * En preview (dev) devuelve una unidad de muestra para ver el flujo sin backend. */
+async function lookupInvite(code: string, stub: boolean): Promise<Invite> {
+  if (stub) return { unit: '204', building: 'Edificio Minas' }
+  return api.post<Invite>('invitations/lookup', { code }, { noRedirect: true })
+}
+
+/** Onboarding de invitación: código → confirmar unidad → contraseña → instalar la app.
+ * El mail lo cargó la administración al crear al residente; el código asocia a la persona
+ * con su unidad. Si el correo trae un link con ?token=, se saltea el paso del código. */
 export function AcceptInvitationPage() {
   useDocumentTitle('Activar tu cuenta')
   const [params] = useSearchParams()
   const goHome = useGoHome()
-  const { busy, error, setError, run } = useSubmit(async (password: string) => {
-    await api.post('invitations/accept', { token: params.get('token') || '', password }, { noRedirect: true })
-    await goHome('/ingresar')
+  const token = params.get('token') || ''
+  // Preview en dev: ?preview=code (desde el código) o ?preview=install (último paso).
+  const previewParam = import.meta.env.DEV ? params.get('preview') : null
+  const stub = previewParam === 'code' || previewParam === 'install'
+
+  const [step, setStep] = React.useState<'code' | 'password' | 'install'>(
+    previewParam === 'install' ? 'install' : previewParam === 'code' ? 'code' : token ? 'password' : 'code',
+  )
+  const [invite, setInvite] = React.useState<Invite | null>(null)
+  const [code, setCode] = React.useState('')
+
+  const lookup = useSubmit(async (value: string) => {
+    setInvite(await lookupInvite(value, stub))
+    setCode(value)
+    setStep('password')
   })
+
+  const accept = useSubmit(async (password: string) => {
+    if (!stub) {
+      await api.post('invitations/accept', token ? { token, password } : { code, password }, { noRedirect: true })
+    }
+    setStep('install')
+  })
+
+  if (step === 'install') {
+    return (
+      <AuthLayout audience="resident" title="¡Listo, cuenta activada!" lead="Un último paso opcional: instalá la app en tu celular para entrar con un toque.">
+        <InstallApp onContinue={() => goHome('/ingresar')} />
+      </AuthLayout>
+    )
+  }
+
+  if (step === 'code') {
+    return (
+      <AuthLayout audience="resident" title="Activá tu cuenta" lead="Ingresá el código que te envió la administración por correo." footer={backToLogin}>
+        <form
+          className="grid gap-4"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault()
+            const value = String(new FormData(e.currentTarget).get('code') || '').trim()
+            if (!value) return lookup.setError('Escribí el código que te enviaron.')
+            lookup.run(value)
+          }}
+        >
+          <Field label="Código de invitación" htmlFor="code" hint="Lo recibiste por correo de la administración.">
+            <Input id="code" name="code" inputMode="text" autoComplete="one-time-code" autoFocus placeholder="Ej.: 840 215" className="num h-12 text-center text-[20px] font-semibold tracking-[0.25em]" />
+          </Field>
+          <FormError>{lookup.error}</FormError>
+          <Submit busy={lookup.busy}>Continuar</Submit>
+        </form>
+      </AuthLayout>
+    )
+  }
+
   return (
-    <AuthLayout audience="resident" title="Activá tu cuenta" lead="Elegí una contraseña para entrar de ahora en adelante." footer={backToLogin}>
+    <AuthLayout
+      audience="resident"
+      title="Elegí tu contraseña"
+      lead={invite ? `Es el último paso para entrar al apartamento ${invite.unit}.` : 'Elegí una contraseña para entrar de ahora en adelante.'}
+      footer={backToLogin}
+    >
       <form
         className="grid gap-4"
         noValidate
         onSubmit={(e) => {
           e.preventDefault()
           const [password, msg] = readPasswords(e.currentTarget)
-          if (!password) return setError(msg)
-          run(password)
+          if (!password) return accept.setError(msg)
+          accept.run(password)
         }}
       >
+        {invite ? (
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-3.5 py-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-brand-soft text-[13px] font-bold text-brand">{invite.unit}</span>
+            <div className="text-[13px] leading-tight">
+              <p className="font-semibold">Apartamento {invite.unit}</p>
+              <p className="text-muted-foreground">{invite.building}</p>
+            </div>
+          </div>
+        ) : null}
         <NewPasswordFields />
-        <FormError>{error}</FormError>
-        <Submit busy={busy}>Activar cuenta</Submit>
+        <FormError>{accept.error}</FormError>
+        <Submit busy={accept.busy}>Activar cuenta</Submit>
       </form>
     </AuthLayout>
+  )
+}
+
+// ── Instalar la app (PWA): instrucciones según iPhone / Android ─────────
+const INSTALL = {
+  ios: {
+    label: 'iPhone',
+    note: 'Abrí esta página en Safari.',
+    steps: [
+      { Icon: ShareIcon, text: <>Tocá el botón <b className="text-foreground">Compartir</b> en la barra de abajo.</> },
+      { Icon: SquarePlusIcon, text: <>Bajá y elegí <b className="text-foreground">Agregar a inicio</b>.</> },
+      { Icon: CheckCircle2Icon, text: <>Tocá <b className="text-foreground">Agregar</b>. Queda como una app en tu pantalla.</> },
+    ],
+  },
+  android: {
+    label: 'Android',
+    note: 'Abrí esta página en Chrome.',
+    steps: [
+      { Icon: EllipsisVerticalIcon, text: <>Tocá el menú <b className="text-foreground">⋮</b> arriba a la derecha.</> },
+      { Icon: SquarePlusIcon, text: <>Elegí <b className="text-foreground">Instalar app</b> (o <b className="text-foreground">Agregar a pantalla de inicio</b>).</> },
+      { Icon: CheckCircle2Icon, text: <>Confirmá <b className="text-foreground">Instalar</b>. Queda como una app en tu pantalla.</> },
+    ],
+  },
+} as const
+
+function detectOS(): 'ios' | 'android' {
+  return /android/i.test(navigator.userAgent) ? 'android' : 'ios'
+}
+
+/** Paso de onboarding: cómo instalar la PWA. Detecta el sistema y permite cambiarlo. */
+function InstallApp({ onContinue }: { onContinue: () => void }) {
+  const [os, setOs] = React.useState<'ios' | 'android'>(detectOS)
+  const info = INSTALL[os]
+  return (
+    <div className="grid gap-5">
+      <div role="tablist" aria-label="Tu teléfono" className="grid grid-cols-2 gap-1 rounded-xl border border-border p-1">
+        {(['ios', 'android'] as const).map((k) => (
+          <button
+            key={k}
+            type="button"
+            role="tab"
+            aria-selected={os === k}
+            onClick={() => setOs(k)}
+            className={cn('rounded-lg py-2 text-[13px] font-semibold transition-colors', os === k ? 'bg-foreground text-background' : 'text-ink-2 hover:bg-accent')}
+          >
+            {INSTALL[k].label}
+          </button>
+        ))}
+      </div>
+
+      <ol className="grid gap-3">
+        {info.steps.map(({ Icon, text }, i) => (
+          <li key={i} className="flex items-center gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
+              <Icon className="size-[18px]" />
+            </span>
+            <span className="text-[14px] leading-snug text-ink-2">
+              <b className="text-foreground">{i + 1}.</b> {text}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <p className="flex items-center gap-2 rounded-lg bg-acc-soft px-3 py-2 text-[12.5px] text-[color-mix(in_srgb,var(--acc)_75%,#000)]">
+        <span className="size-1.5 shrink-0 rounded-full bg-[var(--brand-amber)]" aria-hidden="true" />
+        {info.note}
+      </p>
+
+      <Button size="lg" className="mt-1 w-full" onClick={onContinue}>Entrar a la app</Button>
+      <button type="button" onClick={onContinue} className="text-[13px] text-muted-foreground underline underline-offset-3 transition-colors hover:text-foreground">
+        Lo instalo después, entrar ahora
+      </button>
+    </div>
   )
 }

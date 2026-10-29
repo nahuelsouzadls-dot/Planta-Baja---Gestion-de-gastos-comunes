@@ -22,6 +22,7 @@ Escritas por Claude el 2026-10-24, mientras Copilot (cuota mensual) y agy (cuota
 | 16 | `A1.md` — backoffice del dueño del SaaS (etapa 1: comando de alta + admin de Django; etapas 2 y 3 diseñadas) | R1 | `backend/apps/accounts/`, `admin.py`, más adelante `frontend/` | Pedido de Nahuel (2026-10-28) |
 | 17 | `B1.md` — Ayuda ("?") con manual interno y buscador "Buscar o preguntar" sin IA | H1 (opcional) | `frontend/src/features/help/`, `api/v1/search.py` | Pedido de Nahuel (2026-10-28); manual en `frontend/src/features/help/manual.md` |
 | 18 | `S1.md` — reservas de espacios comunes (portal + Agenda del panel) | un cliente que lo pida | `backend/apps/` (nueva app), portal, panel | Idea de Nahuel (2026-10-28); reglas según reglamento de cada edificio |
+| 19 | `I1.md` — invitación por código (activación del residente): backend | — | `backend/apps/accounts/`, `invitations/`, `api/v1/panel.py` | Pedido de Nahuel (2026-10-28); el **front ya está hecho** (código→unidad→contraseña→instalar app); falta disparar/validar el código y asociar persona↔unidad |
 
 Antes de abrir a residentes reales: revisión de seguridad independiente de todo lo nuevo (como `docs/auditorias/`), texto de privacidad (Ley 18.331) y piloto con la administración (`docs/plan-mvp.md`, sección F).
 > Formato O-A-R-S (ver ../README.md). Las pendientes viejas se convierten al despacharlas.
