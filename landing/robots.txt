@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://plantabaja-405.netlify.app/sitemap.xml
