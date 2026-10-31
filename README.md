@@ -60,3 +60,7 @@ del cliente están en `design/DISENO.md`. El Django admin queda en `http://local
 ## Caso de uso inicial
 
 **Confort S.A.** — administradora de un edificio de 12 apartamentos en Montevideo, Uruguay. Opera con Scotiabank para el cobro de expensas.
+
+## Licencia
+
+Material propietario, publicado solo con fines de evaluación. Ver [`LICENSE`](LICENSE).

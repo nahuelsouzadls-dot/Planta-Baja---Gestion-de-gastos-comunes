@@ -46,29 +46,17 @@ El caso de uso inicial es **Confort S.A.**, administradora de un edificio de **1
 
 ---
 
-## Stack — DECISIÓN PENDIENTE DE CONFIRMAR
+## Stack
 
-Hay una tensión entre el blueprint original y el PRD extendido. Antes de escribir código, confirmar con el usuario cuál es el stack elegido:
-
-### Opción A — Blueprint original (`arquitectura.md`)
-- **Backend:** Python + Django (con panel de admin nativo para Confort S.A.)
-- **BD:** PostgreSQL
-- **Storage:** Cloudflare R2 o Supabase Storage
+- **Backend:** Python 3.12 + Django 5.x + Django REST Framework
+- **BD:** PostgreSQL 16
+- **Storage:** Cloudflare R2 (MinIO en desarrollo)
 - **Async:** Celery + Redis (PDFs, emails masivos)
-- **Infra:** Render o DigitalOcean con Docker
-- **Email:** Resend o Brevo
+- **Frontend:** React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui en `frontend/` (ADR-0018); Django sirve el build
+- **Infra:** Docker Compose (desarrollo) · Railway (producción)
+- **Email:** Resend (producción) · Mailpit (desarrollo)
 
-### Opción B — PRD Extendido (Claude Doc, Sección 4)
-- **Backend:** Node.js 22 LTS + TypeScript + Fastify 4.x
-- **ORM:** Prisma 5.x
-- **BD:** PostgreSQL 16 (con RLS)
-- **Frontend:** Next.js 14 (App Router) + shadcn/ui + Tailwind
-- **Auth:** NextAuth.js v5
-- **Storage:** Cloudflare R2
-- **Infra:** Vercel (frontend) + Railway (API) + Neon (PostgreSQL serverless)
-- **Email:** Resend
-
-**Contexto:** Django ofrece el panel de admin nativo que puede servir directamente a Confort S.A. sin construir un frontend de admin. Node/TypeScript es más flexible para portal de residentes con mejor DX. Una opción intermedia es Django para el panel admin + API REST, y Next.js solo para el portal de residentes.
+El detalle y los porqués de cada decisión están más abajo en «Decisiones confirmadas» y en `docs/` (ADRs).
 
 ---
 
@@ -115,7 +103,7 @@ administracion-gc/
 ├── arquitectura.md     ← blueprint original
 ├── agents.md           ← system prompt auditor técnico
 ├── .github/copilot-instructions.md ← reglas que Copilot carga automáticamente
-├── backend/            ← por crear (Django o Fastify según decisión de stack)
+├── backend/            ← Django (modelos, API REST, seed data)
 ├── frontend/           ← app React + Vite + shadcn/ui (ADR-0018); Django sirve su build
 └── docs/               ← diagramas adicionales, ADRs
 ```
@@ -124,6 +112,7 @@ administracion-gc/
 
 ## Decisiones confirmadas
 
+- **Nombre comercial:** Planta Baja ✅
 - **Stack:** Python 3.12 + Django 5.x + PostgreSQL 16 + Celery + Redis + Cloudflare R2 ✅
 - **Deploy:** Railway ✅
 - **Front:** React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui en `frontend/` (ADR-0018, reemplaza al ADR-0002). Panel, portal y pantallas de acceso. Mantiene la dirección visual aprobada por el cliente en `design/DISENO.md` (tokens en `frontend/src/index.css`). ✅
@@ -132,6 +121,5 @@ administracion-gc/
 
 ## Lo que NO está decidido aún
 
-- Nombre comercial del producto
 - Precio de la suscripción mensual
 - Estrategia de onboarding para residentes mayores (considerando baja tech literacy)

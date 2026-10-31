@@ -1,5 +1,6 @@
 # Claude Code
 .claude/
+.agents/
 
 # macOS
 .DS_Store
@@ -21,6 +22,9 @@ backend/.env.production
 
 # Liquidaciones (documentos reales de clientes)
 liquidaciones/
+
+# Recursos de marca / material visual (pesado, no es parte del código)
+plantabaja recursos visuales/
 
 # Node
 node_modules/
