@@ -69,7 +69,7 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 .nav{position:fixed;top:env(safe-area-inset-top,0px);left:0;right:0;z-index:300;display:flex;align-items:center;justify-content:space-between;padding:0 var(--gutter);height:64px;transition:background .3s var(--ease),box-shadow .3s var(--ease)}
 .nav.scrolled{background:rgba(244,241,236,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 1px 0 var(--border)}
 .nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-.nav-wordmark{font-size:20px;font-weight:800;letter-spacing:-.6px;color:var(--ink)}
+.nav-wordmark{font-size:20px;font-weight:800;letter-spacing:.2px;color:var(--ink)}
 .nav-wordmark em{color:var(--acc-d);font-style:normal}.ft-wm em{color:var(--acc);font-style:normal}
 .nav-sub{font-size:12px;font-weight:600;color:var(--ink-50);margin-top:1px}
 .nav-links{display:flex;align-items:center;gap:24px}
@@ -138,6 +138,7 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 .stair-step{opacity:0;transform:translateX(-12px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 .stair-step.vis{opacity:1;transform:none}
 @media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-stair{display:none}.hero{padding:calc(64px + 48px) 24px 64px}}
+@media(max-width:600px){.hero::before{display:none}.hero{padding:96px 20px 56px}.hero-h1{font-size:clamp(32px,9vw,52px);letter-spacing:-1.2px;margin-bottom:20px}.hero-h1 .ht{letter-spacing:-1px}.hero-body{font-size:16px;line-height:24px}.hero-body-more{display:none}.hero-proof{margin-top:24px}.hero-proof span:nth-child(2),.hero-proof span:nth-child(3){display:none}}
 
 /* ── SECCIONES ── */
 .s-pad{padding:96px var(--gutter)}
@@ -374,6 +375,11 @@ a,button,input,select,textarea,[tabindex]{-webkit-tap-highlight-color:transparen
 .faq-item summary::after{content:'';flex-shrink:0;width:12px;height:12px;border-right:2px solid var(--acc);border-bottom:2px solid var(--acc);transform:translateY(-3px) rotate(45deg);transition:transform .5s var(--ease)}
 .faq-item[open] summary::after{transform:translateY(3px) rotate(-135deg)}
 .faq-item p{padding:0 24px 24px;font-size:14px;line-height:20px;color:var(--ink-60);font-weight:500}
+html{interpolate-size:allow-keywords}
+@media(hover:hover){.faq-item{transition:border-color .3s var(--ease),box-shadow .3s var(--ease)}.faq-item:hover{box-shadow:0 12px 30px -14px rgba(11,13,26,.22)}}
+.faq-item::details-content{height:0;overflow:hidden;opacity:0;transition:height .4s var(--ease),opacity .35s var(--ease),content-visibility .4s allow-discrete;transition-behavior:allow-discrete}
+.faq-item[open]::details-content{height:auto;opacity:1}
+@media(prefers-reduced-motion:reduce){.faq-item::details-content{transition:none}}
 @media(max-width:900px){.faq-wrap{grid-template-columns:1fr;gap:32px}}
 
 /* CTA + formulario */
@@ -422,7 +428,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
 .ft-piso{font-size:12px;font-weight:700;color:var(--lift);letter-spacing:.15em;margin-bottom:32px;display:flex;align-items:center;gap:12px}
 .ft-piso::before,.ft-piso::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.1)}
 .ft-main{display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap;margin-bottom:32px}
-.ft-wm{font-size:20px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:-.5px;margin-bottom:4px}
+.ft-wm{font-size:20px;font-weight:800;color:rgba(255,255,255,.9);letter-spacing:.2px;margin-bottom:4px}
 .ft-tagline{font-size:12px;color:rgba(255,255,255,.5);font-weight:500}
 .ft-links{display:flex;gap:24px;flex-wrap:wrap;align-items:center}
 .ft-link{font-size:12px;color:rgba(255,255,255,.55);text-decoration:none;font-weight:600;transition:color .3s var(--ease)}
@@ -499,7 +505,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
       <polygon points="139,149 163,136 187,149 163,161" fill="#53B2EC"/>
     </svg>
     <div>
-      <div class="nav-wordmark"><em>P</em>lanta <em>B</em>aja</div>
+      <div class="nav-wordmark"><em>P</em>lanta<em>B</em>aja</div>
       <div class="nav-sub">Gestión de edificios</div>
     </div>
   </a>
@@ -531,7 +537,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
     <div>
       <p class="hero-pre">Para administradores de edificios · Uruguay</p>
       <h1 class="hero-h1" id="hero-h">Gestión<br>de edificios<br><span class="ht">sin caos.</span></h1>
-      <p class="hero-body"><b>Liquidaciones, cobros y comunicaciones</b> en un solo lugar. Los residentes ven su saldo y suben el comprobante <strong>desde el celular</strong>. Vos lo <b>validás</b> contra el banco y seguís.</p>
+      <p class="hero-body"><b>Liquidaciones, cobros y comunicaciones</b> en un solo lugar.<span class="hero-body-more"> Los residentes ven su saldo y suben el comprobante <strong>desde el celular</strong>. Vos lo <b>validás</b> contra el banco y seguís.</span></p>
       <div class="hero-btns">
         <a class="btn-p" href="#cta">Pedir una demo</a>
         <a class="btn-o" href="#como">Ver cómo funciona</a>
@@ -863,6 +869,7 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
         <div class="lead-error" id="leadError" role="alert" hidden></div>
         <button class="btn-dark" type="submit" id="leadSubmit">Pedir demo y cotización</button>
         <p class="lead-note">Te respondemos en un día hábil. O escribinos a <a href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a></p>
+        <p class="lead-note">Al enviar aceptás que usemos tus datos solo para contactarte y cotizarte, según nuestra <a href="legal.html">política de privacidad</a> (Ley 18.331).</p>
       </div>
     </div>
     <div class="lead-done" id="leadDone" role="status" hidden tabindex="-1">
@@ -872,24 +879,14 @@ footer{background:var(--ink2);padding:48px var(--gutter);padding-bottom:calc(48p
   </form>
 </section>
 
-<!-- LEGAL -->
-<section id="legal" class="s-pad s-bg2" aria-labelledby="legal-h">
-  <p class="legal-pre">Información legal · Borrador</p>
-  <h2 class="legal-h" id="legal-h">Privacidad, datos y cookies</h2>
-  <div class="legal-cols">
-    <div class="lb"><p><b>Protección de datos personales.</b> Planta Baja trata los datos personales solo para prestar el servicio, conforme a la Ley N.° 18.331 de Protección de Datos Personales y Acción de Habeas Data (Uruguay).</p><p><b>Titularidad de los datos.</b> Los datos de cada edificio son del administrador. Se pueden exportar en cualquier momento y, en caso de baja, el administrador recibe una copia completa.</p></div>
-    <div class="lb"><p><b>Cookies.</b> Solo usamos cookies estrictamente necesarias para el funcionamiento del servicio (inicio de sesión). No hay cookies de seguimiento publicitario.</p><p><b>Seguridad.</b> La información viaja cifrada por HTTPS y los accesos están separados por rol. Este texto es un borrador y no constituye una política legalmente vinculante.</p></div>
-  </div>
-</section>
-
 </main>
 
 <!-- FOOTER: PLANTA BAJA -->
 <footer id="footer">
   <div class="ft-piso" aria-hidden="true">PLANTA BAJA</div>
   <div class="ft-main">
-    <div><div class="ft-wm"><em>P</em>lanta <em>B</em>aja</div><div class="ft-tagline">Gestión de edificios · Uruguay</div></div>
-    <nav class="ft-links" aria-label="Pie de página"><a class="ft-link" href="#legal">Privacidad y cookies</a><a class="ft-link" href="#faq">Preguntas frecuentes</a><a class="ft-link" href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a><a class="ft-link" href="#hero">Volver arriba ↑</a></nav>
+    <div><div class="ft-wm"><em>P</em>lanta<em>B</em>aja</div><div class="ft-tagline">Gestión de edificios · Uruguay</div></div>
+    <nav class="ft-links" aria-label="Pie de página"><a class="ft-link" href="legal.html">Privacidad y cookies</a><a class="ft-link" href="#faq">Preguntas frecuentes</a><a class="ft-link" href="mailto:hola@plantabaja.uy">hola@plantabaja.uy</a><a class="ft-link" href="#hero">Volver arriba ↑</a></nav>
   </div>
   <div class="ft-copy">© 2026 Planta Baja. Todos los derechos reservados.</div>
 </footer>
@@ -979,7 +976,7 @@ const navObs=new IntersectionObserver(entries=>{entries.forEach(e=>{
   if(!e.isIntersecting)return;
   navLinks.forEach(a=>{if(a.getAttribute('href')==='#'+e.target.id)a.setAttribute('aria-current','true');else a.removeAttribute('aria-current')});
 })},{rootMargin:'-45% 0px -50% 0px'});
-["hero","pain","lema","como","planes","faq","cta","legal"].forEach(id=>navObs.observe($(id)));
+["hero","pain","lema","como","planes","faq","cta"].forEach(id=>navObs.observe($(id)));
 
 /* ── Reveals (una sola vez) ── */
 function revealOnce(nodes,cls,opts,delay){
@@ -1219,6 +1216,14 @@ function done(text){$('leadFields').hidden=true;$('leadDoneText').textContent=te
 
 
 })();
+
+/* FAQ: abrir al pasar el mouse (el click sigue funcionando en touch) */
+if(matchMedia('(hover:hover)').matches){
+  document.querySelectorAll('.faq-item').forEach(d=>{
+    d.addEventListener('mouseenter',()=>{d.open=true});
+    d.addEventListener('mouseleave',()=>{d.open=false});
+  });
+}
 </script>
 </body>
 </html>
