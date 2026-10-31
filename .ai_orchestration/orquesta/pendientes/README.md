@@ -23,6 +23,7 @@ Escritas por Claude el 2026-10-24, mientras Copilot (cuota mensual) y agy (cuota
 | 17 | `B1.md` — Ayuda ("?") con manual interno y buscador "Buscar o preguntar" sin IA | H1 (opcional) | `frontend/src/features/help/`, `api/v1/search.py` | Pedido de Nahuel (2026-10-28); manual en `frontend/src/features/help/manual.md` |
 | 18 | `S1.md` — reservas de espacios comunes (portal + Agenda del panel) | un cliente que lo pida | `backend/apps/` (nueva app), portal, panel | Idea de Nahuel (2026-10-28); reglas según reglamento de cada edificio |
 | 19 | `I1.md` — invitación por código (activación del residente): backend | — | `backend/apps/accounts/`, `invitations/`, `api/v1/panel.py` | Pedido de Nahuel (2026-10-28); el **front ya está hecho** (código→unidad→contraseña→instalar app); falta disparar/validar el código y asociar persona↔unidad |
+| 20 | `C5.md` — datos editables de la unidad desde el panel (`owner_lives_here`, `note`) | — | `backend/apps/buildings/`, `api/v1/panel.py`, front `panel/` | Rescatada de la rama `feature/cuotas-confort` (tag `archivo/cuotas-confort-2026-10-24`, commit `bdab8b1`); hay backend de referencia, el front se rehace en React. **Sin** cuotas fijas (descartadas por Nahuel 2026-10-31) |
 
 Antes de abrir a residentes reales: revisión de seguridad independiente de todo lo nuevo (como `docs/auditorias/`), texto de privacidad (Ley 18.331) y piloto con la administración (`docs/plan-mvp.md`, sección F).
 > Formato O-A-R-S (ver ../README.md). Las pendientes viejas se convierten al despacharlas.
