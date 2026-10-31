@@ -14,6 +14,20 @@
 - **Panel de administración:** cartera de morosos, validación de pagos, avisos y comunicación bidireccional.
 - **Contingencia analógica:** exportación a PDF y Excel siempre disponible (requisito del cliente).
 
+## Capturas
+
+**Panel de administración** — cartera del edificio de un vistazo:
+
+![Panel de administración](docs/screenshots/panel-cartera.png)
+
+**Portal del residente** (móvil) — cuenta corriente y liquidación del mes:
+
+<p>
+  <img src="docs/screenshots/portal-inicio.png" alt="Portal del residente — inicio" width="260" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/portal-liquidacion.png" alt="Portal del residente — liquidación" width="260" />
+</p>
+
 ## Stack
 
 | Capa | Tecnología |
